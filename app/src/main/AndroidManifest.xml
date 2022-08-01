@@ -22,14 +22,49 @@
         android:theme="@style/AppTheme">
 
         <activity
-            android:name=".MainActivity"
-            android:exported="true"
-            android:label="@string/app_launcher_name">
+            android:name=".activities.SplashActivity"
+            android:exported="false"
+            android:theme="@style/SplashTheme" />
 
+        <activity
+            android:name=".activities.MainActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".activities.SettingsActivity"
+            android:exported="true"
+            android:label="@string/settings"
+            android:parentActivityName=".activities.MainActivity">
+
+            <intent-filter>
+                <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.simplemobiletools.commons.activities.AboutActivity"
+            android:exported="false"
+            android:label="@string/about"
+            android:parentActivityName=".activities.MainActivity" />
+
+        <activity
+            android:name="com.simplemobiletools.commons.activities.CustomizationActivity"
+            android:exported="false"
+            android:label="@string/customize_colors"
+            android:parentActivityName=".activities.SettingsActivity" />
+
+        <activity-alias
+            android:name=".activities.SplashActivity.Orange"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:roundIcon="@mipmap/ic_launcher"
+            android:targetActivity=".activities.SplashActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity-alias>
     </application>
 </manifest>
