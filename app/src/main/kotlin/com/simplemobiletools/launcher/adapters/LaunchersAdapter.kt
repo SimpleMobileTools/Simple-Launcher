@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
 import com.simplemobiletools.commons.extensions.getProperTextColor
 import com.simplemobiletools.commons.extensions.portrait
 import com.simplemobiletools.commons.extensions.realScreenSize
@@ -16,7 +17,7 @@ class LaunchersAdapter(
     val activity: SimpleActivity,
     val launchers: ArrayList<AppLauncher>,
     val itemClick: (Any) -> Unit
-) : RecyclerView.Adapter<LaunchersAdapter.ViewHolder>() {
+) : RecyclerView.Adapter<LaunchersAdapter.ViewHolder>(), RecyclerViewFastScroller.OnPopupTextUpdate {
     private var textColor = activity.getProperTextColor()
     private var iconPadding = 0
 
@@ -59,4 +60,6 @@ class LaunchersAdapter(
             return itemView
         }
     }
+
+    override fun onChange(position: Int) = launchers.getOrNull(position)?.getBubbleText() ?: ""
 }
