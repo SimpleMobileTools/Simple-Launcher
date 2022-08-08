@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:ignore="AppCompatResource">
     <item
-        android:id="@+id/settings"
-        android:icon="@drawable/ic_settings_cog_vector"
-        android:title="@string/settings"
+        android:id="@+id/about"
+        android:icon="@drawable/ic_info_vector"
+        android:title="@string/about"
         app:showAsAction="always" />
 </menu>

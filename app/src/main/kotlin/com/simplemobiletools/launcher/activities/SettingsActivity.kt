@@ -3,6 +3,8 @@ package com.simplemobiletools.launcher.activities
 import android.os.Bundle
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.NavigationIcon
+import com.simplemobiletools.commons.models.FAQItem
+import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.extensions.config
 import kotlinx.android.synthetic.main.activity_settings.*
@@ -12,6 +14,7 @@ class SettingsActivity : SimpleActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
+        setupOptionsMenu()
     }
 
     override fun onResume() {
@@ -32,6 +35,16 @@ class SettingsActivity : SimpleActivity() {
             settings_general_settings_holder
         ).forEach {
             it.background.applyColorFilter(getProperBackgroundColor().getContrastColor())
+        }
+    }
+
+    private fun setupOptionsMenu() {
+        settings_toolbar.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.about -> launchAbout()
+                else -> return@setOnMenuItemClickListener false
+            }
+            return@setOnMenuItemClickListener true
         }
     }
 
@@ -63,5 +76,17 @@ class SettingsActivity : SimpleActivity() {
             config.useEnglish = settings_use_english.isChecked
             System.exit(0)
         }
+    }
+
+    private fun launchAbout() {
+        val licenses = 0L
+        val faqItems = ArrayList<FAQItem>()
+
+        if (!resources.getBoolean(R.bool.hide_google_relations)) {
+            faqItems.add(FAQItem(R.string.faq_2_title_commons, R.string.faq_2_text_commons))
+            faqItems.add(FAQItem(R.string.faq_6_title_commons, R.string.faq_6_text_commons))
+        }
+
+        startAboutActivity(R.string.app_name, licenses, BuildConfig.VERSION_NAME, faqItems, true)
     }
 }
