@@ -5,6 +5,10 @@
     android:installLocation="auto">
 
     <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+
+    <uses-permission
         android:name="android.permission.USE_FINGERPRINT"
         tools:node="remove" />
 
