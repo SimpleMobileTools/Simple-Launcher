@@ -7,8 +7,10 @@ import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.view.Surface
+import android.view.WindowManager
 import com.simplemobiletools.commons.extensions.*
-import com.simplemobiletools.commons.models.FAQItem
+import com.simplemobiletools.commons.helpers.isRPlus
 import com.simplemobiletools.commons.views.MyGridLayoutManager
 import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
@@ -18,6 +20,8 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : SimpleActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        useDynamicTheme = false
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         appLaunched(BuildConfig.APPLICATION_ID)
@@ -30,6 +34,7 @@ class MainActivity : SimpleActivity() {
         setupToolbar(main_toolbar)
         updateTextColors(main_coordinator)
         launchers_fastscroller.updateColors(getProperPrimaryColor())
+        setupNavigationBar()
     }
 
     private fun setupOptionsMenu() {
@@ -96,6 +101,35 @@ class MainActivity : SimpleActivity() {
         }.apply {
             launchers_grid.adapter = this
         }
+    }
+
+    private fun setupNavigationBar() {
+        var bottomListPadding = 0
+        var leftListPadding = 0
+        var rightListPadding = 0
+
+        if (navigationBarOnBottom) {
+            bottomListPadding = navigationBarHeight
+            leftListPadding = 0
+            rightListPadding = 0
+        } else if (navigationBarOnSide) {
+            bottomListPadding = 0
+
+            val display = if (isRPlus()) {
+                display!!
+            } else {
+                (getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay
+            }
+
+            if (display.rotation == Surface.ROTATION_90) {
+                rightListPadding = navigationBarWidth
+            } else if (display.rotation == Surface.ROTATION_270) {
+                leftListPadding = navigationBarWidth
+            }
+        }
+
+        launchers_grid.setPadding(0, 0, resources.getDimension(R.dimen.medium_margin).toInt(), bottomListPadding)
+        launchers_fastscroller.setPadding(leftListPadding, 0, rightListPadding, 0)
     }
 
     private fun launchSettings() {
