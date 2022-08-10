@@ -60,14 +60,20 @@
 
         <activity-alias
             android:name=".activities.SplashActivity.Orange"
+            android:clearTaskOnLaunch="true"
             android:enabled="true"
+            android:excludeFromRecents="true"
             android:exported="true"
             android:icon="@mipmap/ic_launcher"
+            android:launchMode="singleTask"
             android:roundIcon="@mipmap/ic_launcher"
             android:targetActivity=".activities.SplashActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity-alias>
     </application>
