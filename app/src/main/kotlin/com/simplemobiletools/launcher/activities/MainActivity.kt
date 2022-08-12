@@ -23,11 +23,13 @@ import kotlinx.android.synthetic.main.activity_main.*
 class MainActivity : SimpleActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         useDynamicTheme = false
+        showTransparentNavigation = true
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         appLaunched(BuildConfig.APPLICATION_ID)
         getLaunchers()
+        window.setDecorFitsSystemWindows(false)
     }
 
     override fun onResume() {
