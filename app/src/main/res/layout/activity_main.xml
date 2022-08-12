@@ -1,74 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main_coordinator"
+    android:id="@+id/launchers_holder"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/main_app_bar_layout"
+    <com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
+        android:id="@+id/launchers_fastscroller"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/main_toolbar"
+        <com.simplemobiletools.commons.views.MyRecyclerView
+            android:id="@+id/launchers_grid"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@color/color_primary"
-            app:menu="@menu/menu_main"
-            app:title="@string/app_launcher_name"
-            app:titleTextAppearance="@style/AppTheme.ActionBar.TitleTextStyle" />
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            app:layoutManager="com.simplemobiletools.commons.views.MyGridLayoutManager"
+            app:spanCount="@integer/portrait_column_count" />
 
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <RelativeLayout
-        android:id="@+id/main_holder"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
-        <androidx.coordinatorlayout.widget.CoordinatorLayout
-            android:id="@+id/coordinator_layout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <RelativeLayout
-                android:id="@+id/launchers_holder"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <com.simplemobiletools.commons.views.MyTextView
-                    android:id="@+id/no_items_placeholder"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_centerHorizontal="true"
-                    android:alpha="0.8"
-                    android:gravity="center"
-                    android:paddingStart="@dimen/activity_margin"
-                    android:paddingTop="@dimen/activity_margin"
-                    android:paddingEnd="@dimen/activity_margin"
-                    android:text="@string/no_items_found"
-                    android:textSize="@dimen/bigger_text_size"
-                    android:textStyle="italic"
-                    android:visibility="gone"
-                    tools:visibility="visible" />
-
-                <com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
-                    android:id="@+id/launchers_fastscroller"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <com.simplemobiletools.commons.views.MyRecyclerView
-                        android:id="@+id/launchers_grid"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:clipToPadding="false"
-                        app:layoutManager="com.simplemobiletools.commons.views.MyGridLayoutManager"
-                        app:spanCount="@integer/portrait_column_count" />
-
-                </com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller>
-            </RelativeLayout>
-        </androidx.coordinatorlayout.widget.CoordinatorLayout>
-    </RelativeLayout>
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+    </com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller>
+</RelativeLayout>
