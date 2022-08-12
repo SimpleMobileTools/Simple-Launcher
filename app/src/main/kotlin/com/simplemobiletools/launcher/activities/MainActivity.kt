@@ -99,7 +99,12 @@ class MainActivity : SimpleActivity() {
 
     private fun setupAdapter(launchers: ArrayList<AppLauncher>) {
         LaunchersAdapter(this, launchers, launchers_fastscroller) {
-
+            val launchIntent = packageManager.getLaunchIntentForPackage((it as AppLauncher).packageName)
+            try {
+                startActivity(launchIntent)
+            } catch (e: Exception) {
+                showErrorToast(e)
+            }
         }.apply {
             launchers_grid.adapter = this
         }
