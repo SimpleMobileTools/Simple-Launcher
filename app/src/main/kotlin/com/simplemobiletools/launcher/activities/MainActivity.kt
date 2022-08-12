@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.os.Bundle
@@ -17,6 +18,7 @@ import com.simplemobiletools.commons.views.MyGridLayoutManager
 import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.adapters.LaunchersAdapter
+import com.simplemobiletools.launcher.extensions.getColumnCount
 import com.simplemobiletools.launcher.models.AppLauncher
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -38,6 +40,18 @@ class MainActivity : SimpleActivity() {
         (launchers_holder.layoutParams as FrameLayout.LayoutParams).topMargin = statusBarHeight
         updateStatusbarColor(Color.TRANSPARENT)
         setupNavigationBar()
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        launchers_grid.scrollToPosition(0)
+        launchers_fastscroller.resetManualScrolling()
+        setupNavigationBar()
+
+        val layoutManager = launchers_grid.layoutManager as MyGridLayoutManager
+        layoutManager.spanCount = getColumnCount()
+        val launchers = (launchers_grid.adapter as LaunchersAdapter).launchers
+        setupAdapter(launchers)
     }
 
     @SuppressLint("WrongConstant")
@@ -79,17 +93,12 @@ class MainActivity : SimpleActivity() {
         launchers.sortBy { it.title.toLowerCase() }
 
         val layoutManager = launchers_grid.layoutManager as MyGridLayoutManager
-        layoutManager.spanCount = if (portrait) {
-            resources.getInteger(R.integer.portrait_column_count)
-        } else {
-            resources.getInteger(R.integer.landscape_column_count)
-        }
-
+        layoutManager.spanCount = getColumnCount()
         setupAdapter(launchers)
     }
 
     private fun setupAdapter(launchers: ArrayList<AppLauncher>) {
-        LaunchersAdapter(this, launchers) {
+        LaunchersAdapter(this, launchers, launchers_fastscroller) {
 
         }.apply {
             launchers_grid.adapter = this

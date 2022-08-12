@@ -32,6 +32,7 @@
 
         <activity
             android:name=".activities.MainActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
             android:exported="true"
             android:theme="@style/LauncherTheme" />
 
