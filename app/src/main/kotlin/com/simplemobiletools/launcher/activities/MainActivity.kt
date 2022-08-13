@@ -13,6 +13,7 @@ import android.view.Surface
 import android.view.WindowManager
 import android.widget.FrameLayout
 import com.simplemobiletools.commons.extensions.*
+import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.isRPlus
 import com.simplemobiletools.commons.views.MyGridLayoutManager
 import com.simplemobiletools.launcher.BuildConfig
@@ -61,52 +62,56 @@ class MainActivity : SimpleActivity() {
         val intent = Intent(Intent.ACTION_MAIN, null)
         intent.addCategory(Intent.CATEGORY_LAUNCHER)
 
-        val list = packageManager.queryIntentActivities(intent, PackageManager.PERMISSION_GRANTED)
-        for (info in list) {
-            val componentInfo = info.activityInfo.applicationInfo
-            val label = componentInfo.loadLabel(packageManager).toString()
-            val packageName = componentInfo.packageName
+        ensureBackgroundThread {
+            val list = packageManager.queryIntentActivities(intent, PackageManager.PERMISSION_GRANTED)
+            for (info in list) {
+                val componentInfo = info.activityInfo.applicationInfo
+                val label = componentInfo.loadLabel(packageManager).toString()
+                val packageName = componentInfo.packageName
 
-            var drawable: Drawable? = null
-            try {
-                // try getting the properly colored launcher icons
-                val launcher = getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
-                val activityList = launcher.getActivityList(packageName, android.os.Process.myUserHandle())[0]
-                drawable = activityList.getBadgedIcon(0)
-            } catch (e: Exception) {
-            } catch (e: Error) {
-            }
-
-            if (drawable == null) {
-                drawable = try {
-                    packageManager.getApplicationIcon(packageName)
-                } catch (ignored: Exception) {
-                    continue
+                var drawable: Drawable? = null
+                try {
+                    // try getting the properly colored launcher icons
+                    val launcher = getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+                    val activityList = launcher.getActivityList(packageName, android.os.Process.myUserHandle())[0]
+                    drawable = activityList.getBadgedIcon(0)
+                } catch (e: Exception) {
+                } catch (e: Error) {
                 }
+
+                if (drawable == null) {
+                    drawable = try {
+                        packageManager.getApplicationIcon(packageName)
+                    } catch (ignored: Exception) {
+                        continue
+                    }
+                }
+
+                allPackageNames.add(packageName)
+                allApps.add(AppLauncher(0, label, packageName, 0, drawable))
             }
 
-            allPackageNames.add(packageName)
-            allApps.add(AppLauncher(0, label, packageName, 0, drawable))
+            val launchers = allApps.distinctBy { it.packageName } as ArrayList<AppLauncher>
+            launchers.sortBy { it.title.toLowerCase() }
+
+            val layoutManager = launchers_grid.layoutManager as MyGridLayoutManager
+            layoutManager.spanCount = getColumnCount()
+            setupAdapter(launchers)
         }
-
-        val launchers = allApps.distinctBy { it.packageName } as ArrayList<AppLauncher>
-        launchers.sortBy { it.title.toLowerCase() }
-
-        val layoutManager = launchers_grid.layoutManager as MyGridLayoutManager
-        layoutManager.spanCount = getColumnCount()
-        setupAdapter(launchers)
     }
 
     private fun setupAdapter(launchers: ArrayList<AppLauncher>) {
-        LaunchersAdapter(this, launchers, launchers_fastscroller) {
-            val launchIntent = packageManager.getLaunchIntentForPackage((it as AppLauncher).packageName)
-            try {
-                startActivity(launchIntent)
-            } catch (e: Exception) {
-                showErrorToast(e)
+        runOnUiThread {
+            LaunchersAdapter(this, launchers, launchers_fastscroller) {
+                val launchIntent = packageManager.getLaunchIntentForPackage((it as AppLauncher).packageName)
+                try {
+                    startActivity(launchIntent)
+                } catch (e: Exception) {
+                    showErrorToast(e)
+                }
+            }.apply {
+                launchers_grid.adapter = this
             }
-        }.apply {
-            launchers_grid.adapter = this
         }
     }
 
