@@ -28,6 +28,7 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : RelativeLa
     fun setupFragment(activity: SimpleActivity) {
         this.activity = activity
         getLaunchers()
+        setBackgroundColor(activity.getProperBackgroundColor())
     }
 
     fun onConfigurationChanged() {
