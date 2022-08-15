@@ -1,9 +1,11 @@
 package com.simplemobiletools.launcher.activities
 
+import android.animation.ObjectAnimator
 import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
 import android.view.MotionEvent
+import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import com.simplemobiletools.commons.extensions.appLaunched
 import com.simplemobiletools.commons.extensions.realScreenSize
@@ -14,9 +16,9 @@ import com.simplemobiletools.launcher.fragments.AllAppsFragment
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : SimpleActivity() {
-    private var mTouchDownY = 0
+    var mTouchDownY = -1
+    var mCurrentFragmentY = 0
     private var mScreenHeight = 0
-    private var mCurrentFragmentY = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         useDynamicTheme = false
@@ -52,12 +54,27 @@ class MainActivity : SimpleActivity() {
             }
 
             MotionEvent.ACTION_MOVE -> {
-                val diffY = mTouchDownY - event.y
-                val newY = mCurrentFragmentY - diffY
-                all_apps_fragment.y = Math.min(Math.max(0f, newY), mScreenHeight.toFloat())
+                if (mTouchDownY != -1) {
+                    val diffY = mTouchDownY - event.y
+                    val newY = mCurrentFragmentY - diffY
+                    all_apps_fragment.y = Math.min(Math.max(0f, newY), mScreenHeight.toFloat())
+                }
+            }
+
+            MotionEvent.ACTION_CANCEL,
+            MotionEvent.ACTION_UP -> {
+                mTouchDownY = -1
+                showAllAppsFragment()
             }
         }
 
         return true
+    }
+
+    private fun showAllAppsFragment() {
+        ObjectAnimator.ofFloat(all_apps_fragment, "y", 0f).apply {
+            interpolator = DecelerateInterpolator()
+            start()
+        }
     }
 }

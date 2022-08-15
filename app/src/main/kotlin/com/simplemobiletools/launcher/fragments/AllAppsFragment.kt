@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.os.Process
 import android.util.AttributeSet
+import android.view.MotionEvent
 import android.view.Surface
 import android.view.WindowManager
 import android.widget.RelativeLayout
@@ -16,19 +17,29 @@ import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.isRPlus
 import com.simplemobiletools.commons.views.MyGridLayoutManager
 import com.simplemobiletools.launcher.R
-import com.simplemobiletools.launcher.activities.SimpleActivity
+import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.adapters.LaunchersAdapter
 import com.simplemobiletools.launcher.extensions.getColumnCount
 import com.simplemobiletools.launcher.models.AppLauncher
 import kotlinx.android.synthetic.main.all_apps_fragment.view.*
 
 class AllAppsFragment(context: Context, attributeSet: AttributeSet) : RelativeLayout(context, attributeSet) {
-    private var activity: SimpleActivity? = null
+    private var touchDownY = -1
+    private var activity: MainActivity? = null
 
-    fun setupFragment(activity: SimpleActivity) {
+    @SuppressLint("ClickableViewAccessibility")
+    fun setupFragment(activity: MainActivity) {
         this.activity = activity
         getLaunchers()
         setBackgroundColor(activity.getProperBackgroundColor())
+
+        all_apps_grid.setOnTouchListener { v, event ->
+            if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
+                touchDownY = -1
+            }
+
+            return@setOnTouchListener false
+        }
     }
 
     fun onConfigurationChanged() {
@@ -40,6 +51,22 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : RelativeLa
         layoutManager.spanCount = context.getColumnCount()
         val launchers = (all_apps_grid.adapter as LaunchersAdapter).launchers
         setupAdapter(launchers)
+    }
+
+    override fun onInterceptTouchEvent(event: MotionEvent): Boolean {
+        var shouldIntercept = false
+        if (touchDownY != -1) {
+            shouldIntercept = touchDownY - event.y < 0 && all_apps_grid.computeVerticalScrollOffset() == 0
+            if (shouldIntercept) {
+                activity?.mTouchDownY = touchDownY
+                activity?.mCurrentFragmentY = y.toInt()
+                touchDownY = -1
+            }
+        } else {
+            touchDownY = event.y.toInt()
+        }
+
+        return shouldIntercept
     }
 
     @SuppressLint("WrongConstant")
