@@ -58,8 +58,7 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : RelativeLa
         if (touchDownY != -1) {
             shouldIntercept = touchDownY - event.y < 0 && all_apps_grid.computeVerticalScrollOffset() == 0
             if (shouldIntercept) {
-                activity?.mTouchDownY = touchDownY
-                activity?.mCurrentFragmentY = y.toInt()
+                activity?.startHandlingTouches(touchDownY)
                 touchDownY = -1
             }
         } else {
