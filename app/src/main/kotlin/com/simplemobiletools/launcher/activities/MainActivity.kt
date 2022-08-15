@@ -7,11 +7,9 @@ import android.os.Bundle
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.animation.DecelerateInterpolator
-import android.widget.FrameLayout
 import androidx.core.view.GestureDetectorCompat
 import com.simplemobiletools.commons.extensions.appLaunched
 import com.simplemobiletools.commons.extensions.realScreenSize
-import com.simplemobiletools.commons.extensions.statusBarHeight
 import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.fragments.AllAppsFragment
@@ -43,7 +41,6 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     override fun onResume() {
         super.onResume()
-        (main_holder.layoutParams as FrameLayout.LayoutParams).topMargin = statusBarHeight
         updateStatusbarColor(Color.TRANSPARENT)
         (all_apps_fragment as AllAppsFragment).setupViews()
     }

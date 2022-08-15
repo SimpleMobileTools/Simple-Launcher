@@ -31,7 +31,8 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : RelativeLa
     fun setupFragment(activity: MainActivity) {
         this.activity = activity
         getLaunchers()
-        setBackgroundColor(activity.getProperBackgroundColor())
+        background.applyColorFilter(activity.getProperBackgroundColor())
+        setPadding(0, activity.statusBarHeight, 0, 0)
 
         all_apps_grid.setOnTouchListener { v, event ->
             if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
