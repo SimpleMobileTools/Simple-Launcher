@@ -2,11 +2,17 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/main_holder"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="match_parent">
 
     <include
         android:id="@+id/all_apps_fragment"
         layout="@layout/all_apps_fragment"
+        android:visibility="gone" />
+
+    <View
+        android:id="@+id/popup_menu_anchor"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
         android:visibility="gone" />
 
 </RelativeLayout>

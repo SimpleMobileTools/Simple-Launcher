@@ -4,13 +4,14 @@ import android.animation.ObjectAnimator
 import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
+import android.view.ContextThemeWrapper
 import android.view.GestureDetector
+import android.view.Gravity
 import android.view.MotionEvent
 import android.view.animation.DecelerateInterpolator
+import android.widget.PopupMenu
 import androidx.core.view.GestureDetectorCompat
-import com.simplemobiletools.commons.extensions.appLaunched
-import com.simplemobiletools.commons.extensions.beVisible
-import com.simplemobiletools.commons.extensions.realScreenSize
+import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.fragments.AllAppsFragment
@@ -105,6 +106,30 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
     }
 
+    fun homeScreenLongPressed(x: Float, y: Float) {
+        main_holder.performHapticFeedback()
+
+        popup_menu_anchor.x = x
+        popup_menu_anchor.y = y - resources.getDimension(R.dimen.long_press_anchor_offset_y)
+        val contextTheme = ContextThemeWrapper(this, getPopupMenuTheme())
+        PopupMenu(contextTheme, popup_menu_anchor, Gravity.TOP or Gravity.END).apply {
+            inflate(R.menu.menu_home_screen)
+            setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    R.id.widgets -> {
+                        showWidgetsFragment()
+                    }
+                }
+                true
+            }
+            show()
+        }
+    }
+
+    private fun showWidgetsFragment() {
+
+    }
+
     private class MyGestureListener(private val flingListener: FlingListener) : GestureDetector.SimpleOnGestureListener() {
         override fun onFling(event1: MotionEvent, event2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
             if (velocityY > 0) {
@@ -113,6 +138,10 @@ class MainActivity : SimpleActivity(), FlingListener {
                 flingListener.onFlingUp()
             }
             return true
+        }
+
+        override fun onLongPress(event: MotionEvent) {
+            (flingListener as MainActivity).homeScreenLongPressed(event.x, event.y)
         }
     }
 
