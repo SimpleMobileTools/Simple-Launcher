@@ -9,6 +9,7 @@ import android.view.MotionEvent
 import android.view.animation.DecelerateInterpolator
 import androidx.core.view.GestureDetectorCompat
 import com.simplemobiletools.commons.extensions.appLaunched
+import com.simplemobiletools.commons.extensions.beVisible
 import com.simplemobiletools.commons.extensions.realScreenSize
 import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
@@ -37,6 +38,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         mScreenHeight = realScreenSize.y
         mCurrentFragmentY = mScreenHeight
         all_apps_fragment.y = mScreenHeight.toFloat()
+        all_apps_fragment.beVisible()
     }
 
     override fun onResume() {
