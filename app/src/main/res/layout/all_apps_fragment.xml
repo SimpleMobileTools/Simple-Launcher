@@ -9,7 +9,8 @@
     <com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
         android:id="@+id/all_apps_fastscroller"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        app:fastScrollEnabled="false">
 
         <com.simplemobiletools.commons.views.MyRecyclerView
             android:id="@+id/all_apps_grid"
