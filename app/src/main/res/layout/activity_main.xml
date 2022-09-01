@@ -9,6 +9,11 @@
         layout="@layout/all_apps_fragment"
         android:visibility="gone" />
 
+    <include
+        android:id="@+id/widgets_fragment"
+        layout="@layout/widgets_fragment"
+        android:visibility="gone" />
+
     <View
         android:id="@+id/popup_menu_anchor"
         android:layout_width="1dp"

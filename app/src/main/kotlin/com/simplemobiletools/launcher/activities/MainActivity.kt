@@ -15,6 +15,7 @@ import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.fragments.AllAppsFragment
+import com.simplemobiletools.launcher.fragments.MyFragment
 import com.simplemobiletools.launcher.interfaces.FlingListener
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -35,11 +36,14 @@ class MainActivity : SimpleActivity(), FlingListener {
 
         mDetector = GestureDetectorCompat(this, MyGestureListener(this))
         window.setDecorFitsSystemWindows(false)
-        (all_apps_fragment as AllAppsFragment).setupFragment(this)
         mScreenHeight = realScreenSize.y
         mCurrentFragmentY = mScreenHeight
-        all_apps_fragment.y = mScreenHeight.toFloat()
-        all_apps_fragment.beVisible()
+
+        arrayOf(all_apps_fragment as MyFragment, widgets_fragment as MyFragment).forEach { fragment ->
+            fragment.setupFragment(this)
+            fragment.y = mScreenHeight.toFloat()
+            fragment.beVisible()
+        }
     }
 
     override fun onResume() {
@@ -75,9 +79,9 @@ class MainActivity : SimpleActivity(), FlingListener {
                 mTouchDownY = -1
                 if (!mIgnoreUpEvent) {
                     if (all_apps_fragment.y < mScreenHeight * 0.7) {
-                        showAllAppsFragment()
+                        showAllAppsFragment(all_apps_fragment as MyFragment)
                     } else {
-                        hideAllAppsFragment()
+                        hideAllAppsFragment(all_apps_fragment as MyFragment)
                     }
                 }
             }
@@ -92,15 +96,15 @@ class MainActivity : SimpleActivity(), FlingListener {
         mIgnoreUpEvent = false
     }
 
-    private fun showAllAppsFragment() {
-        ObjectAnimator.ofFloat(all_apps_fragment, "y", 0f).apply {
+    private fun showAllAppsFragment(fragment: MyFragment) {
+        ObjectAnimator.ofFloat(fragment, "y", 0f).apply {
             interpolator = DecelerateInterpolator()
             start()
         }
     }
 
-    private fun hideAllAppsFragment() {
-        ObjectAnimator.ofFloat(all_apps_fragment, "y", mScreenHeight.toFloat()).apply {
+    private fun hideAllAppsFragment(fragment: MyFragment) {
+        ObjectAnimator.ofFloat(fragment, "y", mScreenHeight.toFloat()).apply {
             interpolator = DecelerateInterpolator()
             start()
         }
@@ -147,11 +151,11 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     override fun onFlingUp() {
         mIgnoreUpEvent = true
-        showAllAppsFragment()
+        showAllAppsFragment(all_apps_fragment as MyFragment)
     }
 
     override fun onFlingDown() {
         mIgnoreUpEvent = true
-        hideAllAppsFragment()
+        hideAllAppsFragment(all_apps_fragment as MyFragment)
     }
 }

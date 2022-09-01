@@ -11,7 +11,6 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.Surface
 import android.view.WindowManager
-import android.widget.RelativeLayout
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.isRPlus
@@ -23,12 +22,11 @@ import com.simplemobiletools.launcher.extensions.getColumnCount
 import com.simplemobiletools.launcher.models.AppLauncher
 import kotlinx.android.synthetic.main.all_apps_fragment.view.*
 
-class AllAppsFragment(context: Context, attributeSet: AttributeSet) : RelativeLayout(context, attributeSet) {
+class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment(context, attributeSet) {
     private var touchDownY = -1
-    private var activity: MainActivity? = null
 
     @SuppressLint("ClickableViewAccessibility")
-    fun setupFragment(activity: MainActivity) {
+    override fun setupFragment(activity: MainActivity) {
         this.activity = activity
         background.applyColorFilter(activity.getProperBackgroundColor())
         setPadding(0, activity.statusBarHeight, 0, 0)

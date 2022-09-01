@@ -3,7 +3,6 @@ package com.simplemobiletools.launcher.fragments
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.util.AttributeSet
-import android.widget.RelativeLayout
 import com.simplemobiletools.commons.extensions.applyColorFilter
 import com.simplemobiletools.commons.extensions.getProperBackgroundColor
 import com.simplemobiletools.commons.extensions.statusBarHeight
@@ -11,10 +10,8 @@ import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.models.AppWidget
 
-class WidgetsFragment(context: Context, attributeSet: AttributeSet) : RelativeLayout(context, attributeSet) {
-    private var activity: MainActivity? = null
-
-    fun setupFragment(activity: MainActivity) {
+class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment(context, attributeSet) {
+    override fun setupFragment(activity: MainActivity) {
         this.activity = activity
         background.applyColorFilter(activity.getProperBackgroundColor())
         setPadding(0, activity.statusBarHeight, 0, 0)
