@@ -30,9 +30,9 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : RelativeLa
     @SuppressLint("ClickableViewAccessibility")
     fun setupFragment(activity: MainActivity) {
         this.activity = activity
-        getLaunchers()
         background.applyColorFilter(activity.getProperBackgroundColor())
         setPadding(0, activity.statusBarHeight, 0, 0)
+        getLaunchers()
 
         all_apps_grid.setOnTouchListener { v, event ->
             if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
