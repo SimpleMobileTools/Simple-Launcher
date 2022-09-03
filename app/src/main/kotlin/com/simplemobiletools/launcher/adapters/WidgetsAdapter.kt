@@ -30,10 +30,12 @@ class WidgetsAdapter(
     override fun getItemCount() = appWidgets.size
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        fun bindView(widget: AppWidget): View {
+        fun bindView(appWidget: AppWidget): View {
             itemView.apply {
-                widget_app_title.text = widget.appTitle
+                widget_app_title.text = appWidget.appTitle
                 widget_app_title.setTextColor(textColor)
+
+                widget_app_icon.setImageDrawable(appWidget.appIcon)
             }
 
             return itemView

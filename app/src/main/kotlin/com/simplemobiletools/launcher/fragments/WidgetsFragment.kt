@@ -2,6 +2,8 @@ package com.simplemobiletools.launcher.fragments
 
 import android.appwidget.AppWidgetManager
 import android.content.Context
+import android.content.pm.LauncherApps
+import android.os.Process
 import android.util.AttributeSet
 import android.view.Surface
 import android.view.WindowManager
@@ -11,6 +13,7 @@ import com.simplemobiletools.commons.helpers.isRPlus
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.adapters.WidgetsAdapter
+import com.simplemobiletools.launcher.models.AppMetadata
 import com.simplemobiletools.launcher.models.AppWidget
 import kotlinx.android.synthetic.main.widgets_fragment.view.*
 
@@ -37,11 +40,13 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             val infoList = manager.installedProviders
             for (info in infoList) {
                 val appPackageName = info.provider.packageName
-                val appTitle = getAppNameFromPackage(appPackageName) ?: continue
+                val appMetadata = getAppMetadataFromPackage(appPackageName) ?: continue
+                val appTitle = appMetadata.appTitle
+                val appIcon = appMetadata.appIcon
                 val widgetTitle = info.loadLabel(activity?.packageManager)
                 val width = info.minWidth
                 val height = info.minHeight
-                val widget = AppWidget(appPackageName, appTitle, widgetTitle, width, height)
+                val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, width, height)
                 appWidgets.add(widget)
             }
 
@@ -95,11 +100,24 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
         widgets_fastscroller.setPadding(leftListPadding, 0, rightListPadding, 0)
     }
 
-    private fun getAppNameFromPackage(packageName: String): String? {
+    private fun getAppMetadataFromPackage(packageName: String): AppMetadata? {
         try {
             val appInfo = activity!!.packageManager.getApplicationInfo(packageName, 0)
-            return activity!!.packageManager.getApplicationLabel(appInfo).toString()
+            val appTitle = activity!!.packageManager.getApplicationLabel(appInfo).toString()
+
+            val launcher = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+            val activityList = launcher.getActivityList(packageName, Process.myUserHandle())
+            var appIcon = activityList.firstOrNull()?.getBadgedIcon(0)
+
+            if (appIcon == null) {
+                appIcon = context.packageManager.getApplicationIcon(packageName)
+            }
+
+            if (appTitle.isNotEmpty()) {
+                return AppMetadata(appTitle, appIcon)
+            }
         } catch (ignored: Exception) {
+        } catch (error: Error) {
         }
 
         return null
