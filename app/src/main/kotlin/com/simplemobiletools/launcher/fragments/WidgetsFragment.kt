@@ -2,7 +2,9 @@ package com.simplemobiletools.launcher.fragments
 
 import android.appwidget.AppWidgetManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.LauncherApps
+import android.content.pm.PackageManager
 import android.os.Process
 import android.util.AttributeSet
 import android.view.Surface
@@ -37,6 +39,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
 
     private fun getAppWidgets() {
         ensureBackgroundThread {
+            // get the casual widgets
             var appWidgets = ArrayList<AppWidget>()
             val manager = AppWidgetManager.getInstance(context)
             val infoList = manager.installedProviders
@@ -45,10 +48,24 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
                 val appMetadata = getAppMetadataFromPackage(appPackageName) ?: continue
                 val appTitle = appMetadata.appTitle
                 val appIcon = appMetadata.appIcon
-                val widgetTitle = info.loadLabel(activity?.packageManager)
+                val widgetTitle = info.loadLabel(context.packageManager)
                 val width = info.minWidth
                 val height = info.minHeight
                 val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, width, height)
+                appWidgets.add(widget)
+            }
+
+            // list also the widgets that are technically shortcuts
+            val intent = Intent(Intent.ACTION_CREATE_SHORTCUT, null)
+            val list = context.packageManager.queryIntentActivities(intent, PackageManager.PERMISSION_GRANTED)
+            for (info in list) {
+                val componentInfo = info.activityInfo.applicationInfo
+                val appTitle = componentInfo.loadLabel(context.packageManager).toString()
+                val appPackageName = componentInfo.packageName
+                val appMetadata = getAppMetadataFromPackage(appPackageName) ?: continue
+                val appIcon = appMetadata.appIcon
+                val widgetTitle = info.loadLabel(context.packageManager).toString()
+                val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, 0, 0)
                 appWidgets.add(widget)
             }
 
