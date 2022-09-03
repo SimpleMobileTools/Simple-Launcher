@@ -13,6 +13,7 @@ import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.fragments.AllAppsFragment
 import com.simplemobiletools.launcher.fragments.MyFragment
+import com.simplemobiletools.launcher.fragments.WidgetsFragment
 import com.simplemobiletools.launcher.interfaces.FlingListener
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -47,6 +48,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         super.onResume()
         updateStatusbarColor(Color.TRANSPARENT)
         (all_apps_fragment as AllAppsFragment).setupViews()
+        (widgets_fragment as WidgetsFragment).setupViews()
     }
 
     override fun onBackPressed() {
@@ -62,6 +64,7 @@ class MainActivity : SimpleActivity(), FlingListener {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         (all_apps_fragment as AllAppsFragment).onConfigurationChanged()
+        (widgets_fragment as WidgetsFragment).onConfigurationChanged()
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
