@@ -13,8 +13,10 @@ import com.simplemobiletools.commons.helpers.isRPlus
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.adapters.WidgetsAdapter
-import com.simplemobiletools.launcher.models.AppMetadata
 import com.simplemobiletools.launcher.models.AppWidget
+import com.simplemobiletools.launcher.models.WidgetsListItem
+import com.simplemobiletools.launcher.models.WidgetsListItemsHolder
+import com.simplemobiletools.launcher.models.WidgetsListSection
 import kotlinx.android.synthetic.main.widgets_fragment.view.*
 
 class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment(context, attributeSet) {
@@ -29,7 +31,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
         widgets_list.scrollToPosition(0)
         setupViews()
 
-        val appWidgets = (widgets_list.adapter as WidgetsAdapter).appWidgets
+        val appWidgets = (widgets_list.adapter as WidgetsAdapter).widgetListItems
         setupAdapter(appWidgets)
     }
 
@@ -51,15 +53,38 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             }
 
             appWidgets = appWidgets.sortedWith(compareBy({ it.appTitle }, { it.widgetTitle })).toMutableList() as ArrayList<AppWidget>
-            setupAdapter(appWidgets)
+            splitWidgetsByApps(appWidgets)
         }
     }
 
-    private fun setupAdapter(appWidgets: ArrayList<AppWidget>) {
-        activity?.runOnUiThread {
-            WidgetsAdapter(activity!!, appWidgets) {
+    private fun splitWidgetsByApps(appWidgets: ArrayList<AppWidget>) {
+        var currentAppPackageName = ""
+        val widgetListItems = ArrayList<WidgetsListItem>()
+        var currentAppWidgets = ArrayList<AppWidget>()
+        appWidgets.forEach { appWidget ->
+            if (appWidget.appPackageName != currentAppPackageName) {
+                if (widgetListItems.isNotEmpty()) {
+                    widgetListItems.add(WidgetsListItemsHolder(currentAppWidgets))
+                    currentAppWidgets = ArrayList()
+                }
 
-            }.apply {
+                widgetListItems.add(WidgetsListSection(appWidget.appTitle, appWidget.appIcon))
+            }
+
+            currentAppWidgets.add(appWidget)
+            currentAppPackageName = appWidget.appPackageName
+        }
+
+        if (widgetListItems.isNotEmpty()) {
+            widgetListItems.add(WidgetsListItemsHolder(currentAppWidgets))
+        }
+
+        setupAdapter(widgetListItems)
+    }
+
+    private fun setupAdapter(widgetsListItems: ArrayList<WidgetsListItem>) {
+        activity?.runOnUiThread {
+            WidgetsAdapter(activity!!, widgetsListItems).apply {
                 widgets_list.adapter = this
             }
         }
@@ -100,7 +125,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
         widgets_fastscroller.setPadding(leftListPadding, 0, rightListPadding, 0)
     }
 
-    private fun getAppMetadataFromPackage(packageName: String): AppMetadata? {
+    private fun getAppMetadataFromPackage(packageName: String): WidgetsListSection? {
         try {
             val appInfo = activity!!.packageManager.getApplicationInfo(packageName, 0)
             val appTitle = activity!!.packageManager.getApplicationLabel(appInfo).toString()
@@ -114,7 +139,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             }
 
             if (appTitle.isNotEmpty()) {
-                return AppMetadata(appTitle, appIcon)
+                return WidgetsListSection(appTitle, appIcon)
             }
         } catch (ignored: Exception) {
         } catch (error: Error) {
