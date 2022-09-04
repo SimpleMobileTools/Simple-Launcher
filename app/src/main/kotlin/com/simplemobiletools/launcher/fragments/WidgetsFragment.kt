@@ -7,12 +7,12 @@ import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
 import android.os.Process
 import android.util.AttributeSet
+import android.util.DisplayMetrics
 import android.view.Surface
 import android.view.WindowManager
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.isRPlus
-import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.adapters.WidgetsAdapter
 import com.simplemobiletools.launcher.models.AppWidget
@@ -49,13 +49,14 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
                 val appTitle = appMetadata.appTitle
                 val appIcon = appMetadata.appIcon
                 val widgetTitle = info.loadLabel(context.packageManager)
+                val widgetPreviewImage = info.loadPreviewImage(context, DisplayMetrics.DENSITY_MEDIUM)
                 val width = info.minWidth
                 val height = info.minHeight
-                val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, width, height)
+                val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, widgetPreviewImage, width, height)
                 appWidgets.add(widget)
             }
 
-            // list also the widgets that are technically shortcuts
+            // show also the widgets that are technically shortcuts
             val intent = Intent(Intent.ACTION_CREATE_SHORTCUT, null)
             val list = context.packageManager.queryIntentActivities(intent, PackageManager.PERMISSION_GRANTED)
             for (info in list) {
@@ -65,7 +66,8 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
                 val appMetadata = getAppMetadataFromPackage(appPackageName) ?: continue
                 val appIcon = appMetadata.appIcon
                 val widgetTitle = info.loadLabel(context.packageManager).toString()
-                val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, 0, 0)
+                val widgetPreviewImage = info.loadIcon(context.packageManager)
+                val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, widgetPreviewImage, 0, 0)
                 appWidgets.add(widget)
             }
 
@@ -138,7 +140,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             }
         }
 
-        widgets_list.setPadding(0, 0, resources.getDimension(R.dimen.medium_margin).toInt(), bottomListPadding)
+        widgets_list.setPadding(0, 0, 0, bottomListPadding)
         widgets_fastscroller.setPadding(leftListPadding, 0, rightListPadding, 0)
     }
 

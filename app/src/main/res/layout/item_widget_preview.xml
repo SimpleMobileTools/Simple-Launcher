@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/widget_preview"
+    android:layout_width="@dimen/widget_preview_size"
+    android:layout_height="@dimen/widget_preview_size"
+    android:layout_gravity="center"
+    android:adjustViewBounds="true"
+    android:background="@drawable/widget_preview_background"
+    android:padding="@dimen/normal_margin"
+    tools:src="@mipmap/ic_launcher" />

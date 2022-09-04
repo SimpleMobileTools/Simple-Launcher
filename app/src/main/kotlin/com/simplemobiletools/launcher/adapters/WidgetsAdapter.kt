@@ -3,7 +3,10 @@ package com.simplemobiletools.launcher.adapters
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.LinearLayout
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.simplemobiletools.commons.extensions.getProperTextColor
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.SimpleActivity
@@ -12,6 +15,7 @@ import com.simplemobiletools.launcher.helpers.WIDGET_LIST_SECTION
 import com.simplemobiletools.launcher.models.WidgetsListItem
 import com.simplemobiletools.launcher.models.WidgetsListItemsHolder
 import com.simplemobiletools.launcher.models.WidgetsListSection
+import kotlinx.android.synthetic.main.item_widget_list_items_holder.view.*
 import kotlinx.android.synthetic.main.item_widget_list_section.view.*
 
 class WidgetsAdapter(
@@ -57,7 +61,32 @@ class WidgetsAdapter(
         }
     }
 
-    private fun setupListItemsHolder(view: View, listItem: WidgetsListItem) {}
+    private fun setupListItemsHolder(view: View, listItem: WidgetsListItemsHolder) {
+        view.widget_list_items_holder.removeAllViews()
+        listItem.widgets.forEachIndexed { index, widget ->
+            val imageSize = activity.resources.getDimension(R.dimen.widget_preview_size).toInt()
+            val widgetPreview = LayoutInflater.from(activity).inflate(R.layout.item_widget_preview, null) as ImageView
+            view.widget_list_items_holder.addView(widgetPreview)
+
+            val endMargin = if (index == listItem.widgets.size - 1) {
+                activity.resources.getDimension(R.dimen.medium_margin).toInt()
+            } else {
+                0
+            }
+
+            (widgetPreview.layoutParams as LinearLayout.LayoutParams).apply {
+                marginStart = activity.resources.getDimension(R.dimen.activity_margin).toInt()
+                marginEnd = endMargin
+                width = imageSize
+                height = imageSize
+            }
+
+            Glide.with(activity)
+                .load(widget.widgetPreviewImage)
+                .fitCenter()
+                .into(widgetPreview)
+        }
+    }
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         fun bindView(widgetListItem: WidgetsListItem, callback: (itemView: View, adapterPosition: Int) -> Unit) {

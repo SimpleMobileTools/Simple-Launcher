@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/widget_preview_background">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/divider_grey" />
+            <corners android:radius="@dimen/activity_margin" />
+        </shape>
+    </item>
+</layer-list>
