@@ -42,13 +42,14 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             // get the casual widgets
             var appWidgets = ArrayList<AppWidget>()
             val manager = AppWidgetManager.getInstance(context)
+            val packageManager = context.packageManager
             val infoList = manager.installedProviders
             for (info in infoList) {
                 val appPackageName = info.provider.packageName
                 val appMetadata = getAppMetadataFromPackage(appPackageName) ?: continue
                 val appTitle = appMetadata.appTitle
                 val appIcon = appMetadata.appIcon
-                val widgetTitle = info.loadLabel(context.packageManager)
+                val widgetTitle = info.loadLabel(packageManager)
                 val widgetPreviewImage = info.loadPreviewImage(context, DisplayMetrics.DENSITY_MEDIUM) ?: appIcon
                 val width = info.minWidth
                 val height = info.minHeight
@@ -58,15 +59,15 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
 
             // show also the widgets that are technically shortcuts
             val intent = Intent(Intent.ACTION_CREATE_SHORTCUT, null)
-            val list = context.packageManager.queryIntentActivities(intent, PackageManager.PERMISSION_GRANTED)
+            val list = packageManager.queryIntentActivities(intent, PackageManager.PERMISSION_GRANTED)
             for (info in list) {
                 val componentInfo = info.activityInfo.applicationInfo
-                val appTitle = componentInfo.loadLabel(context.packageManager).toString()
+                val appTitle = componentInfo.loadLabel(packageManager).toString()
                 val appPackageName = componentInfo.packageName
                 val appMetadata = getAppMetadataFromPackage(appPackageName) ?: continue
                 val appIcon = appMetadata.appIcon
-                val widgetTitle = info.loadLabel(context.packageManager).toString()
-                val widgetPreviewImage = activity!!.packageManager.getDrawable(activity!!.packageName, info.iconResource, componentInfo)
+                val widgetTitle = info.loadLabel(packageManager).toString()
+                val widgetPreviewImage = packageManager.getDrawable(componentInfo.packageName, info.iconResource, componentInfo)
                 val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, widgetPreviewImage, 0, 0)
                 appWidgets.add(widget)
             }
