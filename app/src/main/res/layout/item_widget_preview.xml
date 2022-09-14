@@ -5,6 +5,7 @@
     android:layout_width="@dimen/widget_preview_size"
     android:layout_height="@dimen/widget_preview_size"
     android:layout_gravity="center"
+    android:scaleType="centerInside"
     android:adjustViewBounds="true"
     android:background="@drawable/widget_preview_background"
     android:padding="@dimen/normal_margin"

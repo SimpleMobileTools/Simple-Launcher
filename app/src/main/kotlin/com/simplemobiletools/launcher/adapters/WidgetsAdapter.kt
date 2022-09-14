@@ -84,7 +84,6 @@ class WidgetsAdapter(
 
             Glide.with(activity)
                 .load(widget.widgetPreviewImage)
-                .fitCenter()
                 .into(widgetPreview)
 
             widgetPreview.setOnClickListener {
