@@ -49,7 +49,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
                 val appTitle = appMetadata.appTitle
                 val appIcon = appMetadata.appIcon
                 val widgetTitle = info.loadLabel(context.packageManager)
-                val widgetPreviewImage = info.loadPreviewImage(context, DisplayMetrics.DENSITY_MEDIUM)
+                val widgetPreviewImage = info.loadPreviewImage(context, DisplayMetrics.DENSITY_MEDIUM) ?: appIcon
                 val width = info.minWidth
                 val height = info.minHeight
                 val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, widgetPreviewImage, width, height)
