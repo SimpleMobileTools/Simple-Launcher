@@ -66,7 +66,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
                 val appMetadata = getAppMetadataFromPackage(appPackageName) ?: continue
                 val appIcon = appMetadata.appIcon
                 val widgetTitle = info.loadLabel(context.packageManager).toString()
-                val widgetPreviewImage = info.loadIcon(context.packageManager)
+                val widgetPreviewImage = activity!!.packageManager.getDrawable(activity!!.packageName, info.iconResource, componentInfo)
                 val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, widgetPreviewImage, 0, 0)
                 appWidgets.add(widget)
             }
