@@ -8,6 +8,7 @@ import android.widget.LinearLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.simplemobiletools.commons.extensions.getProperTextColor
+import com.simplemobiletools.commons.extensions.toast
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.SimpleActivity
 import com.simplemobiletools.launcher.helpers.WIDGET_LIST_ITEMS_HOLDER
@@ -85,6 +86,10 @@ class WidgetsAdapter(
                 .load(widget.widgetPreviewImage)
                 .fitCenter()
                 .into(widgetPreview)
+
+            widgetPreview.setOnClickListener {
+                activity.toast(R.string.touch_hold_widget)
+            }
         }
     }
 

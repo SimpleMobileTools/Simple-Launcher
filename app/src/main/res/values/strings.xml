@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Simple Launcher</string>
     <string name="app_launcher_name">Launcher</string>
+    <string name="touch_hold_widget">Long press the widget and drag it on your home screen</string>
     <!--
         Haven't found some strings? There's more at
         https://github.com/SimpleMobileTools/Simple-Commons/tree/master/commons/src/main/res
