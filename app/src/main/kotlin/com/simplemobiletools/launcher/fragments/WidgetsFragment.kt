@@ -7,7 +7,6 @@ import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
 import android.os.Process
 import android.util.AttributeSet
-import android.util.DisplayMetrics
 import android.view.Surface
 import android.view.WindowManager
 import com.simplemobiletools.commons.extensions.*
@@ -50,7 +49,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
                 val appTitle = appMetadata.appTitle
                 val appIcon = appMetadata.appIcon
                 val widgetTitle = info.loadLabel(packageManager)
-                val widgetPreviewImage = info.loadPreviewImage(context, DisplayMetrics.DENSITY_MEDIUM) ?: appIcon
+                val widgetPreviewImage = info.loadPreviewImage(context, resources.displayMetrics.densityDpi) ?: appIcon
                 val width = info.minWidth
                 val height = info.minHeight
                 val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, widgetPreviewImage, width, height)
