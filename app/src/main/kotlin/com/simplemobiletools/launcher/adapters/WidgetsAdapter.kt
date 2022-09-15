@@ -3,8 +3,7 @@ package com.simplemobiletools.launcher.adapters
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.LinearLayout
+import android.widget.RelativeLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.simplemobiletools.commons.extensions.getProperTextColor
@@ -18,6 +17,7 @@ import com.simplemobiletools.launcher.models.WidgetsListItemsHolder
 import com.simplemobiletools.launcher.models.WidgetsListSection
 import kotlinx.android.synthetic.main.item_widget_list_items_holder.view.*
 import kotlinx.android.synthetic.main.item_widget_list_section.view.*
+import kotlinx.android.synthetic.main.item_widget_preview.view.*
 
 class WidgetsAdapter(
     val activity: SimpleActivity,
@@ -67,7 +67,7 @@ class WidgetsAdapter(
         view.widget_list_items_scroll_view.scrollX = 0
         listItem.widgets.forEachIndexed { index, widget ->
             val imageSize = activity.resources.getDimension(R.dimen.widget_preview_size).toInt()
-            val widgetPreview = LayoutInflater.from(activity).inflate(R.layout.item_widget_preview, null) as ImageView
+            val widgetPreview = LayoutInflater.from(activity).inflate(R.layout.item_widget_preview, null)
             view.widget_list_items_holder.addView(widgetPreview)
 
             val endMargin = if (index == listItem.widgets.size - 1) {
@@ -76,7 +76,12 @@ class WidgetsAdapter(
                 0
             }
 
-            (widgetPreview.layoutParams as LinearLayout.LayoutParams).apply {
+            widgetPreview.widget_title.apply {
+                text = widget.widgetTitle
+                setTextColor(textColor)
+            }
+
+            (widgetPreview.widget_image.layoutParams as RelativeLayout.LayoutParams).apply {
                 marginStart = activity.resources.getDimension(R.dimen.activity_margin).toInt()
                 marginEnd = endMargin
                 width = imageSize
@@ -85,7 +90,7 @@ class WidgetsAdapter(
 
             Glide.with(activity)
                 .load(widget.widgetPreviewImage)
-                .into(widgetPreview)
+                .into(widgetPreview.widget_image)
 
             widgetPreview.setOnClickListener {
                 activity.toast(R.string.touch_hold_widget)
