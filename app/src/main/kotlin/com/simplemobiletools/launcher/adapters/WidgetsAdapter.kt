@@ -64,6 +64,7 @@ class WidgetsAdapter(
 
     private fun setupListItemsHolder(view: View, listItem: WidgetsListItemsHolder) {
         view.widget_list_items_holder.removeAllViews()
+        view.widget_list_items_scroll_view.scrollX = 0
         listItem.widgets.forEachIndexed { index, widget ->
             val imageSize = activity.resources.getDimension(R.dimen.widget_preview_size).toInt()
             val widgetPreview = LayoutInflater.from(activity).inflate(R.layout.item_widget_preview, null) as ImageView
