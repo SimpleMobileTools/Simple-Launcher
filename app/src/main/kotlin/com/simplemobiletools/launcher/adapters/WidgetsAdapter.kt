@@ -81,6 +81,11 @@ class WidgetsAdapter(
                 setTextColor(textColor)
             }
 
+            widgetPreview.widget_size.apply {
+                text = "${widget.widthTiles} x ${widget.heightTiles}"
+                setTextColor(textColor)
+            }
+
             (widgetPreview.widget_image.layoutParams as RelativeLayout.LayoutParams).apply {
                 marginStart = activity.resources.getDimension(R.dimen.activity_margin).toInt()
                 marginEnd = endMargin

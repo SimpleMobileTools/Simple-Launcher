@@ -4,7 +4,7 @@
     android:id="@+id/widget_preview_holder"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:paddingBottom="@dimen/normal_margin">
+    android:paddingBottom="@dimen/activity_margin">
 
     <ImageView
         android:id="@+id/widget_image"
@@ -29,5 +29,18 @@
         android:lines="1"
         android:textSize="@dimen/smaller_text_size"
         tools:text="Calendar" />
+
+    <com.simplemobiletools.commons.views.MyTextView
+        android:id="@+id/widget_size"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/widget_title"
+        android:layout_alignStart="@+id/widget_image"
+        android:layout_alignEnd="@+id/widget_image"
+        android:alpha="0.5"
+        android:ellipsize="end"
+        android:lines="1"
+        android:textSize="@dimen/smaller_text_size"
+        tools:text="1 x 1" />
 
 </RelativeLayout>
