@@ -15,7 +15,7 @@
         android:visibility="gone" />
 
     <View
-        android:id="@+id/popup_menu_anchor"
+        android:id="@+id/home_screen_popup_menu_anchor"
         android:layout_width="1dp"
         android:layout_height="1dp"
         android:visibility="gone" />

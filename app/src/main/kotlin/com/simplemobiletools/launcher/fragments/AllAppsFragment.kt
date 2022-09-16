@@ -6,11 +6,12 @@ import android.content.Intent
 import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Process
+import android.provider.Settings
 import android.util.AttributeSet
-import android.view.MotionEvent
-import android.view.Surface
-import android.view.WindowManager
+import android.view.*
+import android.widget.PopupMenu
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.isRPlus
@@ -19,10 +20,11 @@ import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.adapters.LaunchersAdapter
 import com.simplemobiletools.launcher.extensions.getColumnCount
+import com.simplemobiletools.launcher.interfaces.AllAppsListener
 import com.simplemobiletools.launcher.models.AppLauncher
 import kotlinx.android.synthetic.main.all_apps_fragment.view.*
 
-class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment(context, attributeSet) {
+class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment(context, attributeSet), AllAppsListener {
     private var touchDownY = -1
 
     @SuppressLint("ClickableViewAccessibility")
@@ -114,7 +116,7 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
 
     private fun setupAdapter(launchers: ArrayList<AppLauncher>) {
         activity?.runOnUiThread {
-            LaunchersAdapter(activity!!, launchers, all_apps_fastscroller) {
+            LaunchersAdapter(activity!!, launchers, all_apps_fastscroller, this) {
                 val launchIntent = context.packageManager.getLaunchIntentForPackage((it as AppLauncher).packageName)
                 try {
                     activity!!.startActivity(launchIntent)
@@ -160,5 +162,30 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
 
         all_apps_grid.setPadding(0, 0, resources.getDimension(R.dimen.medium_margin).toInt(), bottomListPadding)
         all_apps_fastscroller.setPadding(leftListPadding, 0, rightListPadding, 0)
+    }
+
+    override fun onIconLongPressed(x: Float, y: Float, packageName: String) {
+        all_apps_popup_menu_anchor.x = x
+        all_apps_popup_menu_anchor.y = y
+        val contextTheme = ContextThemeWrapper(activity, activity!!.getPopupMenuTheme())
+        PopupMenu(contextTheme, all_apps_popup_menu_anchor, Gravity.TOP or Gravity.END).apply {
+            inflate(R.menu.menu_app_icon)
+            setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    R.id.app_info -> {
+                        launchAppInfo(packageName)
+                    }
+                }
+                true
+            }
+            show()
+        }
+    }
+
+    private fun launchAppInfo(packageName: String) {
+        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = Uri.fromParts("package", packageName, null)
+            activity?.startActivity(this)
+        }
     }
 }

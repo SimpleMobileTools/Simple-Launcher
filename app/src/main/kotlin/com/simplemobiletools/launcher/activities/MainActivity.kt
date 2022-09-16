@@ -123,10 +123,10 @@ class MainActivity : SimpleActivity(), FlingListener {
     fun homeScreenLongPressed(x: Float, y: Float) {
         main_holder.performHapticFeedback()
 
-        popup_menu_anchor.x = x
-        popup_menu_anchor.y = y - resources.getDimension(R.dimen.long_press_anchor_offset_y)
+        home_screen_popup_menu_anchor.x = x
+        home_screen_popup_menu_anchor.y = y - resources.getDimension(R.dimen.long_press_anchor_offset_y)
         val contextTheme = ContextThemeWrapper(this, getPopupMenuTheme())
-        PopupMenu(contextTheme, popup_menu_anchor, Gravity.TOP or Gravity.END).apply {
+        PopupMenu(contextTheme, home_screen_popup_menu_anchor, Gravity.TOP or Gravity.END).apply {
             inflate(R.menu.menu_home_screen)
             setOnMenuItemClickListener { item ->
                 when (item.itemId) {

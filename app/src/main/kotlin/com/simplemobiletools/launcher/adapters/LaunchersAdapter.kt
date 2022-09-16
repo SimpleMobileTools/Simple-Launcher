@@ -12,6 +12,7 @@ import com.simplemobiletools.commons.extensions.realScreenSize
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.SimpleActivity
 import com.simplemobiletools.launcher.extensions.getColumnCount
+import com.simplemobiletools.launcher.interfaces.AllAppsListener
 import com.simplemobiletools.launcher.models.AppLauncher
 import kotlinx.android.synthetic.main.item_launcher_label.view.*
 
@@ -19,6 +20,7 @@ class LaunchersAdapter(
     val activity: SimpleActivity,
     val launchers: ArrayList<AppLauncher>,
     val fastScroller: RecyclerViewFastScroller,
+    val allAppsListener: AllAppsListener,
     val itemClick: (Any) -> Unit
 ) : RecyclerView.Adapter<LaunchersAdapter.ViewHolder>(), RecyclerViewFastScroller.OnPopupTextUpdate {
 
@@ -60,6 +62,10 @@ class LaunchersAdapter(
                 launcher_icon.setImageDrawable(launcher.drawable!!)
                 launcher_icon.setPadding(iconPadding, iconPadding, iconPadding, 0)
                 setOnClickListener { itemClick(launcher) }
+                setOnLongClickListener { view ->
+                    allAppsListener.onIconLongPressed(view.x, view.y, launcher.packageName)
+                    true
+                }
             }
 
             if (!wasManualScrollPositionSet) {
