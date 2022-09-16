@@ -9,5 +9,6 @@ data class AppWidget(
     val widgetTitle: String,
     val widgetPreviewImage: Drawable?,
     var widthTiles: Int,
-    val heightTiles: Int
+    val heightTiles: Int,
+    val isShortcut: Boolean
 ) : WidgetsListItem()

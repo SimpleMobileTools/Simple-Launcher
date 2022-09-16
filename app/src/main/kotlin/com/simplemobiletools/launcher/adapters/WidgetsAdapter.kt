@@ -82,7 +82,11 @@ class WidgetsAdapter(
             }
 
             widgetPreview.widget_size.apply {
-                text = "${widget.widthTiles} x ${widget.heightTiles}"
+                text = if (widget.isShortcut) {
+                    activity.getString(R.string.shortcut)
+                } else {
+                    "${widget.widthTiles} x ${widget.heightTiles}"
+                }
                 setTextColor(textColor)
             }
 

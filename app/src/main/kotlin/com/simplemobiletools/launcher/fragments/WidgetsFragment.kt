@@ -52,7 +52,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
                 val widgetPreviewImage = info.loadPreviewImage(context, resources.displayMetrics.densityDpi) ?: appIcon
                 val widthTileCount = getTileCount(info.minWidth)
                 val heightTileCount = getTileCount(info.minHeight)
-                val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, widgetPreviewImage, widthTileCount, heightTileCount)
+                val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, widgetPreviewImage, widthTileCount, heightTileCount, false)
                 appWidgets.add(widget)
             }
 
@@ -67,7 +67,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
                 val appIcon = appMetadata.appIcon
                 val widgetTitle = info.loadLabel(packageManager).toString()
                 val widgetPreviewImage = packageManager.getDrawable(componentInfo.packageName, info.iconResource, componentInfo)
-                val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, widgetPreviewImage, 0, 0)
+                val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, widgetPreviewImage, 0, 0, true)
                 appWidgets.add(widget)
             }
 
@@ -76,7 +76,10 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
         }
     }
 
-    private fun getTileCount(size: Int) = Math.ceil(((size / resources.displayMetrics.density) - 30) / 70.0).toInt()
+    private fun getTileCount(size: Int): Int {
+        val tiles = Math.ceil(((size / resources.displayMetrics.density) - 30) / 70.0).toInt()
+        return Math.max(tiles, 1)
+    }
 
     private fun splitWidgetsByApps(appWidgets: ArrayList<AppWidget>) {
         var currentAppPackageName = ""
