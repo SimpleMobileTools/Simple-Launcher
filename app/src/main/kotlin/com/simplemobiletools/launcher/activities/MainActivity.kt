@@ -121,6 +121,10 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     fun homeScreenLongPressed(x: Float, y: Float) {
+        if (all_apps_fragment.y != mScreenHeight.toFloat()) {
+            return
+        }
+
         main_holder.performHapticFeedback()
 
         home_screen_popup_menu_anchor.x = x
