@@ -59,4 +59,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
             }
         }
     }
+
+    fun gridClicked(x: Float, y: Float) {
+
+    }
 }

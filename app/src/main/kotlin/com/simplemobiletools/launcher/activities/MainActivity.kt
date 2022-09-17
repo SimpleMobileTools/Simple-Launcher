@@ -150,11 +150,22 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
     }
 
+    fun homeScreenClicked(x: Float, y: Float) {
+        if (x >= home_screen_grid.left && x <= home_screen_grid.right && y >= home_screen_grid.top && y <= home_screen_grid.bottom) {
+            home_screen_grid.gridClicked(x, y)
+        }
+    }
+
     private fun showWidgetsFragment() {
         showFragment(widgets_fragment)
     }
 
     private class MyGestureListener(private val flingListener: FlingListener) : GestureDetector.SimpleOnGestureListener() {
+        override fun onSingleTapConfirmed(event: MotionEvent): Boolean {
+            (flingListener as MainActivity).homeScreenClicked(event.x, event.y)
+            return super.onSingleTapConfirmed(event)
+        }
+
         override fun onFling(event1: MotionEvent, event2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
             if (velocityY > 0) {
                 flingListener.onFlingDown()
