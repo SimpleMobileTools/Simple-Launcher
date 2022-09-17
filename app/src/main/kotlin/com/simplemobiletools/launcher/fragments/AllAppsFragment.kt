@@ -3,11 +3,8 @@ package com.simplemobiletools.launcher.fragments
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
-import android.graphics.drawable.Drawable
 import android.net.Uri
-import android.os.Process
 import android.provider.Settings
 import android.util.AttributeSet
 import android.view.*
@@ -20,6 +17,7 @@ import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.adapters.LaunchersAdapter
 import com.simplemobiletools.launcher.extensions.getColumnCount
+import com.simplemobiletools.launcher.extensions.getDrawableForPackageName
 import com.simplemobiletools.launcher.interfaces.AllAppsListener
 import com.simplemobiletools.launcher.models.AppLauncher
 import kotlinx.android.synthetic.main.all_apps_fragment.view.*
@@ -82,24 +80,7 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
                 val componentInfo = info.activityInfo.applicationInfo
                 val label = componentInfo.loadLabel(context.packageManager).toString()
                 val packageName = componentInfo.packageName
-
-                var drawable: Drawable? = null
-                try {
-                    // try getting the properly colored launcher icons
-                    val launcher = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
-                    val activityList = launcher.getActivityList(packageName, Process.myUserHandle())[0]
-                    drawable = activityList.getBadgedIcon(0)
-                } catch (e: Exception) {
-                } catch (e: Error) {
-                }
-
-                if (drawable == null) {
-                    drawable = try {
-                        context.packageManager.getApplicationIcon(packageName)
-                    } catch (ignored: Exception) {
-                        continue
-                    }
-                }
+                val drawable = context.getDrawableForPackageName(packageName) ?: continue
 
                 allPackageNames.add(packageName)
                 allApps.add(AppLauncher(0, label, packageName, 0, drawable))

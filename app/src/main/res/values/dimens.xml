@@ -2,4 +2,5 @@
     <dimen name="launcher_icon_size">55dp</dimen>
     <dimen name="long_press_anchor_offset_y">70dp</dimen>
     <dimen name="widget_preview_size">140dp</dimen>
+    <dimen name="icon_side_margin">10dp</dimen>
 </resources>

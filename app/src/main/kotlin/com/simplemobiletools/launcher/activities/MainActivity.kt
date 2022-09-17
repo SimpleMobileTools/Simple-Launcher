@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.*
 import android.view.animation.DecelerateInterpolator
 import android.widget.PopupMenu
+import android.widget.RelativeLayout
 import androidx.core.view.GestureDetectorCompat
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.launcher.BuildConfig
@@ -41,6 +42,11 @@ class MainActivity : SimpleActivity(), FlingListener {
             fragment.setupFragment(this)
             fragment.y = mScreenHeight.toFloat()
             fragment.beVisible()
+        }
+
+        (home_screen_grid.layoutParams as RelativeLayout.LayoutParams).apply {
+            topMargin = statusBarHeight
+            bottomMargin = navigationBarHeight
         }
     }
 
