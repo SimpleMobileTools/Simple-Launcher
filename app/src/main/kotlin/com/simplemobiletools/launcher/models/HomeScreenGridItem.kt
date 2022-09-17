@@ -1,5 +1,3 @@
 package com.simplemobiletools.launcher.models
 
-import android.graphics.Rect
-
-data class HomeScreenGridItem(var rect: Rect, val packageName: String)
+data class HomeScreenGridItem(var left: Int, val top: Int, val right: Int, val bottom: Int, val packageName: String)

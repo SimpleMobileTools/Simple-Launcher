@@ -5,7 +5,6 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.Rect
 import android.telecom.TelecomManager
 import android.util.AttributeSet
 import android.view.View
@@ -59,12 +58,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
             for (i in 0 until COLUMN_COUNT - 1) {
                 val drawableX = rowXCoords[i] + iconMargin
                 val drawableY = rowYCoords[COLUMN_COUNT - 1] + rowHeight - iconSize - iconMargin * 2
-                val rect = Rect(drawableX, drawableY, drawableX + rowWidth, drawableY + rowHeight)
 
-                dialerDrawable!!.setBounds(rect.left, rect.top, drawableX + iconSize, drawableY + iconSize)
+                dialerDrawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
                 dialerDrawable!!.draw(canvas)
 
-                val gridItem = HomeScreenGridItem(rect, defaultDialerPackage)
+                val gridItem = HomeScreenGridItem(drawableX, drawableY, drawableX + rowWidth, drawableY + rowHeight, defaultDialerPackage)
                 gridItems.add(gridItem)
             }
         }
@@ -72,8 +70,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
 
     fun gridClicked(x: Float, y: Float, callback: (packageName: String) -> Unit) {
         for (gridItem in gridItems) {
-            val rect = gridItem.rect
-            if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+            if (x >= gridItem.left && x <= gridItem.right && y >= gridItem.top && y <= gridItem.bottom) {
                 callback(gridItem.packageName)
                 break
             }
