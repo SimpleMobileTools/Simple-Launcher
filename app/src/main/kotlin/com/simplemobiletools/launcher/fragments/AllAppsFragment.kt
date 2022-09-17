@@ -18,6 +18,7 @@ import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.adapters.LaunchersAdapter
 import com.simplemobiletools.launcher.extensions.getColumnCount
 import com.simplemobiletools.launcher.extensions.getDrawableForPackageName
+import com.simplemobiletools.launcher.extensions.launchApp
 import com.simplemobiletools.launcher.interfaces.AllAppsListener
 import com.simplemobiletools.launcher.models.AppLauncher
 import kotlinx.android.synthetic.main.all_apps_fragment.view.*
@@ -98,12 +99,7 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
     private fun setupAdapter(launchers: ArrayList<AppLauncher>) {
         activity?.runOnUiThread {
             LaunchersAdapter(activity!!, launchers, all_apps_fastscroller, this) {
-                val launchIntent = context.packageManager.getLaunchIntentForPackage((it as AppLauncher).packageName)
-                try {
-                    activity!!.startActivity(launchIntent)
-                } catch (e: Exception) {
-                    activity?.showErrorToast(e)
-                }
+                activity?.launchApp((it as AppLauncher).packageName)
             }.apply {
                 all_apps_grid.adapter = this
             }

@@ -12,6 +12,7 @@ import androidx.core.view.GestureDetectorCompat
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
+import com.simplemobiletools.launcher.extensions.launchApp
 import com.simplemobiletools.launcher.fragments.AllAppsFragment
 import com.simplemobiletools.launcher.fragments.MyFragment
 import com.simplemobiletools.launcher.fragments.WidgetsFragment
@@ -152,7 +153,9 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     fun homeScreenClicked(x: Float, y: Float) {
         if (x >= home_screen_grid.left && x <= home_screen_grid.right && y >= home_screen_grid.top && y <= home_screen_grid.bottom) {
-            home_screen_grid.gridClicked(x, y)
+            home_screen_grid.gridClicked(x, y) { packageName ->
+                launchApp(packageName)
+            }
         }
     }
 
@@ -161,9 +164,9 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     private class MyGestureListener(private val flingListener: FlingListener) : GestureDetector.SimpleOnGestureListener() {
-        override fun onSingleTapConfirmed(event: MotionEvent): Boolean {
+        override fun onSingleTapUp(event: MotionEvent): Boolean {
             (flingListener as MainActivity).homeScreenClicked(event.x, event.y)
-            return super.onSingleTapConfirmed(event)
+            return super.onSingleTapUp(event)
         }
 
         override fun onFling(event1: MotionEvent, event2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
