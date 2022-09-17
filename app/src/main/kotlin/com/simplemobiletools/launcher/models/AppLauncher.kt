@@ -1,15 +1,29 @@
 package com.simplemobiletools.launcher.models
 
 import android.graphics.drawable.Drawable
+import androidx.room.*
 import com.simplemobiletools.commons.helpers.SORT_BY_TITLE
 import com.simplemobiletools.commons.helpers.SORT_DESCENDING
 
-data class AppLauncher(val id: Int, var title: String, val packageName: String, var order: Int, val drawable: Drawable? = null) : Comparable<AppLauncher> {
+@Entity(tableName = "apps", indices = [(Index(value = ["package_name"], unique = true))])
+data class AppLauncher(
+    @PrimaryKey(autoGenerate = true) var id: Long?,
+    @ColumnInfo(name = "title") var title: String,
+    @ColumnInfo(name = "package_name") var packageName: String,
+    @ColumnInfo(name = "order") var order: Int,
+
+    @Ignore var drawable: Drawable?
+) : Comparable<AppLauncher> {
+
+    constructor() : this(null, "", "", 0, null)
+
     companion object {
         var sorting = 0
     }
 
     override fun equals(other: Any?) = packageName.equals((other as AppLauncher).packageName, true)
+
+    override fun hashCode() = super.hashCode()
 
     fun getBubbleText() = title
 
