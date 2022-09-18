@@ -5,12 +5,16 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.simplemobiletools.launcher.interfaces.AppLaunchersDao
+import com.simplemobiletools.launcher.interfaces.HomeScreenGridItemsDao
 import com.simplemobiletools.launcher.models.AppLauncher
+import com.simplemobiletools.launcher.models.HomeScreenGridItem
 
-@Database(entities = [AppLauncher::class], version = 1)
+@Database(entities = [AppLauncher::class, HomeScreenGridItem::class], version = 1)
 abstract class AppsDatabase : RoomDatabase() {
 
     abstract fun AppLaunchersDao(): AppLaunchersDao
+
+    abstract fun HomeScreenGridItemsDao(): HomeScreenGridItemsDao
 
     companion object {
         private var db: AppsDatabase? = null

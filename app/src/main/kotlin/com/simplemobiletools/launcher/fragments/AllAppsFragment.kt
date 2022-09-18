@@ -108,7 +108,7 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
     }
 
     private fun gotLaunchers(appLaunchers: ArrayList<AppLauncher>) {
-        val sorted = appLaunchers.sortedBy { it.title.normalizeString().lowercase() }.toList() as ArrayList<AppLauncher>
+        val sorted = appLaunchers.sortedBy { it.title.normalizeString().lowercase() }.toMutableList() as ArrayList<AppLauncher>
         setupAdapter(sorted)
     }
 
