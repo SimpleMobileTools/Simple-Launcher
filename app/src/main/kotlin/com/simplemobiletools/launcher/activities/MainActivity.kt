@@ -22,6 +22,7 @@ import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.extensions.config
+import com.simplemobiletools.launcher.extensions.handleAppIconPopupMenu
 import com.simplemobiletools.launcher.extensions.homeScreenGridItemsDB
 import com.simplemobiletools.launcher.extensions.launchApp
 import com.simplemobiletools.launcher.fragments.AllAppsFragment
@@ -159,7 +160,31 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
 
         main_holder.performHapticFeedback()
+        val clickedPackageName = home_screen_grid.gridClicked(x - home_screen_grid.marginLeft, y - home_screen_grid.marginTop)
+        if (clickedPackageName.isNotEmpty()) {
+            showHomeIconMenu(x, y, clickedPackageName)
+            return
+        }
 
+        showMainLongPressMenu(x, y)
+    }
+
+    fun homeScreenClicked(x: Float, y: Float) {
+        if (x >= home_screen_grid.left && x <= home_screen_grid.right && y >= home_screen_grid.top && y <= home_screen_grid.bottom) {
+            val clickedPackageName = home_screen_grid.gridClicked(x - home_screen_grid.marginLeft, y - home_screen_grid.marginTop)
+            if (clickedPackageName.isNotEmpty()) {
+                launchApp(clickedPackageName)
+            }
+        }
+    }
+
+    private fun showHomeIconMenu(x: Float, y: Float, clickedPackageName: String) {
+        home_screen_popup_menu_anchor.x = x
+        home_screen_popup_menu_anchor.y = y - resources.getDimension(R.dimen.long_press_anchor_offset_y)
+        handleAppIconPopupMenu(home_screen_popup_menu_anchor, clickedPackageName)
+    }
+
+    private fun showMainLongPressMenu(x: Float, y: Float) {
         home_screen_popup_menu_anchor.x = x
         home_screen_popup_menu_anchor.y = y - resources.getDimension(R.dimen.long_press_anchor_offset_y)
         val contextTheme = ContextThemeWrapper(this, getPopupMenuTheme())
@@ -174,14 +199,6 @@ class MainActivity : SimpleActivity(), FlingListener {
                 true
             }
             show()
-        }
-    }
-
-    fun homeScreenClicked(x: Float, y: Float) {
-        if (x >= home_screen_grid.left && x <= home_screen_grid.right && y >= home_screen_grid.top && y <= home_screen_grid.bottom) {
-            home_screen_grid.gridClicked(x - home_screen_grid.marginLeft, y - home_screen_grid.marginTop) { packageName ->
-                launchApp(packageName)
-            }
         }
     }
 

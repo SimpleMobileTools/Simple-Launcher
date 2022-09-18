@@ -83,12 +83,13 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
         }
     }
 
-    fun gridClicked(x: Float, y: Float, callback: (packageName: String) -> Unit) {
-        for (gridItem in appIcons) {
-            if (x >= gridItem.left * rowWidth && x <= gridItem.right * rowWidth && y >= gridItem.top * rowHeight && y <= gridItem.bottom * rowHeight) {
-                callback(gridItem.packageName)
-                break
+    fun gridClicked(x: Float, y: Float): String {
+        for (appIcon in appIcons) {
+            if (x >= appIcon.left * rowWidth && x <= appIcon.right * rowWidth && y >= appIcon.top * rowHeight && y <= appIcon.bottom * rowHeight) {
+                return appIcon.packageName
             }
         }
+
+        return ""
     }
 }

@@ -6,11 +6,10 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.net.Uri
-import android.provider.Settings
 import android.util.AttributeSet
-import android.view.*
-import android.widget.PopupMenu
+import android.view.MotionEvent
+import android.view.Surface
+import android.view.WindowManager
 import androidx.core.graphics.drawable.toBitmap
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
@@ -19,10 +18,7 @@ import com.simplemobiletools.commons.views.MyGridLayoutManager
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.adapters.LaunchersAdapter
-import com.simplemobiletools.launcher.extensions.getColumnCount
-import com.simplemobiletools.launcher.extensions.getDrawableForPackageName
-import com.simplemobiletools.launcher.extensions.launchApp
-import com.simplemobiletools.launcher.extensions.launchersDB
+import com.simplemobiletools.launcher.extensions.*
 import com.simplemobiletools.launcher.interfaces.AllAppsListener
 import com.simplemobiletools.launcher.models.AppLauncher
 import kotlinx.android.synthetic.main.all_apps_fragment.view.*
@@ -163,26 +159,7 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
     override fun onIconLongPressed(x: Float, y: Float, packageName: String) {
         all_apps_popup_menu_anchor.x = x
         all_apps_popup_menu_anchor.y = y
-        val contextTheme = ContextThemeWrapper(activity, activity!!.getPopupMenuTheme())
-        PopupMenu(contextTheme, all_apps_popup_menu_anchor, Gravity.TOP or Gravity.END).apply {
-            inflate(R.menu.menu_app_icon)
-            setOnMenuItemClickListener { item ->
-                when (item.itemId) {
-                    R.id.app_info -> {
-                        launchAppInfo(packageName)
-                    }
-                }
-                true
-            }
-            show()
-        }
-    }
-
-    private fun launchAppInfo(packageName: String) {
-        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-            data = Uri.fromParts("package", packageName, null)
-            activity?.startActivity(this)
-        }
+        activity?.handleAppIconPopupMenu(all_apps_popup_menu_anchor, packageName)
     }
 
     // taken from https://gist.github.com/maxjvh/a6ab15cbba9c82a5065d
