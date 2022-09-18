@@ -92,7 +92,7 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             }
 
             val launchers = allApps.distinctBy { it.packageName } as ArrayList<AppLauncher>
-            launchers.sortBy { it.title.toLowerCase() }
+            launchers.sortBy { it.title.normalizeString().lowercase() }
 
             val layoutManager = all_apps_grid.layoutManager as MyGridLayoutManager
             layoutManager.spanCount = context.getColumnCount()

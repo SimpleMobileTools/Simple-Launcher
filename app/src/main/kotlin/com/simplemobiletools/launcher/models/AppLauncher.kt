@@ -2,8 +2,10 @@ package com.simplemobiletools.launcher.models
 
 import android.graphics.drawable.Drawable
 import androidx.room.*
+import com.simplemobiletools.commons.extensions.normalizeString
 import com.simplemobiletools.commons.helpers.SORT_BY_TITLE
 import com.simplemobiletools.commons.helpers.SORT_DESCENDING
+import java.util.*
 
 @Entity(tableName = "apps", indices = [(Index(value = ["package_name"], unique = true))])
 data class AppLauncher(
@@ -30,7 +32,7 @@ data class AppLauncher(
 
     override fun compareTo(other: AppLauncher): Int {
         var result = when {
-            sorting and SORT_BY_TITLE != 0 -> title.toLowerCase().compareTo(other.title.toLowerCase())
+            sorting and SORT_BY_TITLE != 0 -> title.normalizeString().lowercase().compareTo(other.title.normalizeString().lowercase())
             else -> {
                 if (order > 0 && other.order == 0) {
                     -1
@@ -39,7 +41,7 @@ data class AppLauncher(
                 } else if (order > 0 && other.order > 0) {
                     order.compareTo(other.order)
                 } else {
-                    title.toLowerCase().compareTo(other.title.toLowerCase())
+                    title.lowercase().compareTo(other.title.lowercase())
                 }
             }
         }
