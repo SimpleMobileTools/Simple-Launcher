@@ -11,11 +11,12 @@ data class AppLauncher(
     @ColumnInfo(name = "title") var title: String,
     @ColumnInfo(name = "package_name") var packageName: String,
     @ColumnInfo(name = "order") var order: Int,
+    @ColumnInfo(name = "thumbnail_color") var thumbnailColor: Int,
 
     @Ignore var drawable: Drawable?
 ) : Comparable<AppLauncher> {
 
-    constructor() : this(null, "", "", 0, null)
+    constructor() : this(null, "", "", 0, 0, null)
 
     companion object {
         var sorting = 0

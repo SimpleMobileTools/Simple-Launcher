@@ -4,11 +4,14 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Color
 import android.net.Uri
 import android.provider.Settings
 import android.util.AttributeSet
 import android.view.*
 import android.widget.PopupMenu
+import androidx.core.graphics.drawable.toBitmap
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.isRPlus
@@ -82,9 +85,10 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
                 val label = componentInfo.loadLabel(context.packageManager).toString()
                 val packageName = componentInfo.packageName
                 val drawable = context.getDrawableForPackageName(packageName) ?: continue
+                val placeholderColor = calculateAverageColor(drawable.toBitmap())
 
                 allPackageNames.add(packageName)
-                allApps.add(AppLauncher(0, label, packageName, 0, drawable))
+                allApps.add(AppLauncher(0, label, packageName, 0, placeholderColor, drawable))
             }
 
             val launchers = allApps.distinctBy { it.packageName } as ArrayList<AppLauncher>
@@ -164,5 +168,28 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             data = Uri.fromParts("package", packageName, null)
             activity?.startActivity(this)
         }
+    }
+
+    // taken from https://gist.github.com/maxjvh/a6ab15cbba9c82a5065d
+    private fun calculateAverageColor(bitmap: Bitmap): Int {
+        var red = 0
+        var green = 0
+        var blue = 0
+        val height = bitmap.height
+        val width = bitmap.width
+        var n = 0
+        val pixels = IntArray(width * height)
+        bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
+        var i = 0
+        while (i < pixels.size) {
+            val color = pixels[i]
+            red += Color.red(color)
+            green += Color.green(color)
+            blue += Color.blue(color)
+            n++
+            i += 1
+        }
+
+        return Color.rgb(red / n, green / n, blue / n)
     }
 }
