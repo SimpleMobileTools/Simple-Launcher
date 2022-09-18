@@ -5,7 +5,6 @@ import androidx.room.*
 import com.simplemobiletools.commons.extensions.normalizeString
 import com.simplemobiletools.commons.helpers.SORT_BY_TITLE
 import com.simplemobiletools.commons.helpers.SORT_DESCENDING
-import java.util.*
 
 @Entity(tableName = "apps", indices = [(Index(value = ["package_name"], unique = true))])
 data class AppLauncher(

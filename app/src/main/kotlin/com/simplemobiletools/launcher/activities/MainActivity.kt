@@ -20,6 +20,8 @@ import com.simplemobiletools.launcher.interfaces.FlingListener
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : SimpleActivity(), FlingListener {
+    private val ANIMATION_DURATION = 150L
+
     private var mTouchDownY = -1
     private var mCurrentFragmentY = 0
     private var mScreenHeight = 0
@@ -115,6 +117,7 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     private fun showFragment(fragment: View) {
         ObjectAnimator.ofFloat(fragment, "y", 0f).apply {
+            duration = ANIMATION_DURATION
             interpolator = DecelerateInterpolator()
             start()
         }
@@ -122,6 +125,7 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     private fun hideFragment(fragment: View) {
         ObjectAnimator.ofFloat(fragment, "y", mScreenHeight.toFloat()).apply {
+            duration = ANIMATION_DURATION
             interpolator = DecelerateInterpolator()
             start()
         }
