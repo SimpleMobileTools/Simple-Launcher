@@ -1,12 +1,15 @@
 package com.simplemobiletools.launcher.adapters
 
-import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
+import com.simplemobiletools.commons.extensions.getColoredDrawableWithColor
 import com.simplemobiletools.commons.extensions.getProperTextColor
 import com.simplemobiletools.commons.extensions.portrait
 import com.simplemobiletools.commons.extensions.realScreenSize
@@ -62,9 +65,14 @@ class LaunchersAdapter(
                 launcher_label.setTextColor(textColor)
                 launcher_icon.setPadding(iconPadding, iconPadding, iconPadding, 0)
 
-                if (launcher.drawable != null) {
-                    launcher_icon.setImageDrawable(launcher.drawable!!)
-                }
+                val factory = DrawableCrossFadeFactory.Builder(150).setCrossFadeEnabled(true).build()
+                val placeholderDrawable = activity.resources.getColoredDrawableWithColor(R.drawable.placeholder_drawable, launcher.thumbnailColor)
+
+                Glide.with(activity)
+                    .load(launcher.drawable)
+                    .placeholder(placeholderDrawable)
+                    .transition(DrawableTransitionOptions.withCrossFade(factory))
+                    .into(launcher_icon)
 
                 setOnClickListener { itemClick(launcher) }
                 setOnLongClickListener { view ->
