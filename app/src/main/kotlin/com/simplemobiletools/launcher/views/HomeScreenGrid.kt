@@ -38,6 +38,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
             textSize = context.resources.getDimension(R.dimen.normal_text_size)
         }
 
+        fetchAppIcons(false)
+    }
+
+    fun fetchAppIcons(forceRedraw: Boolean) {
         ensureBackgroundThread {
             appIcons = context.homeScreenGridItemsDB.getAllItems() as ArrayList<HomeScreenGridItem>
             appIcons.forEach { item ->
@@ -45,6 +49,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
                 if (drawable != null) {
                     appIconDrawables[item.packageName] = drawable
                 }
+            }
+
+            if (forceRedraw) {
+                invalidate()
             }
         }
     }
