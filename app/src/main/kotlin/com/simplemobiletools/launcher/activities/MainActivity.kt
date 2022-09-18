@@ -33,7 +33,6 @@ import com.simplemobiletools.launcher.interfaces.FlingListener
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
 import kotlinx.android.synthetic.main.activity_main.*
 
-
 class MainActivity : SimpleActivity(), FlingListener {
     private val ANIMATION_DURATION = 150L
 
@@ -122,7 +121,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                 if (!mIgnoreUpEvent) {
                     if (all_apps_fragment.y < mScreenHeight * 0.7) {
                         showFragment(all_apps_fragment)
-                    } else {
+                    } else if (all_apps_fragment.y != realScreenSize.y.toFloat()) {
                         hideFragment(all_apps_fragment)
                     }
                 }
@@ -144,6 +143,8 @@ class MainActivity : SimpleActivity(), FlingListener {
             interpolator = DecelerateInterpolator()
             start()
         }
+
+        window.navigationBarColor = resources.getColor(R.color.semitransparent_navigation)
     }
 
     private fun hideFragment(fragment: View) {
@@ -152,6 +153,8 @@ class MainActivity : SimpleActivity(), FlingListener {
             interpolator = DecelerateInterpolator()
             start()
         }
+
+        window.navigationBarColor = Color.TRANSPARENT
     }
 
     fun homeScreenLongPressed(x: Float, y: Float) {
@@ -192,9 +195,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             inflate(R.menu.menu_home_screen)
             setOnMenuItemClickListener { item ->
                 when (item.itemId) {
-                    R.id.widgets -> {
-                        showWidgetsFragment()
-                    }
+                    R.id.widgets -> showWidgetsFragment()
                 }
                 true
             }
