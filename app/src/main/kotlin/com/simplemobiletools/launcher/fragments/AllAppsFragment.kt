@@ -98,6 +98,12 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             val launchers = allApps.distinctBy { it.packageName } as ArrayList<AppLauncher>
             context.launchersDB.insertAll(launchers)
             gotLaunchers(launchers)
+
+            cachedLaunchers.map { it.packageName }.forEach { packageName ->
+                if (!launchers.map { it.packageName }.contains(packageName)) {
+                    context.launchersDB.deleteApp(packageName)
+                }
+            }
         }
     }
 

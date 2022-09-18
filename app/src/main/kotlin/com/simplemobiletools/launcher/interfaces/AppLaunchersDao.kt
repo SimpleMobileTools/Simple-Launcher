@@ -13,4 +13,7 @@ interface AppLaunchersDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(appLaunchers: List<AppLauncher>)
+
+    @Query("DELETE FROM apps WHERE package_name = :packageName")
+    fun deleteApp(packageName: String)
 }
