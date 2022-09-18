@@ -40,6 +40,7 @@ class MainActivity : SimpleActivity(), FlingListener {
     private var mCurrentFragmentY = 0
     private var mScreenHeight = 0
     private var mIgnoreUpEvent = false
+    private var mIgnoreMoveEvents = false
     private lateinit var mDetector: GestureDetectorCompat
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -108,7 +109,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             }
 
             MotionEvent.ACTION_MOVE -> {
-                if (mTouchDownY != -1) {
+                if (mTouchDownY != -1 && !mIgnoreMoveEvents) {
                     val diffY = mTouchDownY - event.y
                     val newY = mCurrentFragmentY - diffY
                     all_apps_fragment.y = Math.min(Math.max(0f, newY), mScreenHeight.toFloat())
@@ -118,6 +119,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             MotionEvent.ACTION_CANCEL,
             MotionEvent.ACTION_UP -> {
                 mTouchDownY = -1
+                mIgnoreMoveEvents = false
                 if (!mIgnoreUpEvent) {
                     if (all_apps_fragment.y < mScreenHeight * 0.7) {
                         showFragment(all_apps_fragment)
@@ -162,6 +164,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             return
         }
 
+        mIgnoreMoveEvents = true
         main_holder.performHapticFeedback()
         val clickedPackageName = home_screen_grid.gridClicked(x - home_screen_grid.marginLeft, y - home_screen_grid.marginTop)
         if (clickedPackageName.isNotEmpty()) {
