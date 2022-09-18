@@ -28,15 +28,21 @@ fun Activity.launchAppInfo(packageName: String) {
     }
 }
 
+fun Activity.uninstallApp(packageName: String) {
+    Intent(Intent.ACTION_DELETE).apply {
+        data = Uri.fromParts("package", packageName, null)
+        startActivity(this)
+    }
+}
+
 fun Activity.handleAppIconPopupMenu(anchorView: View, appPackageName: String) {
     val contextTheme = ContextThemeWrapper(this, getPopupMenuTheme())
     PopupMenu(contextTheme, anchorView, Gravity.TOP or Gravity.END).apply {
         inflate(R.menu.menu_app_icon)
         setOnMenuItemClickListener { item ->
             when (item.itemId) {
-                R.id.app_info -> {
-                    launchAppInfo(appPackageName)
-                }
+                R.id.app_info -> launchAppInfo(appPackageName)
+                R.id.uninstall -> uninstallApp(appPackageName)
             }
             true
         }

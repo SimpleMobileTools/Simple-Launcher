@@ -6,4 +6,9 @@
         android:icon="@drawable/ic_info_vector"
         android:title="@string/app_info"
         app:showAsAction="always" />
+    <item
+        android:id="@+id/uninstall"
+        android:icon="@drawable/ic_delete_vector"
+        android:title="@string/uninstall"
+        app:showAsAction="always" />
 </menu>
