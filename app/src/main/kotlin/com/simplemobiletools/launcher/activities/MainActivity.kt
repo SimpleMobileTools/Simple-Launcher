@@ -70,7 +70,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             ensureBackgroundThread {
                 getDefaultAppPackages()
                 config.wasHomeScreenInit = true
-                home_screen_grid.fetchAppIcons(true)
+                home_screen_grid.fetchAppIcons()
             }
         }
     }
