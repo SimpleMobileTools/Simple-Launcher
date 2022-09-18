@@ -1,5 +1,6 @@
 package com.simplemobiletools.launcher.adapters
 
+import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -59,8 +60,12 @@ class LaunchersAdapter(
             itemView.apply {
                 launcher_label.text = launcher.title
                 launcher_label.setTextColor(textColor)
-                launcher_icon.setImageDrawable(launcher.drawable!!)
                 launcher_icon.setPadding(iconPadding, iconPadding, iconPadding, 0)
+
+                if (launcher.drawable != null) {
+                    launcher_icon.setImageDrawable(launcher.drawable!!)
+                }
+
                 setOnClickListener { itemClick(launcher) }
                 setOnLongClickListener { view ->
                     allAppsListener.onIconLongPressed(view.x, view.y, launcher.packageName)

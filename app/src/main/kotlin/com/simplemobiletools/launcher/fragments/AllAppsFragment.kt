@@ -22,6 +22,7 @@ import com.simplemobiletools.launcher.adapters.LaunchersAdapter
 import com.simplemobiletools.launcher.extensions.getColumnCount
 import com.simplemobiletools.launcher.extensions.getDrawableForPackageName
 import com.simplemobiletools.launcher.extensions.launchApp
+import com.simplemobiletools.launcher.extensions.launchersDB
 import com.simplemobiletools.launcher.interfaces.AllAppsListener
 import com.simplemobiletools.launcher.models.AppLauncher
 import kotlinx.android.synthetic.main.all_apps_fragment.view.*
@@ -73,12 +74,15 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
 
     @SuppressLint("WrongConstant")
     private fun getLaunchers() {
-        val allApps = ArrayList<AppLauncher>()
-        val allPackageNames = ArrayList<String>()
-        val intent = Intent(Intent.ACTION_MAIN, null)
-        intent.addCategory(Intent.CATEGORY_LAUNCHER)
-
         ensureBackgroundThread {
+            val cachedLaunchers = context.launchersDB.getAppLaunchers() as ArrayList<AppLauncher>
+            gotLaunchers(cachedLaunchers)
+
+            val allApps = ArrayList<AppLauncher>()
+            val allPackageNames = ArrayList<String>()
+            val intent = Intent(Intent.ACTION_MAIN, null)
+            intent.addCategory(Intent.CATEGORY_LAUNCHER)
+
             val list = context.packageManager.queryIntentActivities(intent, PackageManager.PERMISSION_GRANTED)
             for (info in list) {
                 val componentInfo = info.activityInfo.applicationInfo
@@ -88,20 +92,25 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
                 val placeholderColor = calculateAverageColor(drawable.toBitmap())
 
                 allPackageNames.add(packageName)
-                allApps.add(AppLauncher(0, label, packageName, 0, placeholderColor, drawable))
+                allApps.add(AppLauncher(null, label, packageName, 0, placeholderColor, drawable))
             }
 
             val launchers = allApps.distinctBy { it.packageName } as ArrayList<AppLauncher>
-            launchers.sortBy { it.title.normalizeString().lowercase() }
-
-            val layoutManager = all_apps_grid.layoutManager as MyGridLayoutManager
-            layoutManager.spanCount = context.getColumnCount()
-            setupAdapter(launchers)
+            context.launchersDB.insertAll(launchers)
+            gotLaunchers(launchers)
         }
+    }
+
+    private fun gotLaunchers(appLaunchers: ArrayList<AppLauncher>) {
+        val sorted = appLaunchers.sortedBy { it.title.normalizeString().lowercase() }.toList() as ArrayList<AppLauncher>
+        setupAdapter(sorted)
     }
 
     private fun setupAdapter(launchers: ArrayList<AppLauncher>) {
         activity?.runOnUiThread {
+            val layoutManager = all_apps_grid.layoutManager as MyGridLayoutManager
+            layoutManager.spanCount = context.getColumnCount()
+
             LaunchersAdapter(activity!!, launchers, all_apps_fastscroller, this) {
                 activity?.launchApp((it as AppLauncher).packageName)
             }.apply {

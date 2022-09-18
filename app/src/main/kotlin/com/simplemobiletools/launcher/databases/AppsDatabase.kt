@@ -4,10 +4,13 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.simplemobiletools.launcher.interfaces.AppLaunchersDao
 import com.simplemobiletools.launcher.models.AppLauncher
 
 @Database(entities = [AppLauncher::class], version = 1)
 abstract class AppsDatabase : RoomDatabase() {
+
+    abstract fun AppLaunchersDao(): AppLaunchersDao
 
     companion object {
         private var db: AppsDatabase? = null

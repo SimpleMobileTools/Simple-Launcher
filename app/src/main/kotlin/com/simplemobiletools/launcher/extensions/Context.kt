@@ -6,9 +6,13 @@ import android.graphics.drawable.Drawable
 import android.os.Process
 import com.simplemobiletools.commons.extensions.portrait
 import com.simplemobiletools.launcher.R
+import com.simplemobiletools.launcher.databases.AppsDatabase
 import com.simplemobiletools.launcher.helpers.Config
+import com.simplemobiletools.launcher.interfaces.AppLaunchersDao
 
 val Context.config: Config get() = Config.newInstance(applicationContext)
+
+val Context.launchersDB: AppLaunchersDao get() = AppsDatabase.getInstance(applicationContext).AppLaunchersDao()
 
 fun Context.getColumnCount(): Int {
     return if (portrait) {
