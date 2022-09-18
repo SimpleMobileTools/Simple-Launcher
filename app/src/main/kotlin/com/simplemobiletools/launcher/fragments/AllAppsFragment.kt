@@ -82,7 +82,7 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             val list = context.packageManager.queryIntentActivities(intent, PackageManager.PERMISSION_GRANTED)
             for (info in list) {
                 val componentInfo = info.activityInfo.applicationInfo
-                val label = componentInfo.loadLabel(context.packageManager).toString()
+                val label = info.loadLabel(context.packageManager).toString()
                 val packageName = componentInfo.packageName
                 val drawable = context.getDrawableForPackageName(packageName) ?: continue
                 val placeholderColor = calculateAverageColor(drawable.toBitmap())
