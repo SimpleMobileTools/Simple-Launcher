@@ -13,5 +13,6 @@ data class HomeScreenGridItem(
     @ColumnInfo(name = "top") val top: Int,
     @ColumnInfo(name = "right") val right: Int,
     @ColumnInfo(name = "bottom") val bottom: Int,
-    @ColumnInfo(name = "package_name") val packageName: String
+    @ColumnInfo(name = "package_name") val packageName: String,
+    @ColumnInfo(name = "title") val title: String
 )

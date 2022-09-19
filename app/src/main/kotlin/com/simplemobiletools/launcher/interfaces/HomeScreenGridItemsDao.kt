@@ -14,6 +14,9 @@ interface HomeScreenGridItemsDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(items: List<HomeScreenGridItem>)
 
+    @Query("UPDATE home_screen_grid_items SET title = :title WHERE package_name = :packageName")
+    fun updateAppTitle(title: String, packageName: String)
+
     @Query("DELETE FROM home_screen_grid_items WHERE package_name = :packageName")
     fun deleteItem(packageName: String)
 }
