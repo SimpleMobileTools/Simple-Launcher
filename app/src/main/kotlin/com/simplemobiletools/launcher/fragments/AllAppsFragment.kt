@@ -113,10 +113,15 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             val layoutManager = all_apps_grid.layoutManager as MyGridLayoutManager
             layoutManager.spanCount = context.getColumnCount()
 
-            LaunchersAdapter(activity!!, launchers, all_apps_fastscroller, this) {
-                activity?.launchApp((it as AppLauncher).packageName)
-            }.apply {
-                all_apps_grid.adapter = this
+            val currAdapter = all_apps_grid.adapter
+            if (currAdapter == null) {
+                LaunchersAdapter(activity!!, launchers, all_apps_fastscroller, this) {
+                    activity?.launchApp((it as AppLauncher).packageName)
+                }.apply {
+                    all_apps_grid.adapter = this
+                }
+            } else {
+                (currAdapter as LaunchersAdapter).updateItems(launchers)
             }
         }
     }

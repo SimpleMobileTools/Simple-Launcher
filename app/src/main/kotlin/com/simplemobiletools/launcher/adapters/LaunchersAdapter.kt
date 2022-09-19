@@ -18,11 +18,12 @@ import com.simplemobiletools.launcher.activities.SimpleActivity
 import com.simplemobiletools.launcher.extensions.getColumnCount
 import com.simplemobiletools.launcher.interfaces.AllAppsListener
 import com.simplemobiletools.launcher.models.AppLauncher
+import com.simplemobiletools.launcher.models.HomeScreenGridItem
 import kotlinx.android.synthetic.main.item_launcher_label.view.*
 
 class LaunchersAdapter(
     val activity: SimpleActivity,
-    val launchers: ArrayList<AppLauncher>,
+    var launchers: ArrayList<AppLauncher>,
     val fastScroller: RecyclerViewFastScroller,
     val allAppsListener: AllAppsListener,
     val itemClick: (Any) -> Unit
@@ -56,6 +57,13 @@ class LaunchersAdapter(
 
         val iconWidth = activity.realScreenSize.x / currentColumnCount
         iconPadding = (iconWidth * 0.1f).toInt()
+    }
+
+    fun updateItems(newItems: ArrayList<AppLauncher>) {
+        if (newItems.hashCode() != launchers.hashCode()) {
+            launchers = newItems
+            notifyDataSetChanged()
+        }
     }
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
