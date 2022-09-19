@@ -1,10 +1,12 @@
 package com.simplemobiletools.launcher.activities
 
 import android.animation.ObjectAnimator
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
@@ -14,6 +16,7 @@ import android.view.*
 import android.view.animation.DecelerateInterpolator
 import android.widget.PopupMenu
 import android.widget.RelativeLayout
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.marginLeft
 import androidx.core.view.marginTop
@@ -21,15 +24,14 @@ import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
-import com.simplemobiletools.launcher.extensions.config
-import com.simplemobiletools.launcher.extensions.handleAppIconPopupMenu
-import com.simplemobiletools.launcher.extensions.homeScreenGridItemsDB
-import com.simplemobiletools.launcher.extensions.launchApp
+import com.simplemobiletools.launcher.extensions.*
 import com.simplemobiletools.launcher.fragments.AllAppsFragment
 import com.simplemobiletools.launcher.fragments.MyFragment
 import com.simplemobiletools.launcher.fragments.WidgetsFragment
 import com.simplemobiletools.launcher.helpers.ROW_COUNT
+import com.simplemobiletools.launcher.helpers.UNINSTALL_APP_REQUEST_CODE
 import com.simplemobiletools.launcher.interfaces.FlingListener
+import com.simplemobiletools.launcher.models.AppLauncher
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -41,6 +43,8 @@ class MainActivity : SimpleActivity(), FlingListener {
     private var mScreenHeight = 0
     private var mIgnoreUpEvent = false
     private var mIgnoreMoveEvents = false
+    private var mCachedLaunchers = ArrayList<AppLauncher>()
+
     private lateinit var mDetector: GestureDetectorCompat
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -81,6 +85,15 @@ class MainActivity : SimpleActivity(), FlingListener {
         updateStatusbarColor(Color.TRANSPARENT)
         (all_apps_fragment as AllAppsFragment).setupViews()
         (widgets_fragment as WidgetsFragment).setupViews()
+
+        ensureBackgroundThread {
+            if (mCachedLaunchers.isEmpty()) {
+                mCachedLaunchers = launchersDB.getAppLaunchers() as ArrayList<AppLauncher>
+                (all_apps_fragment as AllAppsFragment).gotLaunchers(mCachedLaunchers)
+            }
+
+            refetchLaunchers()
+        }
     }
 
     override fun onBackPressed() {
@@ -90,6 +103,15 @@ class MainActivity : SimpleActivity(), FlingListener {
             hideFragment(widgets_fragment)
         } else {
             super.onBackPressed()
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
+        super.onActivityResult(requestCode, resultCode, resultData)
+        if (requestCode == UNINSTALL_APP_REQUEST_CODE) {
+            ensureBackgroundThread {
+                refetchLaunchers()
+            }
         }
     }
 
@@ -131,6 +153,19 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
 
         return true
+    }
+
+    private fun refetchLaunchers() {
+        val launchers = getAllAppLaunchers()
+        (all_apps_fragment as AllAppsFragment).gotLaunchers(launchers)
+
+        mCachedLaunchers.map { it.packageName }.forEach { packageName ->
+            if (!launchers.map { it.packageName }.contains(packageName)) {
+                launchersDB.deleteApp(packageName)
+            }
+        }
+
+        mCachedLaunchers = launchers
     }
 
     fun startHandlingTouches(touchDownY: Int) {
@@ -240,6 +275,30 @@ class MainActivity : SimpleActivity(), FlingListener {
         hideFragment(all_apps_fragment)
     }
 
+    @SuppressLint("WrongConstant")
+    fun getAllAppLaunchers(): ArrayList<AppLauncher> {
+        val allApps = ArrayList<AppLauncher>()
+        val allPackageNames = ArrayList<String>()
+        val intent = Intent(Intent.ACTION_MAIN, null)
+        intent.addCategory(Intent.CATEGORY_LAUNCHER)
+
+        val list = packageManager.queryIntentActivities(intent, PackageManager.PERMISSION_GRANTED)
+        for (info in list) {
+            val componentInfo = info.activityInfo.applicationInfo
+            val label = info.loadLabel(packageManager).toString()
+            val packageName = componentInfo.packageName
+            val drawable = getDrawableForPackageName(packageName) ?: continue
+            val placeholderColor = calculateAverageColor(drawable.toBitmap())
+
+            allPackageNames.add(packageName)
+            allApps.add(AppLauncher(null, label, packageName, 0, placeholderColor, drawable))
+        }
+
+        val launchers = allApps.distinctBy { it.packageName } as ArrayList<AppLauncher>
+        launchersDB.insertAll(launchers)
+        return launchers
+    }
+
     private fun getDefaultAppPackages() {
         val homeScreenGridItems = ArrayList<HomeScreenGridItem>()
         try {
@@ -285,5 +344,28 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
 
         homeScreenGridItemsDB.insertAll(homeScreenGridItems)
+    }
+
+    // taken from https://gist.github.com/maxjvh/a6ab15cbba9c82a5065d
+    private fun calculateAverageColor(bitmap: Bitmap): Int {
+        var red = 0
+        var green = 0
+        var blue = 0
+        val height = bitmap.height
+        val width = bitmap.width
+        var n = 0
+        val pixels = IntArray(width * height)
+        bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
+        var i = 0
+        while (i < pixels.size) {
+            val color = pixels[i]
+            red += Color.red(color)
+            green += Color.green(color)
+            blue += Color.blue(color)
+            n++
+            i += 1
+        }
+
+        return Color.rgb(red / n, green / n, blue / n)
     }
 }

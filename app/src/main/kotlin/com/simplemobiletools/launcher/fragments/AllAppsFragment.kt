@@ -2,23 +2,19 @@ package com.simplemobiletools.launcher.fragments
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.Color
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.Surface
 import android.view.WindowManager
-import androidx.core.graphics.drawable.toBitmap
 import com.simplemobiletools.commons.extensions.*
-import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.isRPlus
 import com.simplemobiletools.commons.views.MyGridLayoutManager
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.adapters.LaunchersAdapter
-import com.simplemobiletools.launcher.extensions.*
+import com.simplemobiletools.launcher.extensions.getColumnCount
+import com.simplemobiletools.launcher.extensions.handleAppIconPopupMenu
+import com.simplemobiletools.launcher.extensions.launchApp
 import com.simplemobiletools.launcher.interfaces.AllAppsListener
 import com.simplemobiletools.launcher.models.AppLauncher
 import kotlinx.android.synthetic.main.all_apps_fragment.view.*
@@ -31,7 +27,6 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
         this.activity = activity
         background.applyColorFilter(activity.getProperBackgroundColor())
         setPadding(0, activity.statusBarHeight, 0, 0)
-        getLaunchers()
 
         all_apps_grid.setOnTouchListener { v, event ->
             if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
@@ -68,42 +63,7 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
         return shouldIntercept
     }
 
-    @SuppressLint("WrongConstant")
-    private fun getLaunchers() {
-        ensureBackgroundThread {
-            val cachedLaunchers = context.launchersDB.getAppLaunchers() as ArrayList<AppLauncher>
-            gotLaunchers(cachedLaunchers)
-
-            val allApps = ArrayList<AppLauncher>()
-            val allPackageNames = ArrayList<String>()
-            val intent = Intent(Intent.ACTION_MAIN, null)
-            intent.addCategory(Intent.CATEGORY_LAUNCHER)
-
-            val list = context.packageManager.queryIntentActivities(intent, PackageManager.PERMISSION_GRANTED)
-            for (info in list) {
-                val componentInfo = info.activityInfo.applicationInfo
-                val label = info.loadLabel(context.packageManager).toString()
-                val packageName = componentInfo.packageName
-                val drawable = context.getDrawableForPackageName(packageName) ?: continue
-                val placeholderColor = calculateAverageColor(drawable.toBitmap())
-
-                allPackageNames.add(packageName)
-                allApps.add(AppLauncher(null, label, packageName, 0, placeholderColor, drawable))
-            }
-
-            val launchers = allApps.distinctBy { it.packageName } as ArrayList<AppLauncher>
-            context.launchersDB.insertAll(launchers)
-            gotLaunchers(launchers)
-
-            cachedLaunchers.map { it.packageName }.forEach { packageName ->
-                if (!launchers.map { it.packageName }.contains(packageName)) {
-                    context.launchersDB.deleteApp(packageName)
-                }
-            }
-        }
-    }
-
-    private fun gotLaunchers(appLaunchers: ArrayList<AppLauncher>) {
+    fun gotLaunchers(appLaunchers: ArrayList<AppLauncher>) {
         val sorted = appLaunchers.sortedBy { it.title.normalizeString().lowercase() }.toMutableList() as ArrayList<AppLauncher>
         setupAdapter(sorted)
     }
@@ -165,28 +125,5 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
         all_apps_popup_menu_anchor.x = x
         all_apps_popup_menu_anchor.y = y
         activity?.handleAppIconPopupMenu(all_apps_popup_menu_anchor, packageName)
-    }
-
-    // taken from https://gist.github.com/maxjvh/a6ab15cbba9c82a5065d
-    private fun calculateAverageColor(bitmap: Bitmap): Int {
-        var red = 0
-        var green = 0
-        var blue = 0
-        val height = bitmap.height
-        val width = bitmap.width
-        var n = 0
-        val pixels = IntArray(width * height)
-        bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
-        var i = 0
-        while (i < pixels.size) {
-            val color = pixels[i]
-            red += Color.red(color)
-            green += Color.green(color)
-            blue += Color.blue(color)
-            n++
-            i += 1
-        }
-
-        return Color.rgb(red / n, green / n, blue / n)
     }
 }

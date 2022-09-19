@@ -29,6 +29,12 @@ data class AppLauncher(
 
     fun getBubbleText() = title
 
+    fun getHashToCompare() = getStringToCompare().hashCode()
+
+    fun getStringToCompare(): String {
+        return copy(id = null, drawable = null).toString()
+    }
+
     override fun compareTo(other: AppLauncher): Int {
         var result = when {
             sorting and SORT_BY_TITLE != 0 -> title.normalizeString().lowercase().compareTo(other.title.normalizeString().lowercase())

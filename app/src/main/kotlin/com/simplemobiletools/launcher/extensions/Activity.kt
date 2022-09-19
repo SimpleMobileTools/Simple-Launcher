@@ -11,6 +11,7 @@ import android.widget.PopupMenu
 import com.simplemobiletools.commons.extensions.getPopupMenuTheme
 import com.simplemobiletools.commons.extensions.showErrorToast
 import com.simplemobiletools.launcher.R
+import com.simplemobiletools.launcher.helpers.UNINSTALL_APP_REQUEST_CODE
 
 fun Activity.launchApp(packageName: String) {
     val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
@@ -31,7 +32,7 @@ fun Activity.launchAppInfo(packageName: String) {
 fun Activity.uninstallApp(packageName: String) {
     Intent(Intent.ACTION_DELETE).apply {
         data = Uri.fromParts("package", packageName, null)
-        startActivity(this)
+        startActivityForResult(this, UNINSTALL_APP_REQUEST_CODE)
     }
 }
 

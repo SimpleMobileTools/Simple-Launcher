@@ -18,7 +18,6 @@ import com.simplemobiletools.launcher.activities.SimpleActivity
 import com.simplemobiletools.launcher.extensions.getColumnCount
 import com.simplemobiletools.launcher.interfaces.AllAppsListener
 import com.simplemobiletools.launcher.models.AppLauncher
-import com.simplemobiletools.launcher.models.HomeScreenGridItem
 import kotlinx.android.synthetic.main.item_launcher_label.view.*
 
 class LaunchersAdapter(
@@ -32,6 +31,7 @@ class LaunchersAdapter(
     private var textColor = activity.getProperTextColor()
     private var iconPadding = 0
     private var wasManualScrollPositionSet = false
+    private var wereFreshIconsLoaded = false
 
     init {
         calculateIconWidth()
@@ -60,9 +60,12 @@ class LaunchersAdapter(
     }
 
     fun updateItems(newItems: ArrayList<AppLauncher>) {
-        if (newItems.hashCode() != launchers.hashCode()) {
+        val oldSum = launchers.sumOf { it.getHashToCompare() }
+        val newSum = newItems.sumOf { it.getHashToCompare() }
+        if (oldSum != newSum || !wereFreshIconsLoaded) {
             launchers = newItems
             notifyDataSetChanged()
+            wereFreshIconsLoaded = true
         }
     }
 
