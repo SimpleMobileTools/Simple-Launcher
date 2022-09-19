@@ -160,10 +160,17 @@ class MainActivity : SimpleActivity(), FlingListener {
         (all_apps_fragment as AllAppsFragment).gotLaunchers(launchers)
         (widgets_fragment as WidgetsFragment).getAppWidgets()
 
+        var hasDeletedAnything = false
         mCachedLaunchers.map { it.packageName }.forEach { packageName ->
             if (!launchers.map { it.packageName }.contains(packageName)) {
+                hasDeletedAnything = true
                 launchersDB.deleteApp(packageName)
+                homeScreenGridItemsDB.deleteItem(packageName)
             }
+        }
+
+        if (hasDeletedAnything) {
+            home_screen_grid.fetchAppIcons()
         }
 
         mCachedLaunchers = launchers

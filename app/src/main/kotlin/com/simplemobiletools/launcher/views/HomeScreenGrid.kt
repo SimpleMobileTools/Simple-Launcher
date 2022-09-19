@@ -43,6 +43,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
 
     fun fetchAppIcons() {
         ensureBackgroundThread {
+            appIconDrawables.clear()
             appIcons = context.homeScreenGridItemsDB.getAllItems() as ArrayList<HomeScreenGridItem>
             appIcons.forEach { item ->
                 val drawable = context.getDrawableForPackageName(item.packageName)
