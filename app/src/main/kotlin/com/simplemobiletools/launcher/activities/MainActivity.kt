@@ -158,6 +158,7 @@ class MainActivity : SimpleActivity(), FlingListener {
     private fun refetchLaunchers() {
         val launchers = getAllAppLaunchers()
         (all_apps_fragment as AllAppsFragment).gotLaunchers(launchers)
+        (widgets_fragment as WidgetsFragment).getAppWidgets()
 
         mCachedLaunchers.map { it.packageName }.forEach { packageName ->
             if (!launchers.map { it.packageName }.contains(packageName)) {

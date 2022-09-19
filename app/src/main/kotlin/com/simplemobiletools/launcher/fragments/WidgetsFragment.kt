@@ -36,7 +36,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
         setupAdapter(appWidgets)
     }
 
-    private fun getAppWidgets() {
+    fun getAppWidgets() {
         ensureBackgroundThread {
             // get the casual widgets
             var appWidgets = ArrayList<AppWidget>()
