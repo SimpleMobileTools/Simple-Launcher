@@ -1,2 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="app_launcher_name">启动器</string>
+    <string name="touch_hold_widget">长按小部件并将其拖动到主屏幕</string>
+    <string name="app_name">简单启动器</string>
+    <string name="app_info">应用信息</string>
+    <string name="uninstall">卸载</string>
+</resources>
