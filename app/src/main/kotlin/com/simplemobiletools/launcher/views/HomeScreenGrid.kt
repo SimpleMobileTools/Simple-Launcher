@@ -6,6 +6,10 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.drawable.Drawable
+import android.text.Layout
+import android.text.StaticLayout
+import android.text.TextPaint
+import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.View
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
@@ -20,7 +24,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
     constructor(context: Context, attrs: AttributeSet) : this(context, attrs, 0)
 
     private var iconMargin = context.resources.getDimension(R.dimen.icon_side_margin).toInt()
-    private var textPaint: Paint
+    private var labelSideMargin = context.resources.getDimension(R.dimen.small_margin).toInt()
+    private var textPaint: TextPaint
 
     // let's use a 6x5 grid for now with 1 special row at the bottom, prefilled with default apps
     private var rowXCoords = ArrayList<Int>(COLUMN_COUNT)
@@ -33,9 +38,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
     private var appIconDrawables = HashMap<String, Drawable>()
 
     init {
-        textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
-            textSize = context.resources.getDimension(R.dimen.normal_text_size)
+            textSize = context.resources.getDimension(R.dimen.smaller_text_size)
+            setShadowLayer(.5f, 0f, 0f, Color.BLACK)
         }
 
         fetchAppIcons()
@@ -76,9 +82,29 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
             val drawable = appIconDrawables[icon.packageName]
             if (drawable != null) {
                 val drawableX = rowXCoords[icon.left] + iconMargin
-                val drawableY = rowYCoords[icon.top] + rowHeight - iconSize - iconMargin * 2
 
-                drawable.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
+                // icons at the bottom are drawn at the bottom of the grid and they have no label
+                if (icon.top == ROW_COUNT - 1) {
+                    val drawableY = rowYCoords[icon.top] + rowHeight - iconSize - iconMargin * 2
+                    drawable.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
+                } else {
+                    val drawableY = rowYCoords[icon.top] + iconSize / 2
+                    drawable.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
+
+                    val textY = rowYCoords[icon.top] + iconSize * 1.5f + labelSideMargin
+                    val staticLayout = StaticLayout.Builder
+                        .obtain(icon.title, 0, icon.title.length, textPaint, rowWidth - 2 * labelSideMargin)
+                        .setMaxLines(2)
+                        .setEllipsize(TextUtils.TruncateAt.END)
+                        .setAlignment(Layout.Alignment.ALIGN_CENTER)
+                        .build()
+
+                    canvas.save()
+                    canvas.translate(rowXCoords[icon.left].toFloat() + labelSideMargin, textY)
+                    staticLayout.draw(canvas)
+                    canvas.restore()
+                }
+
                 drawable.draw(canvas)
             }
         }
