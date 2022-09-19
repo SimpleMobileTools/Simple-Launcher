@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Jednoduchý spúšťač</string>
+    <string name="app_launcher_name">Spúšťač</string>
+    <string name="app_info">Informácie o apke</string>
+    <string name="touch_hold_widget">Umiestnite widget na domovskú obrazovku dlhým podržaním a potiahnutím</string>
+    <string name="uninstall">Odinštalovať</string>
+    <!--
+        Haven't found some strings? There's more at
+        https://github.com/SimpleMobileTools/Simple-Commons/tree/master/commons/src/main/res
+    -->
+</resources>
