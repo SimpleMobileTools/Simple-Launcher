@@ -43,6 +43,8 @@ class MainActivity : SimpleActivity(), FlingListener {
     private var mScreenHeight = 0
     private var mIgnoreUpEvent = false
     private var mIgnoreMoveEvents = false
+    private var mIsIconLongPressed = false
+    private var mOpenPopupMenu: PopupMenu? = null
     private var mCachedLaunchers = ArrayList<AppLauncher>()
 
     private lateinit var mDetector: GestureDetectorCompat
@@ -131,6 +133,11 @@ class MainActivity : SimpleActivity(), FlingListener {
             }
 
             MotionEvent.ACTION_MOVE -> {
+                if (mIsIconLongPressed && mOpenPopupMenu != null) {
+                    mOpenPopupMenu?.dismiss()
+                    mOpenPopupMenu = null
+                }
+
                 if (mTouchDownY != -1 && !mIgnoreMoveEvents) {
                     val diffY = mTouchDownY - event.y
                     val newY = mCurrentFragmentY - diffY
@@ -142,6 +149,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             MotionEvent.ACTION_UP -> {
                 mTouchDownY = -1
                 mIgnoreMoveEvents = false
+                mIsIconLongPressed = false
                 if (!mIgnoreUpEvent) {
                     if (all_apps_fragment.y < mScreenHeight * 0.7) {
                         showFragment(all_apps_fragment)
@@ -221,8 +229,9 @@ class MainActivity : SimpleActivity(), FlingListener {
 
         mIgnoreMoveEvents = true
         main_holder.performHapticFeedback()
-        val clickedPackageName = home_screen_grid.gridClicked(x - home_screen_grid.marginLeft, y - home_screen_grid.marginTop)
+        val clickedPackageName = home_screen_grid.isClickingIcon(x - home_screen_grid.marginLeft, y - home_screen_grid.marginTop)
         if (clickedPackageName.isNotEmpty()) {
+            mIsIconLongPressed = true
             showHomeIconMenu(x, y, clickedPackageName)
             return
         }
@@ -232,7 +241,7 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     fun homeScreenClicked(x: Float, y: Float) {
         if (x >= home_screen_grid.left && x <= home_screen_grid.right && y >= home_screen_grid.top && y <= home_screen_grid.bottom) {
-            val clickedPackageName = home_screen_grid.gridClicked(x - home_screen_grid.marginLeft, y - home_screen_grid.marginTop)
+            val clickedPackageName = home_screen_grid.isClickingIcon(x - home_screen_grid.marginLeft, y - home_screen_grid.marginTop)
             if (clickedPackageName.isNotEmpty()) {
                 launchApp(clickedPackageName)
             }
@@ -242,7 +251,7 @@ class MainActivity : SimpleActivity(), FlingListener {
     private fun showHomeIconMenu(x: Float, y: Float, clickedPackageName: String) {
         home_screen_popup_menu_anchor.x = x
         home_screen_popup_menu_anchor.y = y - resources.getDimension(R.dimen.long_press_anchor_offset_y)
-        handleAppIconPopupMenu(home_screen_popup_menu_anchor, clickedPackageName)
+        mOpenPopupMenu = handleAppIconPopupMenu(home_screen_popup_menu_anchor, clickedPackageName)
     }
 
     private fun showMainLongPressMenu(x: Float, y: Float) {

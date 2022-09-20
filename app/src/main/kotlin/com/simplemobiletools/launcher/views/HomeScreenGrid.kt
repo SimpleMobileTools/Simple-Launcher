@@ -110,7 +110,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
         }
     }
 
-    fun gridClicked(x: Float, y: Float): String {
+    fun isClickingIcon(x: Float, y: Float): String {
         for (appIcon in appIcons) {
             if (x >= appIcon.left * rowWidth && x <= appIcon.right * rowWidth && y >= appIcon.top * rowHeight && y <= appIcon.bottom * rowHeight) {
                 return appIcon.packageName

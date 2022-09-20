@@ -36,9 +36,9 @@ fun Activity.uninstallApp(packageName: String) {
     }
 }
 
-fun Activity.handleAppIconPopupMenu(anchorView: View, appPackageName: String) {
+fun Activity.handleAppIconPopupMenu(anchorView: View, appPackageName: String): PopupMenu {
     val contextTheme = ContextThemeWrapper(this, getPopupMenuTheme())
-    PopupMenu(contextTheme, anchorView, Gravity.TOP or Gravity.END).apply {
+    return PopupMenu(contextTheme, anchorView, Gravity.TOP or Gravity.END).apply {
         inflate(R.menu.menu_app_icon)
         setOnMenuItemClickListener { item ->
             when (item.itemId) {
