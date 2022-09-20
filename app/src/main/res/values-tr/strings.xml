@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="touch_hold_widget">Widget\'a uzun basın ve ana ekranınıza sürükleyin</string>
-    <string name="uninstall">Kaldır</string>
     <string name="app_name">Basit Başlatıcı</string>
     <string name="app_launcher_name">Başlatıcı</string>
     <string name="app_info">Uygulama bilgisi</string>
+    <string name="touch_hold_widget">Widget\'a uzun basın ve ana ekranınıza sürükleyin</string>
+    <string name="uninstall">Kaldır</string>
 </resources>
