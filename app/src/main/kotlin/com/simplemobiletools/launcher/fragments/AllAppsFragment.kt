@@ -13,7 +13,7 @@ import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.adapters.LaunchersAdapter
 import com.simplemobiletools.launcher.extensions.getColumnCount
-import com.simplemobiletools.launcher.extensions.handleAppIconPopupMenu
+import com.simplemobiletools.launcher.extensions.handleGridItemPopupMenu
 import com.simplemobiletools.launcher.extensions.launchApp
 import com.simplemobiletools.launcher.interfaces.AllAppsListener
 import com.simplemobiletools.launcher.models.AppLauncher
@@ -124,6 +124,6 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
     override fun onIconLongPressed(x: Float, y: Float, packageName: String) {
         all_apps_popup_menu_anchor.x = x
         all_apps_popup_menu_anchor.y = y
-        activity?.handleAppIconPopupMenu(all_apps_popup_menu_anchor, packageName)
+        activity?.handleGridItemPopupMenu(all_apps_popup_menu_anchor, packageName)
     }
 }

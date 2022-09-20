@@ -26,6 +26,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
     private var iconMargin = context.resources.getDimension(R.dimen.icon_side_margin).toInt()
     private var labelSideMargin = context.resources.getDimension(R.dimen.small_margin).toInt()
     private var textPaint: TextPaint
+    private var isDraggingItem = false
 
     // let's use a 6x5 grid for now with 1 special row at the bottom, prefilled with default apps
     private var rowXCoords = ArrayList<Int>(COLUMN_COUNT)
@@ -34,8 +35,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
     private var rowHeight = 0
     private var iconSize = 0
 
-    private var appIcons = ArrayList<HomeScreenGridItem>()
-    private var appIconDrawables = HashMap<String, Drawable>()
+    private var gridItems = ArrayList<HomeScreenGridItem>()
+    private var gridItemDrawables = HashMap<String, Drawable>()
 
     init {
         textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -44,22 +45,32 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
             setShadowLayer(.5f, 0f, 0f, Color.BLACK)
         }
 
-        fetchAppIcons()
+        fetchGridItems()
     }
 
-    fun fetchAppIcons() {
+    fun fetchGridItems() {
         ensureBackgroundThread {
-            appIconDrawables.clear()
-            appIcons = context.homeScreenGridItemsDB.getAllItems() as ArrayList<HomeScreenGridItem>
-            appIcons.forEach { item ->
+            gridItemDrawables.clear()
+            gridItems = context.homeScreenGridItemsDB.getAllItems() as ArrayList<HomeScreenGridItem>
+            gridItems.forEach { item ->
                 val drawable = context.getDrawableForPackageName(item.packageName)
                 if (drawable != null) {
-                    appIconDrawables[item.packageName] = drawable
+                    gridItemDrawables[item.packageName] = drawable
                 }
             }
 
             invalidate()
         }
+    }
+
+    fun itemDraggingStarted() {
+        isDraggingItem = true
+        invalidate()
+    }
+
+    fun itemDraggingStopped() {
+        isDraggingItem = false
+        invalidate()
     }
 
     @SuppressLint("DrawAllocation")
@@ -78,29 +89,29 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
             }
         }
 
-        appIcons.forEach { icon ->
-            val drawable = appIconDrawables[icon.packageName]
+        gridItems.forEach { item ->
+            val drawable = gridItemDrawables[item.packageName]
             if (drawable != null) {
-                val drawableX = rowXCoords[icon.left] + iconMargin
+                val drawableX = rowXCoords[item.left] + iconMargin
 
                 // icons at the bottom are drawn at the bottom of the grid and they have no label
-                if (icon.top == ROW_COUNT - 1) {
-                    val drawableY = rowYCoords[icon.top] + rowHeight - iconSize - iconMargin * 2
+                if (item.top == ROW_COUNT - 1) {
+                    val drawableY = rowYCoords[item.top] + rowHeight - iconSize - iconMargin * 2
                     drawable.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
                 } else {
-                    val drawableY = rowYCoords[icon.top] + iconSize / 2
+                    val drawableY = rowYCoords[item.top] + iconSize / 2
                     drawable.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
 
-                    val textY = rowYCoords[icon.top] + iconSize * 1.5f + labelSideMargin
+                    val textY = rowYCoords[item.top] + iconSize * 1.5f + labelSideMargin
                     val staticLayout = StaticLayout.Builder
-                        .obtain(icon.title, 0, icon.title.length, textPaint, rowWidth - 2 * labelSideMargin)
+                        .obtain(item.title, 0, item.title.length, textPaint, rowWidth - 2 * labelSideMargin)
                         .setMaxLines(2)
                         .setEllipsize(TextUtils.TruncateAt.END)
                         .setAlignment(Layout.Alignment.ALIGN_CENTER)
                         .build()
 
                     canvas.save()
-                    canvas.translate(rowXCoords[icon.left].toFloat() + labelSideMargin, textY)
+                    canvas.translate(rowXCoords[item.left].toFloat() + labelSideMargin, textY)
                     staticLayout.draw(canvas)
                     canvas.restore()
                 }
@@ -110,13 +121,13 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
         }
     }
 
-    fun isClickingIcon(x: Float, y: Float): String {
-        for (appIcon in appIcons) {
-            if (x >= appIcon.left * rowWidth && x <= appIcon.right * rowWidth && y >= appIcon.top * rowHeight && y <= appIcon.bottom * rowHeight) {
-                return appIcon.packageName
+    fun isClickingGridItem(x: Float, y: Float): HomeScreenGridItem? {
+        for (gridItem in gridItems) {
+            if (x >= gridItem.left * rowWidth && x <= gridItem.right * rowWidth && y >= gridItem.top * rowHeight && y <= gridItem.bottom * rowHeight) {
+                return gridItem
             }
         }
 
-        return ""
+        return null
     }
 }
