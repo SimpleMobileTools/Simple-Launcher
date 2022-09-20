@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Lanceur simple</string>
+    <string name="app_launcher_name">Lanceur</string>
+    <string name="app_info">Infos sur l\'appli</string>
+    <string name="touch_hold_widget">Appuyez longuement sur le widget et faites-le glisser sur votre écran d\'accueil</string>
+    <string name="uninstall">Désinstaller</string>
+</resources>
