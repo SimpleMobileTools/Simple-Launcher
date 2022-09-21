@@ -43,7 +43,7 @@ class MainActivity : SimpleActivity(), FlingListener {
     private var mScreenHeight = 0
     private var mIgnoreUpEvent = false
     private var mIgnoreMoveEvents = false
-    private var mIsIconLongPressed = false
+    private var mLongPressedIcon: HomeScreenGridItem? = null
     private var mOpenPopupMenu: PopupMenu? = null
     private var mCachedLaunchers = ArrayList<AppLauncher>()
 
@@ -133,10 +133,10 @@ class MainActivity : SimpleActivity(), FlingListener {
             }
 
             MotionEvent.ACTION_MOVE -> {
-                if (mIsIconLongPressed && mOpenPopupMenu != null) {
+                if (mLongPressedIcon != null && mOpenPopupMenu != null) {
                     mOpenPopupMenu?.dismiss()
                     mOpenPopupMenu = null
-                    home_screen_grid.itemDraggingStarted()
+                    home_screen_grid.itemDraggingStarted(mLongPressedIcon!!)
                 }
 
                 if (mTouchDownY != -1 && !mIgnoreMoveEvents) {
@@ -150,7 +150,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             MotionEvent.ACTION_UP -> {
                 mTouchDownY = -1
                 mIgnoreMoveEvents = false
-                mIsIconLongPressed = false
+                mLongPressedIcon = null
                 home_screen_grid.itemDraggingStopped()
                 if (!mIgnoreUpEvent) {
                     if (all_apps_fragment.y < mScreenHeight * 0.7) {
@@ -233,7 +233,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         main_holder.performHapticFeedback()
         val clickedGridItem = home_screen_grid.isClickingGridItem(x - home_screen_grid.marginLeft, y - home_screen_grid.marginTop)
         if (clickedGridItem != null) {
-            mIsIconLongPressed = true
+            mLongPressedIcon = clickedGridItem
             showHomeIconMenu(x, y, clickedGridItem.packageName)
             return
         }
