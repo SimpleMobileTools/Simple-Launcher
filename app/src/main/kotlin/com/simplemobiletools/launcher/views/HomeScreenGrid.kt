@@ -69,7 +69,32 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
         invalidate()
     }
 
+    // figure out at which cell was the item dropped, if it is empty
     fun itemDraggingStopped(x: Int, y: Int) {
+        val center = gridCenters.minBy { Math.abs(it.first - x) + Math.abs(it.second - y) }
+
+        // convert stuff like 102x192 to grid cells like 0x1
+        rowXCoords.forEachIndexed { xIndex, xCell ->
+            rowYCoords.forEachIndexed { yIndex, yCell ->
+                if (xCell + rowWidth / 2 == center.first && yCell + rowHeight / 2 == center.second) {
+                    // check if the destination grid item is empty
+                    val targetGridItem = gridItems.firstOrNull { it.left == xIndex && it.top == yIndex }
+                    if (targetGridItem == null) {
+                        gridItems.firstOrNull { it.id == draggedItem?.id }?.apply {
+                            left = xIndex
+                            top = yIndex
+                            right = xIndex + 1
+                            bottom = yIndex + 1
+
+                            ensureBackgroundThread {
+                                context.homeScreenGridItemsDB.updateAppPosition(left, top, right, bottom, id!!)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         draggedItem = null
         invalidate()
     }

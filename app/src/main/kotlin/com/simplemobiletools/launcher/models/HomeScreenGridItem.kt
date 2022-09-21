@@ -10,9 +10,9 @@ import androidx.room.PrimaryKey
 data class HomeScreenGridItem(
     @PrimaryKey(autoGenerate = true) var id: Long?,
     @ColumnInfo(name = "left") var left: Int,
-    @ColumnInfo(name = "top") val top: Int,
-    @ColumnInfo(name = "right") val right: Int,
-    @ColumnInfo(name = "bottom") val bottom: Int,
+    @ColumnInfo(name = "top") var top: Int,
+    @ColumnInfo(name = "right") var right: Int,
+    @ColumnInfo(name = "bottom") var bottom: Int,
     @ColumnInfo(name = "package_name") val packageName: String,
     @ColumnInfo(name = "title") val title: String
 )
