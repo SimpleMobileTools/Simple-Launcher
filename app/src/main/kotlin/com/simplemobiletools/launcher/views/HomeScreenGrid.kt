@@ -37,6 +37,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
 
     private var gridItems = ArrayList<HomeScreenGridItem>()
     private var gridItemDrawables = HashMap<String, Drawable>()
+    private var gridCenters = ArrayList<Pair<Int, Int>>()
 
     init {
         textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -68,7 +69,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
         invalidate()
     }
 
-    fun itemDraggingStopped() {
+    fun itemDraggingStopped(x: Int, y: Int) {
         draggedItem = null
         invalidate()
     }
@@ -86,6 +87,12 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
 
             for (i in 0 until ROW_COUNT) {
                 rowYCoords.add(i, i * rowHeight)
+            }
+
+            rowXCoords.forEach { x ->
+                rowYCoords.forEach { y ->
+                    gridCenters.add(Pair(x + rowWidth / 2, y + rowHeight / 2))
+                }
             }
         }
 
@@ -123,7 +130,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
         }
     }
 
-    fun isClickingGridItem(x: Float, y: Float): HomeScreenGridItem? {
+    fun isClickingGridItem(x: Int, y: Int): HomeScreenGridItem? {
         for (gridItem in gridItems) {
             if (x >= gridItem.left * rowWidth && x <= gridItem.right * rowWidth && y >= gridItem.top * rowHeight && y <= gridItem.bottom * rowHeight) {
                 return gridItem

@@ -151,7 +151,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                 mTouchDownY = -1
                 mIgnoreMoveEvents = false
                 mLongPressedIcon = null
-                home_screen_grid.itemDraggingStopped()
+                home_screen_grid.itemDraggingStopped(getGridTouchedX(event.x), getGridTouchedY(event.y))
                 if (!mIgnoreUpEvent) {
                     if (all_apps_fragment.y < mScreenHeight * 0.7) {
                         showFragment(all_apps_fragment)
@@ -231,7 +231,7 @@ class MainActivity : SimpleActivity(), FlingListener {
 
         mIgnoreMoveEvents = true
         main_holder.performHapticFeedback()
-        val clickedGridItem = home_screen_grid.isClickingGridItem(x - home_screen_grid.marginLeft, y - home_screen_grid.marginTop)
+        val clickedGridItem = home_screen_grid.isClickingGridItem(getGridTouchedX(x), getGridTouchedY(y))
         if (clickedGridItem != null) {
             mLongPressedIcon = clickedGridItem
             showHomeIconMenu(x, y, clickedGridItem.packageName)
@@ -243,12 +243,16 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     fun homeScreenClicked(x: Float, y: Float) {
         if (x >= home_screen_grid.left && x <= home_screen_grid.right && y >= home_screen_grid.top && y <= home_screen_grid.bottom) {
-            val clickedGridItem = home_screen_grid.isClickingGridItem(x - home_screen_grid.marginLeft, y - home_screen_grid.marginTop)
+            val clickedGridItem = home_screen_grid.isClickingGridItem(getGridTouchedX(x), getGridTouchedY(y))
             if (clickedGridItem != null) {
                 launchApp(clickedGridItem.packageName)
             }
         }
     }
+
+    private fun getGridTouchedX(x: Float) = Math.min(Math.max(x.toInt() - home_screen_grid.marginLeft, 0), home_screen_grid.width).toInt()
+
+    private fun getGridTouchedY(y: Float) = Math.min(Math.max(y.toInt() - home_screen_grid.marginTop, 0), home_screen_grid.height).toInt()
 
     private fun showHomeIconMenu(x: Float, y: Float, clickedPackageName: String) {
         home_screen_popup_menu_anchor.x = x
