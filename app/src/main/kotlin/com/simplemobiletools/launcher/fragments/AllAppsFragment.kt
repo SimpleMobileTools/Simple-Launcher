@@ -21,6 +21,7 @@ import kotlinx.android.synthetic.main.all_apps_fragment.view.*
 
 class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment(context, attributeSet), AllAppsListener {
     private var touchDownY = -1
+    var ignoreTouches = false
 
     @SuppressLint("ClickableViewAccessibility")
     override fun setupFragment(activity: MainActivity) {
@@ -49,6 +50,10 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
     }
 
     override fun onInterceptTouchEvent(event: MotionEvent): Boolean {
+        if (ignoreTouches) {
+            return true
+        }
+
         var shouldIntercept = false
         if (touchDownY != -1) {
             shouldIntercept = touchDownY - event.y < 0 && all_apps_grid.computeVerticalScrollOffset() == 0
@@ -123,6 +128,7 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
 
     override fun onAppLauncherLongPressed(x: Float, y: Float, appLauncher: AppLauncher) {
         val gridItem = HomeScreenGridItem(null, -1, -1, -1, 1, appLauncher.packageName, appLauncher.title)
-        activity?.showHomeIconMenu(x, y, gridItem, true)
+        activity?.showHomeIconMenu(x, y, gridItem)
+        ignoreTouches = true
     }
 }

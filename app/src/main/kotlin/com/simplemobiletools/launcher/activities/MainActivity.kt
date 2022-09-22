@@ -137,6 +137,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                     mOpenPopupMenu?.dismiss()
                     mOpenPopupMenu = null
                     home_screen_grid.itemDraggingStarted(mLongPressedIcon!!)
+                    hideFragment(all_apps_fragment)
                 }
 
                 if (mTouchDownY != -1 && !mIgnoreMoveEvents) {
@@ -151,6 +152,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                 mTouchDownY = -1
                 mIgnoreMoveEvents = false
                 mLongPressedIcon = null
+                (all_apps_fragment as AllAppsFragment).ignoreTouches = false
                 home_screen_grid.itemDraggingStopped(getGridTouchedX(event.x), getGridTouchedY(event.y))
                 if (!mIgnoreUpEvent) {
                     if (all_apps_fragment.y < mScreenHeight * 0.7) {
@@ -233,7 +235,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         main_holder.performHapticFeedback()
         val clickedGridItem = home_screen_grid.isClickingGridItem(getGridTouchedX(x), getGridTouchedY(y))
         if (clickedGridItem != null) {
-            showHomeIconMenu(x, y - resources.getDimension(R.dimen.icon_long_press_anchor_offset_y), clickedGridItem, false)
+            showHomeIconMenu(x, y - resources.getDimension(R.dimen.icon_long_press_anchor_offset_y), clickedGridItem)
             return
         }
 
@@ -253,11 +255,7 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     private fun getGridTouchedY(y: Float) = Math.min(Math.max(y.toInt() - home_screen_grid.marginTop, 0), home_screen_grid.height).toInt()
 
-    fun showHomeIconMenu(x: Float, y: Float, gridItem: HomeScreenGridItem, isFromAllAppsFragment: Boolean) {
-        if (isFromAllAppsFragment) {
-            hideFragment(all_apps_fragment)
-        }
-
+    fun showHomeIconMenu(x: Float, y: Float, gridItem: HomeScreenGridItem) {
         mLongPressedIcon = gridItem
         home_screen_popup_menu_anchor.x = x
         home_screen_popup_menu_anchor.y = y
@@ -276,6 +274,27 @@ class MainActivity : SimpleActivity(), FlingListener {
                 }
                 true
             }
+            show()
+        }
+    }
+
+    private fun handleGridItemPopupMenu(anchorView: View, appPackageName: String): PopupMenu {
+        val contextTheme = ContextThemeWrapper(this, getPopupMenuTheme())
+        return PopupMenu(contextTheme, anchorView, Gravity.TOP or Gravity.END).apply {
+            inflate(R.menu.menu_app_icon)
+            setOnMenuItemClickListener { item ->
+                (all_apps_fragment as AllAppsFragment).ignoreTouches = false
+                when (item.itemId) {
+                    R.id.app_info -> launchAppInfo(appPackageName)
+                    R.id.uninstall -> uninstallApp(appPackageName)
+                }
+                true
+            }
+
+            setOnDismissListener {
+                (all_apps_fragment as AllAppsFragment).ignoreTouches = false
+            }
+
             show()
         }
     }
