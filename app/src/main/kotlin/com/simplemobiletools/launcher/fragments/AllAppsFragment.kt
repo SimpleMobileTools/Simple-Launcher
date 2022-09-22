@@ -51,6 +51,7 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
 
     override fun onInterceptTouchEvent(event: MotionEvent): Boolean {
         if (ignoreTouches) {
+            touchDownY = -1
             return true
         }
 
