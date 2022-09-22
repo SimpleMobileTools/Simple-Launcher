@@ -125,6 +125,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
                                 invalidate()
                             }
                         }
+                    } else {
+                        redrawIcons = true
                     }
                 }
             }
