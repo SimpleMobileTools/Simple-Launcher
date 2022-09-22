@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Lihtne käivitaja</string>
+    <string name="app_launcher_name">Käivitaja</string>
+    <string name="app_info">Rakenduse teave</string>
+    <string name="touch_hold_widget">Vajutage pikalt vidinat ja lohistage see oma koduekraanile</string>
+    <string name="uninstall">Desinstallige</string>
+</resources>
