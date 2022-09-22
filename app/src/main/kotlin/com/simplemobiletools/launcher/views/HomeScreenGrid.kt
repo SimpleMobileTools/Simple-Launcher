@@ -71,7 +71,12 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
 
     // figure out at which cell was the item dropped, if it is empty
     fun itemDraggingStopped(x: Int, y: Int) {
+        if (draggedItem == null) {
+            return
+        }
+
         val center = gridCenters.minBy { Math.abs(it.first - x) + Math.abs(it.second - y) }
+        var redrawIcons = false
 
         // convert stuff like 102x192 to grid cells like 0x1
         rowXCoords.forEachIndexed { xIndex, xCell ->
@@ -80,14 +85,36 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
                     // check if the destination grid item is empty
                     val targetGridItem = gridItems.firstOrNull { it.left == xIndex && it.top == yIndex }
                     if (targetGridItem == null) {
-                        gridItems.firstOrNull { it.id == draggedItem?.id }?.apply {
-                            left = xIndex
-                            top = yIndex
-                            right = xIndex + 1
-                            bottom = yIndex + 1
+                        val draggedHomeGridItem = gridItems.firstOrNull { it.id == draggedItem?.id }
 
+                        // we are moving an existing home screen item from one place to another
+                        if (draggedHomeGridItem != null) {
+                            draggedHomeGridItem.apply {
+                                left = xIndex
+                                top = yIndex
+                                right = xIndex + 1
+                                bottom = yIndex + 1
+
+                                ensureBackgroundThread {
+                                    context.homeScreenGridItemsDB.updateAppPosition(left, top, right, bottom, id!!)
+                                }
+                            }
+                            redrawIcons = true
+                        } else if (draggedItem != null) {
+                            // we are dragging a new item at the home screen from the All Apps fragment
+                            val newHomeScreenGridItem =
+                                HomeScreenGridItem(null, xIndex, yIndex, xIndex + 1, yIndex + 1, draggedItem!!.packageName, draggedItem!!.title)
                             ensureBackgroundThread {
-                                context.homeScreenGridItemsDB.updateAppPosition(left, top, right, bottom, id!!)
+                                val newId = context.homeScreenGridItemsDB.insert(newHomeScreenGridItem)
+                                newHomeScreenGridItem.id = newId
+                                gridItems.add(newHomeScreenGridItem)
+
+                                val drawable = context.getDrawableForPackageName(newHomeScreenGridItem.packageName)
+                                if (drawable != null) {
+                                    gridItemDrawables[newHomeScreenGridItem.packageName] = drawable
+                                }
+
+                                invalidate()
                             }
                         }
                     }
@@ -96,7 +123,9 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
         }
 
         draggedItem = null
-        invalidate()
+        if (redrawIcons) {
+            invalidate()
+        }
     }
 
     @SuppressLint("DrawAllocation")

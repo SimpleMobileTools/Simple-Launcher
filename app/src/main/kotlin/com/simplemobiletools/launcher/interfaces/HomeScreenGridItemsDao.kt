@@ -12,7 +12,7 @@ interface HomeScreenGridItemsDao {
     fun getAllItems(): List<HomeScreenGridItem>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(item: HomeScreenGridItem)
+    fun insert(item: HomeScreenGridItem): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(items: List<HomeScreenGridItem>)
