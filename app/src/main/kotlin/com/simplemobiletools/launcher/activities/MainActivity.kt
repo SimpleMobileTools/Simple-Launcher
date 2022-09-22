@@ -234,7 +234,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         val clickedGridItem = home_screen_grid.isClickingGridItem(getGridTouchedX(x), getGridTouchedY(y))
         if (clickedGridItem != null) {
             mLongPressedIcon = clickedGridItem
-            showHomeIconMenu(x, y, clickedGridItem.packageName)
+            showHomeIconMenu(x, y - resources.getDimension(R.dimen.icon_long_press_anchor_offset_y), clickedGridItem.packageName)
             return
         }
 
@@ -254,15 +254,15 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     private fun getGridTouchedY(y: Float) = Math.min(Math.max(y.toInt() - home_screen_grid.marginTop, 0), home_screen_grid.height).toInt()
 
-    private fun showHomeIconMenu(x: Float, y: Float, clickedPackageName: String) {
+    fun showHomeIconMenu(x: Float, y: Float, clickedPackageName: String) {
         home_screen_popup_menu_anchor.x = x
-        home_screen_popup_menu_anchor.y = y - resources.getDimension(R.dimen.long_press_anchor_offset_y)
+        home_screen_popup_menu_anchor.y = y
         mOpenPopupMenu = handleGridItemPopupMenu(home_screen_popup_menu_anchor, clickedPackageName)
     }
 
     private fun showMainLongPressMenu(x: Float, y: Float) {
         home_screen_popup_menu_anchor.x = x
-        home_screen_popup_menu_anchor.y = y - resources.getDimension(R.dimen.long_press_anchor_offset_y)
+        home_screen_popup_menu_anchor.y = y - resources.getDimension(R.dimen.home_long_press_anchor_offset_y)
         val contextTheme = ContextThemeWrapper(this, getPopupMenuTheme())
         PopupMenu(contextTheme, home_screen_popup_menu_anchor, Gravity.TOP or Gravity.END).apply {
             inflate(R.menu.menu_home_screen)

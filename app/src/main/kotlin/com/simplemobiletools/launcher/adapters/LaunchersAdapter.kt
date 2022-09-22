@@ -49,11 +49,13 @@ class LaunchersAdapter(
     override fun getItemCount() = launchers.size
 
     private fun calculateIconWidth() {
-        val currentColumnCount = if (activity.portrait) {
-            activity.resources.getInteger(R.integer.portrait_column_count)
-        } else {
-            activity.resources.getInteger(R.integer.landscape_column_count)
-        }
+        val currentColumnCount = activity.resources.getInteger(
+            if (activity.portrait) {
+                R.integer.portrait_column_count
+            } else {
+                R.integer.landscape_column_count
+            }
+        )
 
         val iconWidth = activity.realScreenSize.x / currentColumnCount
         iconPadding = (iconWidth * 0.1f).toInt()
