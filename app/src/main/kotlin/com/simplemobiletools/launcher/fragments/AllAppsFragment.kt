@@ -16,6 +16,7 @@ import com.simplemobiletools.launcher.extensions.getColumnCount
 import com.simplemobiletools.launcher.extensions.launchApp
 import com.simplemobiletools.launcher.interfaces.AllAppsListener
 import com.simplemobiletools.launcher.models.AppLauncher
+import com.simplemobiletools.launcher.models.HomeScreenGridItem
 import kotlinx.android.synthetic.main.all_apps_fragment.view.*
 
 class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment(context, attributeSet), AllAppsListener {
@@ -120,7 +121,8 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
         all_apps_fastscroller.setPadding(leftListPadding, 0, rightListPadding, 0)
     }
 
-    override fun onIconLongPressed(x: Float, y: Float, packageName: String) {
-        activity?.showHomeIconMenu(x, y, packageName)
+    override fun onAppLauncherLongPressed(x: Float, y: Float, appLauncher: AppLauncher) {
+        val gridItem = HomeScreenGridItem(null, -1, -1, -1, 1, appLauncher.packageName, appLauncher.title)
+        activity?.showHomeIconMenu(x, y, gridItem, true)
     }
 }

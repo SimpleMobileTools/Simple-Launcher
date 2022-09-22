@@ -89,7 +89,7 @@ class LaunchersAdapter(
 
                 setOnClickListener { itemClick(launcher) }
                 setOnLongClickListener { view ->
-                    allAppsListener.onIconLongPressed(view.x, view.y, launcher.packageName)
+                    allAppsListener.onAppLauncherLongPressed(view.x, view.y, launcher)
                     true
                 }
             }

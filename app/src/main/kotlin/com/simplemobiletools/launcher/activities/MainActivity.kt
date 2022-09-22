@@ -233,8 +233,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         main_holder.performHapticFeedback()
         val clickedGridItem = home_screen_grid.isClickingGridItem(getGridTouchedX(x), getGridTouchedY(y))
         if (clickedGridItem != null) {
-            mLongPressedIcon = clickedGridItem
-            showHomeIconMenu(x, y - resources.getDimension(R.dimen.icon_long_press_anchor_offset_y), clickedGridItem.packageName)
+            showHomeIconMenu(x, y - resources.getDimension(R.dimen.icon_long_press_anchor_offset_y), clickedGridItem, false)
             return
         }
 
@@ -254,10 +253,15 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     private fun getGridTouchedY(y: Float) = Math.min(Math.max(y.toInt() - home_screen_grid.marginTop, 0), home_screen_grid.height).toInt()
 
-    fun showHomeIconMenu(x: Float, y: Float, clickedPackageName: String) {
+    fun showHomeIconMenu(x: Float, y: Float, gridItem: HomeScreenGridItem, isFromAllAppsFragment: Boolean) {
+        if (isFromAllAppsFragment) {
+            hideFragment(all_apps_fragment)
+        }
+
+        mLongPressedIcon = gridItem
         home_screen_popup_menu_anchor.x = x
         home_screen_popup_menu_anchor.y = y
-        mOpenPopupMenu = handleGridItemPopupMenu(home_screen_popup_menu_anchor, clickedPackageName)
+        mOpenPopupMenu = handleGridItemPopupMenu(home_screen_popup_menu_anchor, gridItem.packageName)
     }
 
     private fun showMainLongPressMenu(x: Float, y: Float) {
