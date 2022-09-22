@@ -64,6 +64,14 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
         }
     }
 
+    fun removeAppIcon(iconId: Long) {
+        ensureBackgroundThread {
+            context.homeScreenGridItemsDB.deleteById(iconId)
+            gridItems.removeIf { it.id == iconId }
+            invalidate()
+        }
+    }
+
     fun itemDraggingStarted(draggedGridItem: HomeScreenGridItem) {
         draggedItem = draggedGridItem
         invalidate()

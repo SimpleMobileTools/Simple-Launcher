@@ -1,6 +1,6 @@
 <resources>
     <dimen name="launcher_icon_size">55dp</dimen>
-    <dimen name="icon_long_press_anchor_offset_y">100dp</dimen>
+    <dimen name="icon_long_press_anchor_offset_y">150dp</dimen>
     <dimen name="home_long_press_anchor_offset_y">50dp</dimen>
     <dimen name="widget_preview_size">140dp</dimen>
     <dimen name="icon_side_margin">10dp</dimen>

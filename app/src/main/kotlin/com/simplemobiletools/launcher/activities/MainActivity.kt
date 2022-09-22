@@ -177,7 +177,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             if (!launchers.map { it.packageName }.contains(packageName)) {
                 hasDeletedAnything = true
                 launchersDB.deleteApp(packageName)
-                homeScreenGridItemsDB.deleteItem(packageName)
+                homeScreenGridItemsDB.deleteByPackageName(packageName)
             }
         }
 
@@ -235,7 +235,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         main_holder.performHapticFeedback()
         val clickedGridItem = home_screen_grid.isClickingGridItem(getGridTouchedX(x), getGridTouchedY(y))
         if (clickedGridItem != null) {
-            showHomeIconMenu(x, y - resources.getDimension(R.dimen.icon_long_press_anchor_offset_y), clickedGridItem)
+            showHomeIconMenu(x, y - resources.getDimension(R.dimen.icon_long_press_anchor_offset_y), clickedGridItem, false)
             return
         }
 
@@ -251,15 +251,15 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
     }
 
-    private fun getGridTouchedX(x: Float) = Math.min(Math.max(x.toInt() - home_screen_grid.marginLeft, 0), home_screen_grid.width).toInt()
+    private fun getGridTouchedX(x: Float) = Math.min(Math.max(x.toInt() - home_screen_grid.marginLeft, 0), home_screen_grid.width)
 
-    private fun getGridTouchedY(y: Float) = Math.min(Math.max(y.toInt() - home_screen_grid.marginTop, 0), home_screen_grid.height).toInt()
+    private fun getGridTouchedY(y: Float) = Math.min(Math.max(y.toInt() - home_screen_grid.marginTop, 0), home_screen_grid.height)
 
-    fun showHomeIconMenu(x: Float, y: Float, gridItem: HomeScreenGridItem) {
+    fun showHomeIconMenu(x: Float, y: Float, gridItem: HomeScreenGridItem, isOnAllAppsFragment: Boolean) {
         mLongPressedIcon = gridItem
         home_screen_popup_menu_anchor.x = x
         home_screen_popup_menu_anchor.y = y
-        mOpenPopupMenu = handleGridItemPopupMenu(home_screen_popup_menu_anchor, gridItem.packageName)
+        mOpenPopupMenu = handleGridItemPopupMenu(home_screen_popup_menu_anchor, gridItem, isOnAllAppsFragment)
     }
 
     private fun showMainLongPressMenu(x: Float, y: Float) {
@@ -278,15 +278,17 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
     }
 
-    private fun handleGridItemPopupMenu(anchorView: View, appPackageName: String): PopupMenu {
+    private fun handleGridItemPopupMenu(anchorView: View, gridItem: HomeScreenGridItem, isOnAllAppsFragment: Boolean): PopupMenu {
         val contextTheme = ContextThemeWrapper(this, getPopupMenuTheme())
         return PopupMenu(contextTheme, anchorView, Gravity.TOP or Gravity.END).apply {
             inflate(R.menu.menu_app_icon)
+            menu.findItem(R.id.remove).isVisible = !isOnAllAppsFragment
             setOnMenuItemClickListener { item ->
                 (all_apps_fragment as AllAppsFragment).ignoreTouches = false
                 when (item.itemId) {
-                    R.id.app_info -> launchAppInfo(appPackageName)
-                    R.id.uninstall -> uninstallApp(appPackageName)
+                    R.id.app_info -> launchAppInfo(gridItem.packageName)
+                    R.id.remove -> home_screen_grid.removeAppIcon(gridItem.id!!)
+                    R.id.uninstall -> uninstallApp(gridItem.packageName)
                 }
                 true
             }
