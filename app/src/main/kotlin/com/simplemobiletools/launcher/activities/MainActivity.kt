@@ -201,6 +201,7 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     fun startHandlingTouches(touchDownY: Int) {
+        mLongPressedIcon = null
         mTouchDownY = touchDownY
         mCurrentFragmentY = all_apps_fragment.y.toInt()
         mIgnoreUpEvent = false
@@ -294,6 +295,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             }
 
             setOnDismissListener {
+                mOpenPopupMenu = null
                 (all_apps_fragment as AllAppsFragment).ignoreTouches = false
             }
 

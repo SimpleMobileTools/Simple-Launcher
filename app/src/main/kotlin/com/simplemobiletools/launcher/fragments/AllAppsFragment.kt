@@ -56,6 +56,8 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
         }
 
         var shouldIntercept = false
+
+        // pull the whole fragment down if it is scrolled way to the top and the users pulls it even further
         if (touchDownY != -1) {
             shouldIntercept = touchDownY - event.y < 0 && all_apps_grid.computeVerticalScrollOffset() == 0
             if (shouldIntercept) {
