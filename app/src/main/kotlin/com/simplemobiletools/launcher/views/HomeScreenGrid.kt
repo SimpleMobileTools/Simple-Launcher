@@ -36,6 +36,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
 
     private var gridItems = ArrayList<HomeScreenGridItem>()
     private var gridCenters = ArrayList<Pair<Int, Int>>()
+    private var draggedItemCurrentCoords = Pair(-1, -1)
 
     init {
         textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -75,6 +76,9 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
         if (draggedItem == null) {
             return
         }
+
+        draggedItemCurrentCoords = Pair(x, y)
+        invalidate()
     }
 
     // figure out at which cell was the item dropped, if it is empty
@@ -125,6 +129,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
         }
 
         draggedItem = null
+        draggedItemCurrentCoords = Pair(-1, -1)
         if (redrawIcons) {
             invalidate()
         }
@@ -166,33 +171,40 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
         }
 
         gridItems.filter { it.drawable != null }.forEach { item ->
-            val drawableX = rowXCoords[item.left] + iconMargin
+            if (item.id != draggedItem?.id) {
+                val drawableX = rowXCoords[item.left] + iconMargin
 
-            // icons at the bottom are drawn at the bottom of the grid and they have no label
-            if (item.top == ROW_COUNT - 1) {
-                val drawableY = rowYCoords[item.top] + rowHeight - iconSize - iconMargin * 2
-                item.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
-            } else {
-                val drawableY = rowYCoords[item.top] + iconSize / 2
-                item.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
+                // icons at the bottom are drawn at the bottom of the grid and they have no label
+                if (item.top == ROW_COUNT - 1) {
+                    val drawableY = rowYCoords[item.top] + rowHeight - iconSize - iconMargin * 2
+                    item.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
+                } else {
+                    val drawableY = rowYCoords[item.top] + iconSize / 2
+                    item.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
 
-                if (item.id != draggedItem?.id) {
-                    val textY = rowYCoords[item.top] + iconSize * 1.5f + labelSideMargin
-                    val staticLayout = StaticLayout.Builder
-                        .obtain(item.title, 0, item.title.length, textPaint, rowWidth - 2 * labelSideMargin)
-                        .setMaxLines(2)
-                        .setEllipsize(TextUtils.TruncateAt.END)
-                        .setAlignment(Layout.Alignment.ALIGN_CENTER)
-                        .build()
+                    if (item.id != draggedItem?.id) {
+                        val textY = rowYCoords[item.top] + iconSize * 1.5f + labelSideMargin
+                        val staticLayout = StaticLayout.Builder
+                            .obtain(item.title, 0, item.title.length, textPaint, rowWidth - 2 * labelSideMargin)
+                            .setMaxLines(2)
+                            .setEllipsize(TextUtils.TruncateAt.END)
+                            .setAlignment(Layout.Alignment.ALIGN_CENTER)
+                            .build()
 
-                    canvas.save()
-                    canvas.translate(rowXCoords[item.left].toFloat() + labelSideMargin, textY)
-                    staticLayout.draw(canvas)
-                    canvas.restore()
+                        canvas.save()
+                        canvas.translate(rowXCoords[item.left].toFloat() + labelSideMargin, textY)
+                        staticLayout.draw(canvas)
+                        canvas.restore()
+                    }
                 }
-            }
 
-            item.drawable!!.draw(canvas)
+                item.drawable!!.draw(canvas)
+            } else if (draggedItemCurrentCoords.first != -1 && draggedItemCurrentCoords.second != -1) {
+                val drawableX = draggedItemCurrentCoords.first - iconSize
+                val drawableY = draggedItemCurrentCoords.second - (iconSize * 1.5f).toInt()
+                item.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
+                item.drawable!!.draw(canvas)
+            }
         }
     }
 
