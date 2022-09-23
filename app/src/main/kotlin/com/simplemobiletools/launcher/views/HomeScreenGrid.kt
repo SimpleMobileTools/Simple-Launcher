@@ -5,7 +5,6 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.drawable.Drawable
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
@@ -36,7 +35,6 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
     private var iconSize = 0
 
     private var gridItems = ArrayList<HomeScreenGridItem>()
-    private var gridItemDrawables = HashMap<String, Drawable>()
     private var gridCenters = ArrayList<Pair<Int, Int>>()
 
     init {
@@ -51,13 +49,9 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
 
     fun fetchGridItems() {
         ensureBackgroundThread {
-            gridItemDrawables.clear()
             gridItems = context.homeScreenGridItemsDB.getAllItems() as ArrayList<HomeScreenGridItem>
             gridItems.forEach { item ->
-                val drawable = context.getDrawableForPackageName(item.packageName)
-                if (drawable != null) {
-                    gridItemDrawables[item.packageName] = drawable
-                }
+                item.drawable = context.getDrawableForPackageName(item.packageName)
             }
 
             invalidate()
@@ -75,6 +69,12 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
     fun itemDraggingStarted(draggedGridItem: HomeScreenGridItem) {
         draggedItem = draggedGridItem
         invalidate()
+    }
+
+    fun draggedItemMoved(x: Int, y: Int) {
+        if (draggedItem == null) {
+            return
+        }
     }
 
     // figure out at which cell was the item dropped, if it is empty
@@ -111,17 +111,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
                 } else if (draggedItem != null) {
                     // we are dragging a new item at the home screen from the All Apps fragment
                     val newHomeScreenGridItem =
-                        HomeScreenGridItem(null, xIndex, yIndex, xIndex + 1, yIndex + 1, draggedItem!!.packageName, draggedItem!!.title)
+                        HomeScreenGridItem(null, xIndex, yIndex, xIndex + 1, yIndex + 1, draggedItem!!.packageName, draggedItem!!.title, draggedItem!!.drawable)
                     ensureBackgroundThread {
                         val newId = context.homeScreenGridItemsDB.insert(newHomeScreenGridItem)
                         newHomeScreenGridItem.id = newId
                         gridItems.add(newHomeScreenGridItem)
-
-                        val drawable = context.getDrawableForPackageName(newHomeScreenGridItem.packageName)
-                        if (drawable != null) {
-                            gridItemDrawables[newHomeScreenGridItem.packageName] = drawable
-                        }
-
                         invalidate()
                     }
                 }
@@ -171,37 +165,34 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
             }
         }
 
-        gridItems.forEach { item ->
-            val drawable = gridItemDrawables[item.packageName]
-            if (drawable != null) {
-                val drawableX = rowXCoords[item.left] + iconMargin
+        gridItems.filter { it.drawable != null }.forEach { item ->
+            val drawableX = rowXCoords[item.left] + iconMargin
 
-                // icons at the bottom are drawn at the bottom of the grid and they have no label
-                if (item.top == ROW_COUNT - 1) {
-                    val drawableY = rowYCoords[item.top] + rowHeight - iconSize - iconMargin * 2
-                    drawable.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
-                } else {
-                    val drawableY = rowYCoords[item.top] + iconSize / 2
-                    drawable.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
+            // icons at the bottom are drawn at the bottom of the grid and they have no label
+            if (item.top == ROW_COUNT - 1) {
+                val drawableY = rowYCoords[item.top] + rowHeight - iconSize - iconMargin * 2
+                item.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
+            } else {
+                val drawableY = rowYCoords[item.top] + iconSize / 2
+                item.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
 
-                    if (item.id != draggedItem?.id) {
-                        val textY = rowYCoords[item.top] + iconSize * 1.5f + labelSideMargin
-                        val staticLayout = StaticLayout.Builder
-                            .obtain(item.title, 0, item.title.length, textPaint, rowWidth - 2 * labelSideMargin)
-                            .setMaxLines(2)
-                            .setEllipsize(TextUtils.TruncateAt.END)
-                            .setAlignment(Layout.Alignment.ALIGN_CENTER)
-                            .build()
+                if (item.id != draggedItem?.id) {
+                    val textY = rowYCoords[item.top] + iconSize * 1.5f + labelSideMargin
+                    val staticLayout = StaticLayout.Builder
+                        .obtain(item.title, 0, item.title.length, textPaint, rowWidth - 2 * labelSideMargin)
+                        .setMaxLines(2)
+                        .setEllipsize(TextUtils.TruncateAt.END)
+                        .setAlignment(Layout.Alignment.ALIGN_CENTER)
+                        .build()
 
-                        canvas.save()
-                        canvas.translate(rowXCoords[item.left].toFloat() + labelSideMargin, textY)
-                        staticLayout.draw(canvas)
-                        canvas.restore()
-                    }
+                    canvas.save()
+                    canvas.translate(rowXCoords[item.left].toFloat() + labelSideMargin, textY)
+                    staticLayout.draw(canvas)
+                    canvas.restore()
                 }
-
-                drawable.draw(canvas)
             }
+
+            item.drawable!!.draw(canvas)
         }
     }
 
