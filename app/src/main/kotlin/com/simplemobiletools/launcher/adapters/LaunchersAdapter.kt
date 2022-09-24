@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
@@ -84,6 +85,7 @@ class LaunchersAdapter(
                 Glide.with(activity)
                     .load(launcher.drawable)
                     .placeholder(placeholderDrawable)
+                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                     .transition(DrawableTransitionOptions.withCrossFade(factory))
                     .into(launcher_icon)
 

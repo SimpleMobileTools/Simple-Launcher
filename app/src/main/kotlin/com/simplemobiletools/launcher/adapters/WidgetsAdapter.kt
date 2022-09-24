@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import android.widget.RelativeLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.simplemobiletools.commons.extensions.getProperTextColor
 import com.simplemobiletools.commons.extensions.toast
 import com.simplemobiletools.launcher.R
@@ -99,6 +100,7 @@ class WidgetsAdapter(
 
             Glide.with(activity)
                 .load(widget.widgetPreviewImage)
+                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                 .into(widgetPreview.widget_image)
 
             widgetPreview.setOnClickListener {
