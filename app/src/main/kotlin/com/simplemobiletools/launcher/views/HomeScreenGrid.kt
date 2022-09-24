@@ -226,7 +226,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
 
             // show the app icon itself at dragging
             val drawableX = draggedItemCurrentCoords.first - iconSize
-            val drawableY = draggedItemCurrentCoords.second - (iconSize * 1.5f).toInt()
+            val drawableY = draggedItemCurrentCoords.second - iconSize
             draggedItem!!.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
             draggedItem!!.drawable!!.draw(canvas)
         }

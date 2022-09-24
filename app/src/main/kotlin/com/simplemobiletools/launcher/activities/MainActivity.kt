@@ -141,7 +141,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                 }
 
                 if (mLongPressedIcon != null) {
-                    home_screen_grid.draggedItemMoved(event.x.toInt(), event.y.toInt())
+                    home_screen_grid.draggedItemMoved(getGridTouchedX(event.x), getGridTouchedY(event.y))
                 }
 
                 if (mTouchDownY != -1 && !mIgnoreMoveEvents) {
