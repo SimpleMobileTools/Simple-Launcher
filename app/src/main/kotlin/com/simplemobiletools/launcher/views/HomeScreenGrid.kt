@@ -206,27 +206,29 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
                 }
 
                 item.drawable!!.draw(canvas)
-            } else if (draggedItemCurrentCoords.first != -1 && draggedItemCurrentCoords.second != -1) {
-                // draw a circle under the current cell
-                val center = gridCenters.minBy { Math.abs(it.first - draggedItemCurrentCoords.first) + Math.abs(it.second - draggedItemCurrentCoords.second) }
-                val gridCells = getClosestGridCells(center)
-                if (gridCells != null) {
-                    val shadowX = rowXCoords[gridCells.first] + iconMargin.toFloat() + iconSize / 2
-                    val shadowY = if (gridCells.second == ROW_COUNT - 1) {
-                        rowYCoords[gridCells.second] + rowHeight - iconSize / 2 - iconMargin * 2
-                    } else {
-                        rowYCoords[gridCells.second] + iconSize
-                    }
+            }
+        }
 
-                    canvas.drawCircle(shadowX, shadowY.toFloat(), iconSize / 2f, dragShadowCirclePaint)
+        if (draggedItem != null && draggedItemCurrentCoords.first != -1 && draggedItemCurrentCoords.second != -1) {
+            // draw a circle under the current cell
+            val center = gridCenters.minBy { Math.abs(it.first - draggedItemCurrentCoords.first) + Math.abs(it.second - draggedItemCurrentCoords.second) }
+            val gridCells = getClosestGridCells(center)
+            if (gridCells != null) {
+                val shadowX = rowXCoords[gridCells.first] + iconMargin.toFloat() + iconSize / 2
+                val shadowY = if (gridCells.second == ROW_COUNT - 1) {
+                    rowYCoords[gridCells.second] + rowHeight - iconSize / 2 - iconMargin * 2
+                } else {
+                    rowYCoords[gridCells.second] + iconSize
                 }
 
-                // show the icon itself at dragging
-                val drawableX = draggedItemCurrentCoords.first - iconSize
-                val drawableY = draggedItemCurrentCoords.second - (iconSize * 1.5f).toInt()
-                item.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
-                item.drawable!!.draw(canvas)
+                canvas.drawCircle(shadowX, shadowY.toFloat(), iconSize / 2f, dragShadowCirclePaint)
             }
+
+            // show the app icon itself at dragging
+            val drawableX = draggedItemCurrentCoords.first - iconSize
+            val drawableY = draggedItemCurrentCoords.second - (iconSize * 1.5f).toInt()
+            draggedItem!!.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
+            draggedItem!!.drawable!!.draw(canvas)
         }
     }
 
