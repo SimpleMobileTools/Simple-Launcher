@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_launcher_name">Lanzador</string>
     <string name="app_name">Lanzador simple</string>
+    <string name="app_launcher_name">Lanzador</string>
     <string name="app_info">Información de la aplicación</string>
     <string name="touch_hold_widget">Mantenga presionado el widget y arrástrelo a su pantalla de inicio</string>
     <string name="uninstall">Desinstalar</string>
