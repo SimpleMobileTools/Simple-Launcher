@@ -76,6 +76,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
 
     fun itemDraggingStarted(draggedGridItem: HomeScreenGridItem) {
         draggedItem = draggedGridItem
+        if (draggedItem!!.drawable == null) {
+            draggedItem!!.drawable = context.getDrawableForPackageName(draggedGridItem.packageName)
+        }
+
         invalidate()
     }
 
