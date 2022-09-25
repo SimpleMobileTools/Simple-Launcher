@@ -347,15 +347,16 @@ class MainActivity : SimpleActivity(), FlingListener {
         intent.addCategory(Intent.CATEGORY_LAUNCHER)
 
         val simpleLauncher = applicationContext.packageName
+        val microG = "com.google.android.gms"
         val list = packageManager.queryIntentActivities(intent, PackageManager.PERMISSION_GRANTED)
         for (info in list) {
             val componentInfo = info.activityInfo.applicationInfo
-            val label = info.loadLabel(packageManager).toString()
             val packageName = componentInfo.packageName
-            if (packageName == simpleLauncher) {
+            if (packageName == simpleLauncher || packageName == microG) {
                 continue
             }
 
+            val label = info.loadLabel(packageManager).toString()
             val drawable = getDrawableForPackageName(packageName) ?: continue
             val placeholderColor = calculateAverageColor(drawable.toBitmap())
 
