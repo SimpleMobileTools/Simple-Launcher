@@ -64,14 +64,6 @@ class MainActivity : SimpleActivity(), FlingListener {
             fragment.y = mScreenHeight.toFloat()
             fragment.beVisible()
         }
-
-        if (!config.wasHomeScreenInit) {
-            ensureBackgroundThread {
-                getDefaultAppPackages()
-                config.wasHomeScreenInit = true
-                home_screen_grid.fetchGridItems()
-            }
-        }
     }
 
     override fun onResume() {
@@ -183,15 +175,11 @@ class MainActivity : SimpleActivity(), FlingListener {
 
         mCachedLaunchers = launchers
 
-        if (!config.wereDefaultAppLabelsFilled) {
+        if (!config.wasHomeScreenInit) {
             ensureBackgroundThread {
-                homeScreenGridItemsDB.getAllItems().forEach { gridItem ->
-                    val launcher = launchers.firstOrNull { it.packageName.equals(gridItem.packageName, true) }
-                    if (launcher != null) {
-                        homeScreenGridItemsDB.updateAppTitle(launcher.title, gridItem.packageName)
-                    }
-                }
-                config.wereDefaultAppLabelsFilled = true
+                getDefaultAppPackages(launchers)
+                config.wasHomeScreenInit = true
+                home_screen_grid.fetchGridItems()
             }
         }
     }
@@ -322,6 +310,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         showFragment(all_apps_fragment)
     }
 
+    @SuppressLint("WrongConstant")
     override fun onFlingDown() {
         mIgnoreUpEvent = true
         if (all_apps_fragment.y != mScreenHeight.toFloat()) {
@@ -358,20 +347,24 @@ class MainActivity : SimpleActivity(), FlingListener {
         return launchers
     }
 
-    private fun getDefaultAppPackages() {
+    private fun getDefaultAppPackages(appLaunchers: ArrayList<AppLauncher>) {
         val homeScreenGridItems = ArrayList<HomeScreenGridItem>()
         try {
             val defaultDialerPackage = (getSystemService(Context.TELECOM_SERVICE) as TelecomManager).defaultDialerPackage
-            val dialerIcon = HomeScreenGridItem(null, 0, ROW_COUNT - 1, 1, ROW_COUNT, defaultDialerPackage, "", null)
-            homeScreenGridItems.add(dialerIcon)
+            appLaunchers.firstOrNull { it.packageName == defaultDialerPackage }?.apply {
+                val dialerIcon = HomeScreenGridItem(null, 0, ROW_COUNT - 1, 1, ROW_COUNT, defaultDialerPackage, title, null)
+                homeScreenGridItems.add(dialerIcon)
+            }
         } catch (e: Exception) {
         }
 
         try {
             val defaultSMSMessengerPackage = Telephony.Sms.getDefaultSmsPackage(this)
-            val SMSMessengerIcon =
-                HomeScreenGridItem(null, 1, ROW_COUNT - 1, 2, ROW_COUNT, defaultSMSMessengerPackage, "", null)
-            homeScreenGridItems.add(SMSMessengerIcon)
+            appLaunchers.firstOrNull { it.packageName == defaultSMSMessengerPackage }?.apply {
+                val SMSMessengerIcon =
+                    HomeScreenGridItem(null, 1, ROW_COUNT - 1, 2, ROW_COUNT, defaultSMSMessengerPackage, title, null)
+                homeScreenGridItems.add(SMSMessengerIcon)
+            }
         } catch (e: Exception) {
         }
 
@@ -379,18 +372,21 @@ class MainActivity : SimpleActivity(), FlingListener {
             val browserIntent = Intent("android.intent.action.VIEW", Uri.parse("http://"))
             val resolveInfo = packageManager.resolveActivity(browserIntent, PackageManager.MATCH_DEFAULT_ONLY)
             val defaultBrowserPackage = resolveInfo!!.activityInfo.packageName
-            val browserIcon =
-                HomeScreenGridItem(null, 2, ROW_COUNT - 1, 3, ROW_COUNT, defaultBrowserPackage, "", null)
-            homeScreenGridItems.add(browserIcon)
+            appLaunchers.firstOrNull { it.packageName == defaultBrowserPackage }?.apply {
+                val browserIcon = HomeScreenGridItem(null, 2, ROW_COUNT - 1, 3, ROW_COUNT, defaultBrowserPackage, title, null)
+                homeScreenGridItems.add(browserIcon)
+            }
         } catch (e: Exception) {
         }
 
         try {
             val potentialStores = arrayListOf("com.android.vending", "org.fdroid.fdroid", "com.aurora.store")
-            val storePackage = potentialStores.firstOrNull { isPackageInstalled(it) }
+            val storePackage = potentialStores.firstOrNull { isPackageInstalled(it) && appLaunchers.map { it.packageName }.contains(it) }
             if (storePackage != null) {
-                val storeIcon = HomeScreenGridItem(null, 3, ROW_COUNT - 1, 4, ROW_COUNT, storePackage, "", null)
-                homeScreenGridItems.add(storeIcon)
+                appLaunchers.firstOrNull { it.packageName == storePackage }?.apply {
+                    val storeIcon = HomeScreenGridItem(null, 3, ROW_COUNT - 1, 4, ROW_COUNT, storePackage, title, null)
+                    homeScreenGridItems.add(storeIcon)
+                }
             }
         } catch (e: Exception) {
         }
@@ -399,8 +395,10 @@ class MainActivity : SimpleActivity(), FlingListener {
             val cameraIntent = Intent("android.media.action.IMAGE_CAPTURE")
             val resolveInfo = packageManager.resolveActivity(cameraIntent, PackageManager.MATCH_DEFAULT_ONLY)
             val defaultCameraPackage = resolveInfo!!.activityInfo.packageName
-            val cameraIcon = HomeScreenGridItem(null, 4, ROW_COUNT - 1, 5, ROW_COUNT, defaultCameraPackage, "", null)
-            homeScreenGridItems.add(cameraIcon)
+            appLaunchers.firstOrNull { it.packageName == defaultCameraPackage }?.apply {
+                val cameraIcon = HomeScreenGridItem(null, 4, ROW_COUNT - 1, 5, ROW_COUNT, defaultCameraPackage, title, null)
+                homeScreenGridItems.add(cameraIcon)
+            }
         } catch (e: Exception) {
         }
 
