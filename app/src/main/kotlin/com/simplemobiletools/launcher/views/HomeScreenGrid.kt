@@ -42,7 +42,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
     private var gridCenters = ArrayList<Pair<Int, Int>>()
     private var draggedItemCurrentCoords = Pair(-1, -1)
 
-    var sideMargins = Rect()   // apply fake margins at the home screen. Real ones would cause the icons be cut at dragging at screen sides
+    private var sideMargins = Rect()   // apply fake margins at the home screen. Real ones would cause the icons be cut at dragging at screen sides
 
     init {
         textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {

@@ -133,7 +133,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                 }
 
                 if (mLongPressedIcon != null) {
-                    home_screen_grid.draggedItemMoved(getGridTouchedX(event.x), getGridTouchedY(event.y))
+                    home_screen_grid.draggedItemMoved(event.x.toInt(), event.y.toInt())
                 }
 
                 if (mTouchDownY != -1 && !mIgnoreMoveEvents) {
@@ -149,7 +149,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                 mIgnoreMoveEvents = false
                 mLongPressedIcon = null
                 (all_apps_fragment as AllAppsFragment).ignoreTouches = false
-                home_screen_grid.itemDraggingStopped(getGridTouchedX(event.x), getGridTouchedY(event.y))
+                home_screen_grid.itemDraggingStopped(event.x.toInt(), event.y.toInt())
                 if (!mIgnoreUpEvent) {
                     if (all_apps_fragment.y < mScreenHeight * 0.7) {
                         showFragment(all_apps_fragment)
@@ -230,7 +230,7 @@ class MainActivity : SimpleActivity(), FlingListener {
 
         mIgnoreMoveEvents = true
         main_holder.performHapticFeedback()
-        val clickedGridItem = home_screen_grid.isClickingGridItem(getGridTouchedX(x), getGridTouchedY(y))
+        val clickedGridItem = home_screen_grid.isClickingGridItem(x.toInt(), y.toInt())
         if (clickedGridItem != null) {
             showHomeIconMenu(x, y - resources.getDimension(R.dimen.icon_long_press_anchor_offset_y), clickedGridItem, false)
             return
@@ -240,15 +240,11 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     fun homeScreenClicked(x: Float, y: Float) {
-        val clickedGridItem = home_screen_grid.isClickingGridItem(getGridTouchedX(x), getGridTouchedY(y))
+        val clickedGridItem = home_screen_grid.isClickingGridItem(x.toInt(), y.toInt())
         if (clickedGridItem != null) {
             launchApp(clickedGridItem.packageName)
         }
     }
-
-    private fun getGridTouchedX(x: Float) = Math.min(Math.max(x.toInt(), 0), home_screen_grid.width)
-
-    private fun getGridTouchedY(y: Float) = Math.min(Math.max(y.toInt(), 0), home_screen_grid.height)
 
     fun showHomeIconMenu(x: Float, y: Float, gridItem: HomeScreenGridItem, isOnAllAppsFragment: Boolean) {
         mLongPressedIcon = gridItem
