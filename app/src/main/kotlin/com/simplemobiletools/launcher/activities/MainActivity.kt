@@ -364,6 +364,12 @@ class MainActivity : SimpleActivity(), FlingListener {
             allApps.add(AppLauncher(null, label, packageName, 0, placeholderColor, drawable))
         }
 
+        // add Simple Launchers settings as an app
+        val drawable = getDrawableForPackageName(packageName)
+        val placeholderColor = calculateAverageColor(drawable!!.toBitmap())
+        val launcherSettings = AppLauncher(null, getString(R.string.launcher_settings), packageName, 0, placeholderColor, drawable)
+        allApps.add(launcherSettings)
+
         val launchers = allApps.distinctBy { it.packageName } as ArrayList<AppLauncher>
         launchersDB.insertAll(launchers)
         return launchers
