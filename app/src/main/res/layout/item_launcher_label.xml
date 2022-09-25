@@ -24,7 +24,7 @@
         android:layout_below="@+id/launcher_icon"
         android:ellipsize="end"
         android:gravity="center_horizontal|top"
-        android:maxLines="1"
+        android:maxLines="2"
         android:textSize="@dimen/smaller_text_size" />
 
 </RelativeLayout>

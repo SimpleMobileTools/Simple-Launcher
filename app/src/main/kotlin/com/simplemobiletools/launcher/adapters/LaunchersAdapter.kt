@@ -3,7 +3,6 @@ package com.simplemobiletools.launcher.adapters
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewTreeObserver
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -16,7 +15,6 @@ import com.simplemobiletools.commons.extensions.portrait
 import com.simplemobiletools.commons.extensions.realScreenSize
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.SimpleActivity
-import com.simplemobiletools.launcher.extensions.getColumnCount
 import com.simplemobiletools.launcher.interfaces.AllAppsListener
 import com.simplemobiletools.launcher.models.AppLauncher
 import kotlinx.android.synthetic.main.item_launcher_label.view.*
@@ -31,7 +29,6 @@ class LaunchersAdapter(
 
     private var textColor = activity.getProperTextColor()
     private var iconPadding = 0
-    private var wasManualScrollPositionSet = false
     private var wereFreshIconsLoaded = false
 
     init {
@@ -94,19 +91,6 @@ class LaunchersAdapter(
                     allAppsListener.onAppLauncherLongPressed(view.x, view.y, launcher)
                     true
                 }
-            }
-
-            if (!wasManualScrollPositionSet) {
-                itemView.launcher_holder.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
-                    override fun onGlobalLayout() {
-                        itemView.launcher_holder.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                        if (!wasManualScrollPositionSet) {
-                            val rowCount = Math.ceil(launchers.size / activity.getColumnCount().toDouble()).toInt()
-                            fastScroller.fullContentHeight = rowCount * itemView.height
-                            fastScroller.calculateScrollPositionManually = true
-                        }
-                    }
-                })
             }
 
             return itemView
