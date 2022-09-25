@@ -21,6 +21,7 @@ import kotlinx.android.synthetic.main.all_apps_fragment.view.*
 
 class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment(context, attributeSet), AllAppsListener {
     private var touchDownY = -1
+    private var lastTouchCoords = Pair(0f, 0f)
     var ignoreTouches = false
 
     @SuppressLint("ClickableViewAccessibility")
@@ -51,15 +52,19 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
 
     override fun onInterceptTouchEvent(event: MotionEvent): Boolean {
         if (ignoreTouches) {
-            touchDownY = -1
-            return true
+            // some devices ACTION_MOVE keeps triggering for the whole long press duration, but we are interested in real moves only, when coords change
+            if (lastTouchCoords.first != event.x || lastTouchCoords.second != event.y) {
+                touchDownY = -1
+                return true
+            }
         }
 
+        lastTouchCoords = Pair(event.x, event.y)
         var shouldIntercept = false
 
         // pull the whole fragment down if it is scrolled way to the top and the users pulls it even further
         if (touchDownY != -1) {
-            shouldIntercept = touchDownY - event.y < 0 && all_apps_grid.computeVerticalScrollOffset() == 0
+            shouldIntercept = touchDownY - event.y.toInt() < 0 && all_apps_grid.computeVerticalScrollOffset() == 0
             if (shouldIntercept) {
                 activity?.startHandlingTouches(touchDownY)
                 touchDownY = -1
