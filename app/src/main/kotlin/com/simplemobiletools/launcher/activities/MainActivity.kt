@@ -46,6 +46,10 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     private lateinit var mDetector: GestureDetectorCompat
 
+    companion object {
+        private var mLastUpEvent = 0L
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         useDynamicTheme = false
         showTransparentNavigation = true
@@ -108,6 +112,10 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (mLongPressedIcon != null && event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
+            mLastUpEvent = System.currentTimeMillis()
+        }
+
         mDetector.onTouchEvent(event)
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
@@ -292,6 +300,11 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
 
         override fun onFling(event1: MotionEvent, event2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
+            // ignore fling events just after releasing an icon from dragging
+            if (System.currentTimeMillis() - mLastUpEvent < 500L) {
+                return true
+            }
+
             if (velocityY > 0) {
                 flingListener.onFlingDown()
             } else {
