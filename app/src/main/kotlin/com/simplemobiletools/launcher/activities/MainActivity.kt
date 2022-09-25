@@ -43,6 +43,7 @@ class MainActivity : SimpleActivity(), FlingListener {
     private var mLongPressedIcon: HomeScreenGridItem? = null
     private var mOpenPopupMenu: PopupMenu? = null
     private var mCachedLaunchers = ArrayList<AppLauncher>()
+    private var mLastTouchCoords = Pair(0f, 0f)
 
     private lateinit var mDetector: GestureDetectorCompat
 
@@ -125,7 +126,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             }
 
             MotionEvent.ACTION_MOVE -> {
-                if (mLongPressedIcon != null && mOpenPopupMenu != null) {
+                if (mLongPressedIcon != null && mOpenPopupMenu != null && (mLastTouchCoords.first != event.x || mLastTouchCoords.second != event.y)) {
                     mOpenPopupMenu?.dismiss()
                     mOpenPopupMenu = null
                     home_screen_grid.itemDraggingStarted(mLongPressedIcon!!)
@@ -141,6 +142,8 @@ class MainActivity : SimpleActivity(), FlingListener {
                     val newY = mCurrentFragmentY - diffY
                     all_apps_fragment.y = Math.min(Math.max(0f, newY), mScreenHeight.toFloat())
                 }
+
+                mLastTouchCoords = Pair(event.x, event.y)
             }
 
             MotionEvent.ACTION_CANCEL,
