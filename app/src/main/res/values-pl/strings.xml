@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">Prosty launcher</string>
     <string name="app_launcher_name">Launcher</string>
-    <string name="launcher_settings">Launcher Settings</string>
+    <string name="launcher_settings">Ustawienia launchera</string>
     <string name="app_info">Informacje o aplikacji</string>
     <string name="touch_hold_widget">Długo naciśnij widżet i przeciągnij go na ekran główny</string>
     <string name="uninstall">Odinstaluj</string>
