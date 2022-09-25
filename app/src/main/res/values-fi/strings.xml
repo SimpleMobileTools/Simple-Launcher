@@ -2,6 +2,7 @@
 <resources>
     <string name="app_name">Yksinkertainen käynnistin</string>
     <string name="app_launcher_name">Käynnistin</string>
+    <string name="launcher_settings">Launcher Settings</string>
     <string name="app_info">Sovelluksen tiedot</string>
     <string name="touch_hold_widget">Paina widgettiä pitkään ja vedä se aloitusnäytöllesi</string>
     <string name="uninstall">Poista asennus</string>

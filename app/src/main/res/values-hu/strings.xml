@@ -2,6 +2,7 @@
 <resources>
     <string name="app_name">Egyszerű indító</string>
     <string name="app_launcher_name">Indító</string>
+    <string name="launcher_settings">Launcher Settings</string>
     <string name="app_info">Alkalmazás info</string>
     <string name="touch_hold_widget">Nyomja meg hosszan a widgetet és húzd a kezdőképernyőre</string>
     <string name="uninstall">Eltávolítás</string>
