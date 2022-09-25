@@ -5,12 +5,15 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Rect
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.View
+import com.simplemobiletools.commons.extensions.navigationBarHeight
+import com.simplemobiletools.commons.extensions.statusBarHeight
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.extensions.getDrawableForPackageName
@@ -39,6 +42,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
     private var gridCenters = ArrayList<Pair<Int, Int>>()
     private var draggedItemCurrentCoords = Pair(-1, -1)
 
+    var sideMargins = Rect()   // apply fake margins at the home screen. Real ones would cause the icons be cut at dragging at screen sides
+
     init {
         textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
@@ -50,6 +55,14 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
             color = context.resources.getColor(R.color.light_grey_stroke)
             strokeWidth = context.resources.getDimension(R.dimen.small_margin)
             style = Paint.Style.STROKE
+        }
+
+        val sideMargin = context.resources.getDimension(R.dimen.normal_margin).toInt()
+        sideMargins.apply {
+            top = context.statusBarHeight
+            bottom = context.navigationBarHeight
+            left = sideMargin
+            right = sideMargin
         }
 
         fetchGridItems()
@@ -98,7 +111,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
             return
         }
 
-        val center = gridCenters.minBy { Math.abs(it.first - x) + Math.abs(it.second - y) }
+        val center = gridCenters.minBy { Math.abs(it.first - x + sideMargins.left) + Math.abs(it.second - y + sideMargins.top) }
         var redrawIcons = false
 
         val gridCells = getClosestGridCells(center)
@@ -159,12 +172,16 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
         return null
     }
 
+    fun getFakeWidth() = width - sideMargins.left - sideMargins.right
+
+    fun getFakeHeight() = height - sideMargins.top - sideMargins.bottom
+
     @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         if (rowXCoords.isEmpty()) {
-            rowWidth = width / (COLUMN_COUNT)
-            rowHeight = height / ROW_COUNT
+            rowWidth = getFakeWidth() / COLUMN_COUNT
+            rowHeight = getFakeHeight() / ROW_COUNT
             iconSize = rowWidth - 2 * iconMargin
             for (i in 0 until COLUMN_COUNT) {
                 rowXCoords.add(i, i * rowWidth)
@@ -183,18 +200,19 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
 
         gridItems.filter { it.drawable != null }.forEach { item ->
             if (item.id != draggedItem?.id) {
-                val drawableX = rowXCoords[item.left] + iconMargin
+                val drawableX = rowXCoords[item.left] + iconMargin + sideMargins.left
 
                 // icons at the bottom are drawn at the bottom of the grid and they have no label
                 if (item.top == ROW_COUNT - 1) {
-                    val drawableY = rowYCoords[item.top] + rowHeight - iconSize - iconMargin * 2
+                    val drawableY = rowYCoords[item.top] + rowHeight - iconSize - iconMargin * 2 + sideMargins.top
                     item.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
                 } else {
-                    val drawableY = rowYCoords[item.top] + iconSize / 2
+                    val drawableY = rowYCoords[item.top] + iconSize / 2 + sideMargins.top
                     item.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
 
                     if (item.id != draggedItem?.id) {
-                        val textY = rowYCoords[item.top] + iconSize * 1.5f + labelSideMargin
+                        val textX = rowXCoords[item.left].toFloat() + labelSideMargin + sideMargins.left
+                        val textY = rowYCoords[item.top] + iconSize * 1.5f + labelSideMargin + sideMargins.top
                         val staticLayout = StaticLayout.Builder
                             .obtain(item.title, 0, item.title.length, textPaint, rowWidth - 2 * labelSideMargin)
                             .setMaxLines(2)
@@ -203,7 +221,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
                             .build()
 
                         canvas.save()
-                        canvas.translate(rowXCoords[item.left].toFloat() + labelSideMargin, textY)
+                        canvas.translate(textX, textY)
                         staticLayout.draw(canvas)
                         canvas.restore()
                     }
@@ -215,30 +233,39 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
 
         if (draggedItem != null && draggedItemCurrentCoords.first != -1 && draggedItemCurrentCoords.second != -1) {
             // draw a circle under the current cell
-            val center = gridCenters.minBy { Math.abs(it.first - draggedItemCurrentCoords.first) + Math.abs(it.second - draggedItemCurrentCoords.second) }
+            val center =
+                gridCenters.minBy { Math.abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(it.second - draggedItemCurrentCoords.second + sideMargins.top) }
             val gridCells = getClosestGridCells(center)
             if (gridCells != null) {
-                val shadowX = rowXCoords[gridCells.first] + iconMargin.toFloat() + iconSize / 2
+                val shadowX = rowXCoords[gridCells.first] + iconMargin.toFloat() + iconSize / 2 + sideMargins.left
                 val shadowY = if (gridCells.second == ROW_COUNT - 1) {
                     rowYCoords[gridCells.second] + rowHeight - iconSize / 2 - iconMargin * 2
                 } else {
                     rowYCoords[gridCells.second] + iconSize
-                }
+                } + sideMargins.top
 
                 canvas.drawCircle(shadowX, shadowY.toFloat(), iconSize / 2f, dragShadowCirclePaint)
             }
 
-            // show the app icon itself at dragging
-            val drawableX = draggedItemCurrentCoords.first - iconSize
-            val drawableY = draggedItemCurrentCoords.second - iconSize
+            // show the app icon itself at dragging, move it above the finger a bit to make it visible
+            val drawableX = (draggedItemCurrentCoords.first - iconSize / 1.5f).toInt()
+            val drawableY = (draggedItemCurrentCoords.second - iconSize / 1.2f).toInt()
             draggedItem!!.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
             draggedItem!!.drawable!!.draw(canvas)
         }
     }
 
+    // get the clickable area around the icon, it includes text too
+    private fun getClickableRect(item: HomeScreenGridItem): Rect {
+        val debugLeft = item.left * rowWidth + sideMargins.left
+        val debugTop = rowYCoords[item.top] + iconSize / 3 + sideMargins.top
+        return Rect(debugLeft, debugTop, debugLeft + rowWidth, debugTop + iconSize * 2)
+    }
+
     fun isClickingGridItem(x: Int, y: Int): HomeScreenGridItem? {
         for (gridItem in gridItems) {
-            if (x >= gridItem.left * rowWidth && x <= gridItem.right * rowWidth && y >= gridItem.top * rowHeight && y <= gridItem.bottom * rowHeight) {
+            val rect = getClickableRect(gridItem)
+            if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
                 return gridItem
             }
         }
