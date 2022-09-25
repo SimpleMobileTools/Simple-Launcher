@@ -324,7 +324,14 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     override fun onFlingDown() {
         mIgnoreUpEvent = true
-        hideFragment(all_apps_fragment)
+        if (all_apps_fragment.y != mScreenHeight.toFloat()) {
+            hideFragment(all_apps_fragment)
+        } else {
+            try {
+                Class.forName("android.app.StatusBarManager").getMethod("expandNotificationsPanel").invoke(getSystemService("statusbar"))
+            } catch (e: Exception) {
+            }
+        }
     }
 
     @SuppressLint("WrongConstant")
