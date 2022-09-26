@@ -14,6 +14,7 @@ import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.adapters.LaunchersAdapter
 import com.simplemobiletools.launcher.extensions.getColumnCount
 import com.simplemobiletools.launcher.extensions.launchApp
+import com.simplemobiletools.launcher.helpers.ITEM_TYPE_ICON
 import com.simplemobiletools.launcher.interfaces.AllAppsListener
 import com.simplemobiletools.launcher.models.AppLauncher
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
@@ -135,7 +136,7 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
     }
 
     override fun onAppLauncherLongPressed(x: Float, y: Float, appLauncher: AppLauncher) {
-        val gridItem = HomeScreenGridItem(null, -1, -1, -1, 1, appLauncher.packageName, appLauncher.title, appLauncher.drawable)
+        val gridItem = HomeScreenGridItem(null, -1, -1, -1, -1, 1, 1, appLauncher.packageName, appLauncher.title, ITEM_TYPE_ICON, appLauncher.drawable)
         activity?.showHomeIconMenu(x, y, gridItem, true)
         ignoreTouches = true
     }

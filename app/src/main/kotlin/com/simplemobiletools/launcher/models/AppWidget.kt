@@ -8,7 +8,7 @@ data class AppWidget(
     val appIcon: Drawable,
     val widgetTitle: String,
     val widgetPreviewImage: Drawable?,
-    var widthTiles: Int,
-    val heightTiles: Int,
+    var widthCells: Int,
+    val heightCells: Int,
     val isShortcut: Boolean
 ) : WidgetsListItem()

@@ -139,7 +139,19 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
                 } else if (draggedItem != null) {
                     // we are dragging a new item at the home screen from the All Apps fragment
                     val newHomeScreenGridItem =
-                        HomeScreenGridItem(null, xIndex, yIndex, xIndex + 1, yIndex + 1, draggedItem!!.packageName, draggedItem!!.title, draggedItem!!.drawable)
+                        HomeScreenGridItem(
+                            null,
+                            xIndex,
+                            yIndex,
+                            xIndex + 1,
+                            yIndex + 1,
+                            1,
+                            1,
+                            draggedItem!!.packageName,
+                            draggedItem!!.title,
+                            draggedItem!!.type,
+                            draggedItem!!.drawable
+                        )
                     ensureBackgroundThread {
                         val newId = context.homeScreenGridItemsDB.insert(newHomeScreenGridItem)
                         newHomeScreenGridItem.id = newId

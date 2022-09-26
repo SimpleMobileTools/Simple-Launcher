@@ -25,6 +25,8 @@ import com.simplemobiletools.launcher.extensions.*
 import com.simplemobiletools.launcher.fragments.AllAppsFragment
 import com.simplemobiletools.launcher.fragments.MyFragment
 import com.simplemobiletools.launcher.fragments.WidgetsFragment
+import com.simplemobiletools.launcher.helpers.ITEM_TYPE_ICON
+import com.simplemobiletools.launcher.helpers.ITEM_TYPE_WIDGET
 import com.simplemobiletools.launcher.helpers.ROW_COUNT
 import com.simplemobiletools.launcher.helpers.UNINSTALL_APP_REQUEST_CODE
 import com.simplemobiletools.launcher.interfaces.FlingListener
@@ -276,9 +278,14 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     private fun handleGridItemPopupMenu(anchorView: View, gridItem: HomeScreenGridItem, isOnAllAppsFragment: Boolean): PopupMenu {
+        if (gridItem.type == ITEM_TYPE_WIDGET) {
+            anchorView.y += resources.getDimension(R.dimen.home_long_press_anchor_offset_y)
+        }
+
         val contextTheme = ContextThemeWrapper(this, getPopupMenuTheme())
         return PopupMenu(contextTheme, anchorView, Gravity.TOP or Gravity.END).apply {
             inflate(R.menu.menu_app_icon)
+            menu.findItem(R.id.uninstall).isVisible = gridItem.type == ITEM_TYPE_ICON
             menu.findItem(R.id.remove).isVisible = !isOnAllAppsFragment
             setOnMenuItemClickListener { item ->
                 (all_apps_fragment as AllAppsFragment).ignoreTouches = false
@@ -387,7 +394,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         try {
             val defaultDialerPackage = (getSystemService(Context.TELECOM_SERVICE) as TelecomManager).defaultDialerPackage
             appLaunchers.firstOrNull { it.packageName == defaultDialerPackage }?.apply {
-                val dialerIcon = HomeScreenGridItem(null, 0, ROW_COUNT - 1, 1, ROW_COUNT, defaultDialerPackage, title, null)
+                val dialerIcon = HomeScreenGridItem(null, 0, ROW_COUNT - 1, 1, ROW_COUNT, 1, 1, defaultDialerPackage, title, ITEM_TYPE_ICON, null)
                 homeScreenGridItems.add(dialerIcon)
             }
         } catch (e: Exception) {
@@ -397,7 +404,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             val defaultSMSMessengerPackage = Telephony.Sms.getDefaultSmsPackage(this)
             appLaunchers.firstOrNull { it.packageName == defaultSMSMessengerPackage }?.apply {
                 val SMSMessengerIcon =
-                    HomeScreenGridItem(null, 1, ROW_COUNT - 1, 2, ROW_COUNT, defaultSMSMessengerPackage, title, null)
+                    HomeScreenGridItem(null, 1, ROW_COUNT - 1, 2, ROW_COUNT, 1, 1, defaultSMSMessengerPackage, title, ITEM_TYPE_ICON, null)
                 homeScreenGridItems.add(SMSMessengerIcon)
             }
         } catch (e: Exception) {
@@ -408,7 +415,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             val resolveInfo = packageManager.resolveActivity(browserIntent, PackageManager.MATCH_DEFAULT_ONLY)
             val defaultBrowserPackage = resolveInfo!!.activityInfo.packageName
             appLaunchers.firstOrNull { it.packageName == defaultBrowserPackage }?.apply {
-                val browserIcon = HomeScreenGridItem(null, 2, ROW_COUNT - 1, 3, ROW_COUNT, defaultBrowserPackage, title, null)
+                val browserIcon = HomeScreenGridItem(null, 2, ROW_COUNT - 1, 3, ROW_COUNT, 1, 1, defaultBrowserPackage, title, ITEM_TYPE_ICON, null)
                 homeScreenGridItems.add(browserIcon)
             }
         } catch (e: Exception) {
@@ -419,7 +426,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             val storePackage = potentialStores.firstOrNull { isPackageInstalled(it) && appLaunchers.map { it.packageName }.contains(it) }
             if (storePackage != null) {
                 appLaunchers.firstOrNull { it.packageName == storePackage }?.apply {
-                    val storeIcon = HomeScreenGridItem(null, 3, ROW_COUNT - 1, 4, ROW_COUNT, storePackage, title, null)
+                    val storeIcon = HomeScreenGridItem(null, 3, ROW_COUNT - 1, 4, ROW_COUNT, 1, 1, storePackage, title, ITEM_TYPE_ICON, null)
                     homeScreenGridItems.add(storeIcon)
                 }
             }
@@ -431,7 +438,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             val resolveInfo = packageManager.resolveActivity(cameraIntent, PackageManager.MATCH_DEFAULT_ONLY)
             val defaultCameraPackage = resolveInfo!!.activityInfo.packageName
             appLaunchers.firstOrNull { it.packageName == defaultCameraPackage }?.apply {
-                val cameraIcon = HomeScreenGridItem(null, 4, ROW_COUNT - 1, 5, ROW_COUNT, defaultCameraPackage, title, null)
+                val cameraIcon = HomeScreenGridItem(null, 4, ROW_COUNT - 1, 5, ROW_COUNT, 1, 1, defaultCameraPackage, title, ITEM_TYPE_ICON, null)
                 homeScreenGridItems.add(cameraIcon)
             }
         } catch (e: Exception) {

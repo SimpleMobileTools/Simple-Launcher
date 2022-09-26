@@ -16,6 +16,7 @@ import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.isRPlus
 import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.adapters.WidgetsAdapter
+import com.simplemobiletools.launcher.helpers.ITEM_TYPE_WIDGET
 import com.simplemobiletools.launcher.interfaces.WidgetsFragmentListener
 import com.simplemobiletools.launcher.models.*
 import kotlinx.android.synthetic.main.widgets_fragment.view.*
@@ -204,7 +205,20 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
     }
 
     override fun onWidgetLongPressed(appWidget: AppWidget) {
-        val gridItem = HomeScreenGridItem(null, -1, -1, -1, 1, appWidget.appPackageName, "", appWidget.widgetPreviewImage)
+        val gridItem =
+            HomeScreenGridItem(
+                null,
+                -1,
+                -1,
+                -1,
+                -1,
+                appWidget.widthCells,
+                appWidget.heightCells,
+                appWidget.appPackageName,
+                "",
+                ITEM_TYPE_WIDGET,
+                appWidget.widgetPreviewImage
+            )
         activity?.widgetLongPressedOnList(gridItem)
         ignoreTouches = true
     }
