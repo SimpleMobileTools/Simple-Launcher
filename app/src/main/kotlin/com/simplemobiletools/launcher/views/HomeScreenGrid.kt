@@ -319,13 +319,15 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
 
                 // show the widget preview itself at dragging
                 val drawable = draggedItem!!.drawable!!
+                val aspectRatio = drawable.minimumHeight / drawable.minimumWidth.toFloat()
                 val drawableX = (draggedItemCurrentCoords.first - drawable.minimumWidth / 2f).toInt()
-                val drawableY = (draggedItemCurrentCoords.second - drawable.minimumHeight / 2f).toInt()
+                val drawableY = (draggedItemCurrentCoords.second - drawable.minimumHeight / 3f).toInt()
+                val drawableWidth = draggedItem!!.widthCells * rowWidth - iconMargin * (draggedItem!!.widthCells - 1)
                 drawable.setBounds(
                     drawableX,
                     drawableY,
-                    drawableX + draggedItem!!.widthCells * rowWidth - iconMargin * 2,
-                    drawableY + draggedItem!!.heightCells * rowHeight - iconMargin * 2
+                    drawableX + drawableWidth,
+                    (drawableY + drawableWidth * aspectRatio).toInt()
                 )
                 drawable.draw(canvas)
             }
