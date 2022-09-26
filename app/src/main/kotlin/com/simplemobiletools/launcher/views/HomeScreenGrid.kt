@@ -19,6 +19,8 @@ import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.extensions.getDrawableForPackageName
 import com.simplemobiletools.launcher.extensions.homeScreenGridItemsDB
 import com.simplemobiletools.launcher.helpers.COLUMN_COUNT
+import com.simplemobiletools.launcher.helpers.ITEM_TYPE_ICON
+import com.simplemobiletools.launcher.helpers.ITEM_TYPE_WIDGET
 import com.simplemobiletools.launcher.helpers.ROW_COUNT
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
 
@@ -111,6 +113,14 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
             return
         }
 
+        if (draggedItem!!.type == ITEM_TYPE_ICON) {
+            addAppIcon(x, y)
+        } else if (draggedItem!!.type == ITEM_TYPE_WIDGET) {
+            addWidget(x, y)
+        }
+    }
+
+    private fun addAppIcon(x: Int, y: Int) {
         val center = gridCenters.minBy { Math.abs(it.first - x + sideMargins.left) + Math.abs(it.second - y + sideMargins.top) }
         var redrawIcons = false
 
@@ -171,6 +181,12 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
         }
     }
 
+    private fun addWidget(x: Int, y: Int) {
+        draggedItem = null
+        draggedItemCurrentCoords = Pair(-1, -1)
+        invalidate()
+    }
+
     // convert stuff like 102x192 to grid cells like 0x1
     private fun getClosestGridCells(center: Pair<Int, Int>): Pair<Int, Int>? {
         rowXCoords.forEachIndexed { xIndex, xCell ->
@@ -184,9 +200,9 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
         return null
     }
 
-    fun getFakeWidth() = width - sideMargins.left - sideMargins.right
+    private fun getFakeWidth() = width - sideMargins.left - sideMargins.right
 
-    fun getFakeHeight() = height - sideMargins.top - sideMargins.bottom
+    private fun getFakeHeight() = height - sideMargins.top - sideMargins.bottom
 
     @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
@@ -244,26 +260,28 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
         }
 
         if (draggedItem != null && draggedItemCurrentCoords.first != -1 && draggedItemCurrentCoords.second != -1) {
-            // draw a circle under the current cell
-            val center =
-                gridCenters.minBy { Math.abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(it.second - draggedItemCurrentCoords.second + sideMargins.top) }
-            val gridCells = getClosestGridCells(center)
-            if (gridCells != null) {
-                val shadowX = rowXCoords[gridCells.first] + iconMargin.toFloat() + iconSize / 2 + sideMargins.left
-                val shadowY = if (gridCells.second == ROW_COUNT - 1) {
-                    rowYCoords[gridCells.second] + rowHeight - iconSize / 2 - iconMargin * 2
-                } else {
-                    rowYCoords[gridCells.second] + iconSize
-                } + sideMargins.top
+            if (draggedItem!!.type == ITEM_TYPE_ICON) {
+                // draw a circle under the current cell
+                val center =
+                    gridCenters.minBy { Math.abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(it.second - draggedItemCurrentCoords.second + sideMargins.top) }
+                val gridCells = getClosestGridCells(center)
+                if (gridCells != null) {
+                    val shadowX = rowXCoords[gridCells.first] + iconMargin.toFloat() + iconSize / 2 + sideMargins.left
+                    val shadowY = if (gridCells.second == ROW_COUNT - 1) {
+                        rowYCoords[gridCells.second] + rowHeight - iconSize / 2 - iconMargin * 2
+                    } else {
+                        rowYCoords[gridCells.second] + iconSize
+                    } + sideMargins.top
 
-                canvas.drawCircle(shadowX, shadowY.toFloat(), iconSize / 2f, dragShadowCirclePaint)
+                    canvas.drawCircle(shadowX, shadowY.toFloat(), iconSize / 2f, dragShadowCirclePaint)
+                }
+
+                // show the app icon itself at dragging, move it above the finger a bit to make it visible
+                val drawableX = (draggedItemCurrentCoords.first - iconSize / 1.5f).toInt()
+                val drawableY = (draggedItemCurrentCoords.second - iconSize / 1.2f).toInt()
+                draggedItem!!.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
+                draggedItem!!.drawable!!.draw(canvas)
             }
-
-            // show the app icon itself at dragging, move it above the finger a bit to make it visible
-            val drawableX = (draggedItemCurrentCoords.first - iconSize / 1.5f).toInt()
-            val drawableY = (draggedItemCurrentCoords.second - iconSize / 1.2f).toInt()
-            draggedItem!!.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
-            draggedItem!!.drawable!!.draw(canvas)
         }
     }
 
