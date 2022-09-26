@@ -291,8 +291,13 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
 
                 val gridCells = getClosestGridCells(center)
                 if (gridCells != null) {
-                    val rect = Rect(gridCells.first, gridCells.second, gridCells.first + draggedItem!!.widthCells, gridCells.second + draggedItem!!.heightCells)
-                    if (rect.right > COLUMN_COUNT) {
+                    // drag the center of the widget, not the top left corner
+                    val left = gridCells.first - Math.floor((draggedItem!!.widthCells - 1) / 2.0).toInt()
+                    val rect = Rect(left, gridCells.second, left + draggedItem!!.widthCells, gridCells.second + draggedItem!!.heightCells)
+                    if (rect.left < 0) {
+                        rect.right -= rect.left
+                        rect.left = 0
+                    } else if (rect.right > COLUMN_COUNT) {
                         val diff = rect.right - COLUMN_COUNT
                         rect.right -= diff
                         rect.left -= diff
