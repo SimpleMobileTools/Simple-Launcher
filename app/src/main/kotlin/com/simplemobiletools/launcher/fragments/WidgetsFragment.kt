@@ -150,8 +150,13 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
 
     private fun setupAdapter(widgetsListItems: ArrayList<WidgetsListItem>) {
         activity?.runOnUiThread {
-            WidgetsAdapter(activity!!, widgetsListItems, this).apply {
-                widgets_list.adapter = this
+            val currAdapter = widgets_list.adapter
+            if (currAdapter == null) {
+                WidgetsAdapter(activity!!, widgetsListItems, this).apply {
+                    widgets_list.adapter = this
+                }
+            } else {
+                (currAdapter as WidgetsAdapter).updateItems(widgetsListItems)
             }
         }
     }
@@ -215,20 +220,20 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
     }
 
     override fun onWidgetLongPressed(appWidget: AppWidget) {
-        val gridItem =
-            HomeScreenGridItem(
-                null,
-                -1,
-                -1,
-                -1,
-                -1,
-                appWidget.widthCells,
-                appWidget.heightCells,
-                appWidget.appPackageName,
-                "",
-                ITEM_TYPE_WIDGET,
-                appWidget.widgetPreviewImage
-            )
+        val gridItem = HomeScreenGridItem(
+            null,
+            -1,
+            -1,
+            -1,
+            -1,
+            appWidget.widthCells,
+            appWidget.heightCells,
+            appWidget.appPackageName,
+            "",
+            ITEM_TYPE_WIDGET,
+            appWidget.widgetPreviewImage
+        )
+
         activity?.widgetLongPressedOnList(gridItem)
         ignoreTouches = true
     }

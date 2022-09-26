@@ -22,7 +22,7 @@ import kotlinx.android.synthetic.main.item_widget_preview.view.*
 
 class WidgetsAdapter(
     val activity: SimpleActivity,
-    val widgetListItems: ArrayList<WidgetsListItem>,
+    var widgetListItems: ArrayList<WidgetsListItem>,
     val widgetsFragmentListener: WidgetsFragmentListener
 ) : RecyclerView.Adapter<WidgetsAdapter.ViewHolder>() {
 
@@ -110,6 +110,15 @@ class WidgetsAdapter(
                 widgetsFragmentListener.onWidgetLongPressed(widget)
                 true
             }
+        }
+    }
+
+    fun updateItems(newItems: ArrayList<WidgetsListItem>) {
+        val oldSum = widgetListItems.sumOf { it.getHashToCompare() }
+        val newSum = newItems.sumOf { it.getHashToCompare() }
+        if (oldSum != newSum) {
+            widgetListItems = newItems
+            notifyDataSetChanged()
         }
     }
 

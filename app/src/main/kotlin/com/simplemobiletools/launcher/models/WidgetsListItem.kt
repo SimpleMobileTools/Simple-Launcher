@@ -1,3 +1,5 @@
 package com.simplemobiletools.launcher.models
 
-open class WidgetsListItem
+abstract class WidgetsListItem {
+    abstract fun getHashToCompare(): Int
+}

@@ -31,7 +31,7 @@ data class AppLauncher(
 
     fun getHashToCompare() = getStringToCompare().hashCode()
 
-    fun getStringToCompare(): String {
+    private fun getStringToCompare(): String {
         return copy(id = null, drawable = null).toString()
     }
 
