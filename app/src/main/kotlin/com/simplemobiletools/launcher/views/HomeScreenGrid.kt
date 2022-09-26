@@ -1,6 +1,7 @@
 package com.simplemobiletools.launcher.views
 
 import android.annotation.SuppressLint
+import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
@@ -17,12 +18,10 @@ import com.simplemobiletools.commons.extensions.performHapticFeedback
 import com.simplemobiletools.commons.extensions.statusBarHeight
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.launcher.R
+import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.extensions.getDrawableForPackageName
 import com.simplemobiletools.launcher.extensions.homeScreenGridItemsDB
-import com.simplemobiletools.launcher.helpers.COLUMN_COUNT
-import com.simplemobiletools.launcher.helpers.ITEM_TYPE_ICON
-import com.simplemobiletools.launcher.helpers.ITEM_TYPE_WIDGET
-import com.simplemobiletools.launcher.helpers.ROW_COUNT
+import com.simplemobiletools.launcher.helpers.*
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
 
 class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : View(context, attrs, defStyle) {
@@ -179,6 +178,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
                             draggedItem!!.packageName,
                             draggedItem!!.title,
                             draggedItem!!.type,
+                            "",
                             draggedItem!!.drawable
                         )
                     ensureBackgroundThread {
@@ -231,7 +231,19 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
             }
 
             if (areAllCellsEmpty) {
-
+                val infoList = AppWidgetManager.getInstance(context).installedProviders
+                val appWidgetProviderInfo = infoList.firstOrNull { it.provider.shortClassName == draggedItem?.shortClassName }
+                if (appWidgetProviderInfo != null) {
+                    val appWidgetHost = MyAppWidgetHost(context, 12345)
+                    val appWidgetId = appWidgetHost.allocateAppWidgetId()
+                    val appWidgetManager = AppWidgetManager.getInstance(context)
+                    val canCreateWidget = appWidgetManager.bindAppWidgetIdIfAllowed(appWidgetId, appWidgetProviderInfo.provider)
+                    if (canCreateWidget) {
+                        if (appWidgetProviderInfo.configure != null) {
+                            appWidgetHost.startAppWidgetConfigureActivityForResult(context as MainActivity, appWidgetId, 0, REQUEST_CONFIGURE_WIDGET, null)
+                        }
+                    }
+                }
             } else {
                 performHapticFeedback()
             }

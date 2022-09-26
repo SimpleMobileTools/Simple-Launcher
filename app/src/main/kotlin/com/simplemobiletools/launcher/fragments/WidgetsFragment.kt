@@ -94,7 +94,8 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
                 val widgetPreviewImage = info.loadPreviewImage(context, resources.displayMetrics.densityDpi) ?: appIcon
                 val widthCells = Math.min(COLUMN_COUNT, getTileCount(info.minWidth))
                 val heightCells = Math.min(ROW_COUNT, getTileCount(info.minHeight))
-                val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, widgetPreviewImage, widthCells, heightCells, false)
+                val widget =
+                    AppWidget(appPackageName, appTitle, appIcon, widgetTitle, widgetPreviewImage, widthCells, heightCells, false, info.provider.shortClassName)
                 appWidgets.add(widget)
             }
 
@@ -109,7 +110,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
                 val appIcon = appMetadata.appIcon
                 val widgetTitle = info.loadLabel(packageManager).toString()
                 val widgetPreviewImage = packageManager.getDrawable(componentInfo.packageName, info.iconResource, componentInfo)
-                val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, widgetPreviewImage, 0, 0, true)
+                val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, widgetPreviewImage, 0, 0, true, "")
                 appWidgets.add(widget)
             }
 
@@ -231,6 +232,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             appWidget.appPackageName,
             "",
             ITEM_TYPE_WIDGET,
+            appWidget.shortClassName,
             appWidget.widgetPreviewImage
         )
 

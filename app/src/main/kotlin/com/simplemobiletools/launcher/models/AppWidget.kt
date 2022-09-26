@@ -10,7 +10,8 @@ data class AppWidget(
     val widgetPreviewImage: Drawable?,
     var widthCells: Int,
     val heightCells: Int,
-    val isShortcut: Boolean
+    val isShortcut: Boolean,
+    val shortClassName: String  // identifier to know which app widget are we using
 ) : WidgetsListItem() {
     override fun getHashToCompare() = getStringToCompare().hashCode()
 

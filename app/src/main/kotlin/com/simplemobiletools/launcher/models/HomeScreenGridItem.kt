@@ -17,8 +17,9 @@ data class HomeScreenGridItem(
     @ColumnInfo(name = "package_name") var packageName: String,
     @ColumnInfo(name = "title") var title: String,
     @ColumnInfo(name = "type") var type: Int,
+    @ColumnInfo(name = "short_class_name") var shortClassName: String,
 
     @Ignore var drawable: Drawable?
 ) {
-    constructor() : this(null, -1, -1, -1, -1, 1, 1, "", "", ITEM_TYPE_ICON, null)
+    constructor() : this(null, -1, -1, -1, -1, 1, 1, "", "", ITEM_TYPE_ICON, "", null)
 }
