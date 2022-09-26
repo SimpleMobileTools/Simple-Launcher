@@ -164,7 +164,8 @@ class MainActivity : SimpleActivity(), FlingListener {
                 mLongPressedIcon = null
                 (widgets_fragment as WidgetsFragment).ignoreTouches = false
                 (all_apps_fragment as AllAppsFragment).ignoreTouches = false
-                home_screen_grid.itemDraggingStopped(event.x.toInt(), event.y.toInt())
+                home_screen_grid.itemDraggingStopped()
+
                 if (!mIgnoreUpEvent) {
                     if (all_apps_fragment.y < mScreenHeight * 0.5) {
                         showFragment(all_apps_fragment)

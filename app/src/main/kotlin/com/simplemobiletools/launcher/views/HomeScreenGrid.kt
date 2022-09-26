@@ -110,29 +110,46 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
     }
 
     // figure out at which cell was the item dropped, if it is empty
-    fun itemDraggingStopped(x: Int, y: Int) {
+    fun itemDraggingStopped() {
         if (draggedItem == null) {
             return
         }
 
         if (draggedItem!!.type == ITEM_TYPE_ICON) {
-            addAppIcon(x, y)
+            addAppIcon()
         } else if (draggedItem!!.type == ITEM_TYPE_WIDGET) {
-            addWidget(x, y)
+            addWidget()
         }
     }
 
-    private fun addAppIcon(x: Int, y: Int) {
-        val center = gridCenters.minBy { Math.abs(it.first - x + sideMargins.left) + Math.abs(it.second - y + sideMargins.top) }
-        var redrawIcons = false
+    private fun addAppIcon() {
+        val center = gridCenters.minBy {
+            Math.abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(it.second - draggedItemCurrentCoords.second + sideMargins.top)
+        }
 
+        var redrawIcons = false
         val gridCells = getClosestGridCells(center)
         if (gridCells != null) {
             val xIndex = gridCells.first
             val yIndex = gridCells.second
-            // check if the destination grid item is empty
-            val targetGridItem = gridItems.firstOrNull { it.left == xIndex && it.top == yIndex }
-            if (targetGridItem == null) {
+
+            // check if the destination cell is empty
+            var areAllCellsEmpty = true
+            val wantedCell = Pair(xIndex, yIndex)
+            gridItems.forEach { item ->
+                for (xCell in item.left until item.right) {
+                    for (yCell in item.top until item.bottom) {
+                        val cell = Pair(xCell, yCell)
+                        val isAnyCellOccupied = wantedCell == cell
+                        if (isAnyCellOccupied) {
+                            areAllCellsEmpty = false
+                            return@forEach
+                        }
+                    }
+                }
+            }
+
+            if (areAllCellsEmpty) {
                 val draggedHomeGridItem = gridItems.firstOrNull { it.id == draggedItem?.id }
 
                 // we are moving an existing home screen item from one place to another
@@ -184,7 +201,42 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
         }
     }
 
-    private fun addWidget(x: Int, y: Int) {
+    private fun addWidget() {
+        val center = gridCenters.minBy {
+            Math.abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(it.second - draggedItemCurrentCoords.second + sideMargins.top)
+        }
+
+        val gridCells = getClosestGridCells(center)
+        if (gridCells != null) {
+            val widgetRect = getWidgetOccupiedRect(gridCells)
+            val widgetTargetCells = ArrayList<Pair<Int, Int>>()
+            for (xCell in widgetRect.left until widgetRect.right) {
+                for (yCell in widgetRect.top until widgetRect.bottom) {
+                    widgetTargetCells.add(Pair(xCell, yCell))
+                }
+            }
+
+            var areAllCellsEmpty = true
+            gridItems.forEach { item ->
+                for (xCell in item.left until item.right) {
+                    for (yCell in item.top until item.bottom) {
+                        val cell = Pair(xCell, yCell)
+                        val isAnyCellOccupied = widgetTargetCells.contains(cell)
+                        if (isAnyCellOccupied) {
+                            areAllCellsEmpty = false
+                            return@forEach
+                        }
+                    }
+                }
+            }
+
+            if (areAllCellsEmpty) {
+
+            } else {
+                performHapticFeedback()
+            }
+        }
+
         draggedItem = null
         draggedItemCurrentCoords = Pair(-1, -1)
         invalidate()
