@@ -38,7 +38,8 @@ class MainActivity : SimpleActivity(), FlingListener {
     private val ANIMATION_DURATION = 150L
 
     private var mTouchDownY = -1
-    private var mCurrentFragmentY = 0
+    private var mAllAppsFragmentY = 0
+    private var mWidgetsFragmentY = 0
     private var mScreenHeight = 0
     private var mIgnoreUpEvent = false
     private var mIgnoreMoveEvents = false
@@ -64,7 +65,8 @@ class MainActivity : SimpleActivity(), FlingListener {
         mDetector = GestureDetectorCompat(this, MyGestureListener(this))
         window.setDecorFitsSystemWindows(false)
         mScreenHeight = realScreenSize.y
-        mCurrentFragmentY = mScreenHeight
+        mAllAppsFragmentY = mScreenHeight
+        mWidgetsFragmentY = mScreenHeight
 
         arrayOf(all_apps_fragment as MyFragment, widgets_fragment as MyFragment).forEach { fragment ->
             fragment.setupFragment(this)
@@ -90,9 +92,9 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     override fun onBackPressed() {
-        if (all_apps_fragment.y != mScreenHeight.toFloat()) {
+        if (isAllAppsFragmentExpanded()) {
             hideFragment(all_apps_fragment)
-        } else if (widgets_fragment.y != mScreenHeight.toFloat()) {
+        } else if (isWidgetsFragmentExpanded()) {
             hideFragment(widgets_fragment)
         } else {
             super.onBackPressed()
@@ -123,7 +125,8 @@ class MainActivity : SimpleActivity(), FlingListener {
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 mTouchDownY = event.y.toInt()
-                mCurrentFragmentY = all_apps_fragment.y.toInt()
+                mAllAppsFragmentY = all_apps_fragment.y.toInt()
+                mWidgetsFragmentY = widgets_fragment.y.toInt()
                 mIgnoreUpEvent = false
             }
 
@@ -141,8 +144,14 @@ class MainActivity : SimpleActivity(), FlingListener {
 
                 if (mTouchDownY != -1 && !mIgnoreMoveEvents) {
                     val diffY = mTouchDownY - event.y
-                    val newY = mCurrentFragmentY - diffY
-                    all_apps_fragment.y = Math.min(Math.max(0f, newY), mScreenHeight.toFloat())
+
+                    if (isWidgetsFragmentExpanded()) {
+                        val newY = mWidgetsFragmentY - diffY
+                        widgets_fragment.y = Math.min(Math.max(0f, newY), mScreenHeight.toFloat())
+                    } else {
+                        val newY = mAllAppsFragmentY - diffY
+                        all_apps_fragment.y = Math.min(Math.max(0f, newY), mScreenHeight.toFloat())
+                    }
                 }
 
                 mLastTouchCoords = Pair(event.x, event.y)
@@ -157,10 +166,16 @@ class MainActivity : SimpleActivity(), FlingListener {
                 (all_apps_fragment as AllAppsFragment).ignoreTouches = false
                 home_screen_grid.itemDraggingStopped(event.x.toInt(), event.y.toInt())
                 if (!mIgnoreUpEvent) {
-                    if (all_apps_fragment.y < mScreenHeight * 0.7) {
+                    if (all_apps_fragment.y < mScreenHeight * 0.5) {
                         showFragment(all_apps_fragment)
-                    } else if (all_apps_fragment.y != realScreenSize.y.toFloat()) {
+                    } else if (isAllAppsFragmentExpanded()) {
                         hideFragment(all_apps_fragment)
+                    }
+
+                    if (widgets_fragment.y < mScreenHeight * 0.5) {
+                        showFragment(widgets_fragment)
+                    } else if (isWidgetsFragmentExpanded()) {
+                        hideFragment(widgets_fragment)
                     }
                 }
             }
@@ -198,10 +213,15 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
     }
 
+    private fun isAllAppsFragmentExpanded() = all_apps_fragment.y != mScreenHeight.toFloat()
+
+    private fun isWidgetsFragmentExpanded() = widgets_fragment.y != mScreenHeight.toFloat()
+
     fun startHandlingTouches(touchDownY: Int) {
         mLongPressedIcon = null
         mTouchDownY = touchDownY
-        mCurrentFragmentY = all_apps_fragment.y.toInt()
+        mAllAppsFragmentY = all_apps_fragment.y.toInt()
+        mWidgetsFragmentY = widgets_fragment.y.toInt()
         mIgnoreUpEvent = false
     }
 
@@ -226,7 +246,7 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     fun homeScreenLongPressed(x: Float, y: Float) {
-        if (all_apps_fragment.y != mScreenHeight.toFloat()) {
+        if (isAllAppsFragmentExpanded()) {
             return
         }
 
@@ -336,15 +356,19 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     override fun onFlingUp() {
-        mIgnoreUpEvent = true
-        showFragment(all_apps_fragment)
+        if (!isWidgetsFragmentExpanded()) {
+            mIgnoreUpEvent = true
+            showFragment(all_apps_fragment)
+        }
     }
 
     @SuppressLint("WrongConstant")
     override fun onFlingDown() {
         mIgnoreUpEvent = true
-        if (all_apps_fragment.y != mScreenHeight.toFloat()) {
+        if (isAllAppsFragmentExpanded()) {
             hideFragment(all_apps_fragment)
+        } else if (isWidgetsFragmentExpanded()) {
+            hideFragment(widgets_fragment)
         } else {
             try {
                 Class.forName("android.app.StatusBarManager").getMethod("expandNotificationsPanel").invoke(getSystemService("statusbar"))

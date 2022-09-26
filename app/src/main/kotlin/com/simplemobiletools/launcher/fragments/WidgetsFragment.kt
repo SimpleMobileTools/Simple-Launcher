@@ -31,6 +31,14 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
         background.applyColorFilter(activity.getProperBackgroundColor())
         setPadding(0, activity.statusBarHeight, 0, 0)
         getAppWidgets()
+
+        widgets_list.setOnTouchListener { v, event ->
+            if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
+                touchDownY = -1
+            }
+
+            return@setOnTouchListener false
+        }
     }
 
     fun onConfigurationChanged() {
