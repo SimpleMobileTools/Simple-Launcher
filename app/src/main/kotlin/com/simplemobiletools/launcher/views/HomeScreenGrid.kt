@@ -13,6 +13,7 @@ import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.View
 import com.simplemobiletools.commons.extensions.navigationBarHeight
+import com.simplemobiletools.commons.extensions.performHapticFeedback
 import com.simplemobiletools.commons.extensions.statusBarHeight
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.launcher.R
@@ -171,6 +172,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
                     }
                 }
             } else {
+                performHapticFeedback()
                 redrawIcons = true
             }
         }
