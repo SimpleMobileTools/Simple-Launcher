@@ -1,5 +1,6 @@
 package com.simplemobiletools.launcher.fragments
 
+import android.annotation.SuppressLint
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
@@ -7,6 +8,7 @@ import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
 import android.os.Process
 import android.util.AttributeSet
+import android.view.MotionEvent
 import android.view.Surface
 import android.view.WindowManager
 import com.simplemobiletools.commons.extensions.*
@@ -14,13 +16,15 @@ import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.isRPlus
 import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.adapters.WidgetsAdapter
-import com.simplemobiletools.launcher.models.AppWidget
-import com.simplemobiletools.launcher.models.WidgetsListItem
-import com.simplemobiletools.launcher.models.WidgetsListItemsHolder
-import com.simplemobiletools.launcher.models.WidgetsListSection
+import com.simplemobiletools.launcher.interfaces.WidgetsFragmentListener
+import com.simplemobiletools.launcher.models.*
 import kotlinx.android.synthetic.main.widgets_fragment.view.*
 
-class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment(context, attributeSet) {
+class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment(context, attributeSet), WidgetsFragmentListener {
+    private var touchDownY = -1
+    private var lastTouchCoords = Pair(0f, 0f)
+    var ignoreTouches = false
+
     override fun setupFragment(activity: MainActivity) {
         this.activity = activity
         background.applyColorFilter(activity.getProperBackgroundColor())
@@ -36,6 +40,33 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
         setupAdapter(appWidgets)
     }
 
+    override fun onInterceptTouchEvent(event: MotionEvent): Boolean {
+        if (ignoreTouches) {
+            // some devices ACTION_MOVE keeps triggering for the whole long press duration, but we are interested in real moves only, when coords change
+            if (lastTouchCoords.first != event.x || lastTouchCoords.second != event.y) {
+                touchDownY = -1
+                return true
+            }
+        }
+
+        lastTouchCoords = Pair(event.x, event.y)
+        var shouldIntercept = false
+
+        // pull the whole fragment down if it is scrolled way to the top and the users pulls it even further
+        if (touchDownY != -1) {
+            shouldIntercept = touchDownY - event.y.toInt() < 0 && widgets_list.computeVerticalScrollOffset() == 0
+            if (shouldIntercept) {
+                activity?.startHandlingTouches(touchDownY)
+                touchDownY = -1
+            }
+        } else {
+            touchDownY = event.y.toInt()
+        }
+
+        return shouldIntercept
+    }
+
+    @SuppressLint("WrongConstant")
     fun getAppWidgets() {
         ensureBackgroundThread {
             // get the casual widgets
@@ -108,7 +139,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
 
     private fun setupAdapter(widgetsListItems: ArrayList<WidgetsListItem>) {
         activity?.runOnUiThread {
-            WidgetsAdapter(activity!!, widgetsListItems).apply {
+            WidgetsAdapter(activity!!, widgetsListItems, this).apply {
                 widgets_list.adapter = this
             }
         }
@@ -170,5 +201,11 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
         }
 
         return null
+    }
+
+    override fun onWidgetLongPressed(appWidget: AppWidget) {
+        val gridItem = HomeScreenGridItem(null, -1, -1, -1, 1, appWidget.appPackageName, "", appWidget.widgetPreviewImage)
+        activity?.widgetLongPressedOnList(gridItem)
+        ignoreTouches = true
     }
 }

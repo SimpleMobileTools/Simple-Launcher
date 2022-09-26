@@ -151,6 +151,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                 mTouchDownY = -1
                 mIgnoreMoveEvents = false
                 mLongPressedIcon = null
+                (widgets_fragment as WidgetsFragment).ignoreTouches = false
                 (all_apps_fragment as AllAppsFragment).ignoreTouches = false
                 home_screen_grid.itemDraggingStopped(event.x.toInt(), event.y.toInt())
                 if (!mIgnoreUpEvent) {
@@ -250,6 +251,12 @@ class MainActivity : SimpleActivity(), FlingListener {
         home_screen_popup_menu_anchor.x = x
         home_screen_popup_menu_anchor.y = y
         mOpenPopupMenu = handleGridItemPopupMenu(home_screen_popup_menu_anchor, gridItem, isOnAllAppsFragment)
+    }
+
+    fun widgetLongPressedOnList(gridItem: HomeScreenGridItem) {
+        mLongPressedIcon = gridItem
+        hideFragment(widgets_fragment)
+        home_screen_grid.itemDraggingStarted(mLongPressedIcon!!)
     }
 
     private fun showMainLongPressMenu(x: Float, y: Float) {

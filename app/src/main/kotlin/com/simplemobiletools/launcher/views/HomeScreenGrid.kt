@@ -210,7 +210,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
                     val drawableY = rowYCoords[item.top] + iconSize / 2 + sideMargins.top
                     item.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
 
-                    if (item.id != draggedItem?.id) {
+                    if (item.id != draggedItem?.id && item.title.isNotEmpty()) {
                         val textX = rowXCoords[item.left].toFloat() + labelSideMargin + sideMargins.left
                         val textY = rowYCoords[item.top] + iconSize * 1.5f + labelSideMargin + sideMargins.top
                         val staticLayout = StaticLayout.Builder

@@ -12,6 +12,7 @@ import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.SimpleActivity
 import com.simplemobiletools.launcher.helpers.WIDGET_LIST_ITEMS_HOLDER
 import com.simplemobiletools.launcher.helpers.WIDGET_LIST_SECTION
+import com.simplemobiletools.launcher.interfaces.WidgetsFragmentListener
 import com.simplemobiletools.launcher.models.WidgetsListItem
 import com.simplemobiletools.launcher.models.WidgetsListItemsHolder
 import com.simplemobiletools.launcher.models.WidgetsListSection
@@ -21,7 +22,8 @@ import kotlinx.android.synthetic.main.item_widget_preview.view.*
 
 class WidgetsAdapter(
     val activity: SimpleActivity,
-    val widgetListItems: ArrayList<WidgetsListItem>
+    val widgetListItems: ArrayList<WidgetsListItem>,
+    val widgetsFragmentListener: WidgetsFragmentListener
 ) : RecyclerView.Adapter<WidgetsAdapter.ViewHolder>() {
 
     private var textColor = activity.getProperTextColor()
@@ -103,6 +105,11 @@ class WidgetsAdapter(
 
             widgetPreview.setOnClickListener {
                 activity.toast(R.string.touch_hold_widget)
+            }
+
+            widgetPreview.setOnLongClickListener { view ->
+                widgetsFragmentListener.onWidgetLongPressed(widget)
+                true
             }
         }
     }
