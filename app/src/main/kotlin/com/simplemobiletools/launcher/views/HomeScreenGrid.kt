@@ -284,34 +284,16 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
                 val drawableY = (draggedItemCurrentCoords.second - iconSize / 1.2f).toInt()
                 draggedItem!!.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
                 draggedItem!!.drawable!!.draw(canvas)
-            } else {
+            } else if (draggedItem!!.type == ITEM_TYPE_WIDGET) {
                 val center = gridCenters.minBy {
                     Math.abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(it.second - draggedItemCurrentCoords.second + sideMargins.top)
                 }
 
                 val gridCells = getClosestGridCells(center)
                 if (gridCells != null) {
-                    // drag the center of the widget, not the top left corner
-                    val left = gridCells.first - Math.floor((draggedItem!!.widthCells - 1) / 2.0).toInt()
-                    val rect = Rect(left, gridCells.second, left + draggedItem!!.widthCells, gridCells.second + draggedItem!!.heightCells)
-                    if (rect.left < 0) {
-                        rect.right -= rect.left
-                        rect.left = 0
-                    } else if (rect.right > COLUMN_COUNT) {
-                        val diff = rect.right - COLUMN_COUNT
-                        rect.right -= diff
-                        rect.left -= diff
-                    }
-
-                    // do not allow placing widgets at the bottom row, that is for pinned default apps
-                    if (rect.bottom >= ROW_COUNT) {
-                        val diff = rect.bottom - ROW_COUNT + 1
-                        rect.bottom -= diff
-                        rect.top -= diff
-                    }
-
-                    val leftSide = rect.left * rowWidth + sideMargins.left + iconMargin.toFloat()
-                    val topSide = rect.top * rowHeight + sideMargins.top + iconMargin.toFloat()
+                    val widgetRect = getWidgetOccupiedRect(gridCells)
+                    val leftSide = widgetRect.left * rowWidth + sideMargins.left + iconMargin.toFloat()
+                    val topSide = widgetRect.top * rowHeight + sideMargins.top + iconMargin.toFloat()
                     val rightSide = leftSide + draggedItem!!.widthCells * rowWidth - sideMargins.right - iconMargin.toFloat()
                     val bottomSide = topSide + draggedItem!!.heightCells * rowHeight - sideMargins.top
                     canvas.drawRoundRect(leftSide, topSide, rightSide, bottomSide, roundedCornerRadius, roundedCornerRadius, dragShadowCirclePaint)
@@ -339,6 +321,29 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
         val debugLeft = item.left * rowWidth + sideMargins.left
         val debugTop = rowYCoords[item.top] + iconSize / 3 + sideMargins.top
         return Rect(debugLeft, debugTop, debugLeft + rowWidth, debugTop + iconSize * 2)
+    }
+
+    // drag the center of the widget, not the top left corner
+    private fun getWidgetOccupiedRect(item: Pair<Int, Int>): Rect {
+        val left = item.first - Math.floor((draggedItem!!.widthCells - 1) / 2.0).toInt()
+        val rect = Rect(left, item.second, left + draggedItem!!.widthCells, item.second + draggedItem!!.heightCells)
+        if (rect.left < 0) {
+            rect.right -= rect.left
+            rect.left = 0
+        } else if (rect.right > COLUMN_COUNT) {
+            val diff = rect.right - COLUMN_COUNT
+            rect.right -= diff
+            rect.left -= diff
+        }
+
+        // do not allow placing widgets at the bottom row, that is for pinned default apps
+        if (rect.bottom >= ROW_COUNT) {
+            val diff = rect.bottom - ROW_COUNT + 1
+            rect.bottom -= diff
+            rect.top -= diff
+        }
+
+        return rect
     }
 
     fun isClickingGridItem(x: Int, y: Int): HomeScreenGridItem? {
