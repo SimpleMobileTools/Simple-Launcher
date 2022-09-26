@@ -29,6 +29,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
 
     private var iconMargin = context.resources.getDimension(R.dimen.icon_side_margin).toInt()
     private var labelSideMargin = context.resources.getDimension(R.dimen.small_margin).toInt()
+    private var roundedCornerRadius = context.resources.getDimension(R.dimen.activity_margin)
     private var textPaint: TextPaint
     private var dragShadowCirclePaint: Paint
     private var draggedItem: HomeScreenGridItem? = null
@@ -262,8 +263,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
         if (draggedItem != null && draggedItemCurrentCoords.first != -1 && draggedItemCurrentCoords.second != -1) {
             if (draggedItem!!.type == ITEM_TYPE_ICON) {
                 // draw a circle under the current cell
-                val center =
-                    gridCenters.minBy { Math.abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(it.second - draggedItemCurrentCoords.second + sideMargins.top) }
+                val center = gridCenters.minBy {
+                    Math.abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(it.second - draggedItemCurrentCoords.second + sideMargins.top)
+                }
+
                 val gridCells = getClosestGridCells(center)
                 if (gridCells != null) {
                     val shadowX = rowXCoords[gridCells.first] + iconMargin.toFloat() + iconSize / 2 + sideMargins.left
@@ -281,6 +284,33 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
                 val drawableY = (draggedItemCurrentCoords.second - iconSize / 1.2f).toInt()
                 draggedItem!!.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
                 draggedItem!!.drawable!!.draw(canvas)
+            } else {
+                val center = gridCenters.minBy {
+                    Math.abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(it.second - draggedItemCurrentCoords.second + sideMargins.top)
+                }
+
+                val gridCells = getClosestGridCells(center)
+                if (gridCells != null) {
+                    val rect = Rect(gridCells.first, gridCells.second, gridCells.first + draggedItem!!.widthCells, gridCells.second + draggedItem!!.heightCells)
+                    if (rect.right > COLUMN_COUNT) {
+                        val diff = rect.right - COLUMN_COUNT
+                        rect.right -= diff
+                        rect.left -= diff
+                    }
+
+                    // do not allow placing widgets at the bottom row, that is for pinned default apps
+                    if (rect.bottom >= ROW_COUNT) {
+                        val diff = rect.bottom - ROW_COUNT + 1
+                        rect.bottom -= diff
+                        rect.top -= diff
+                    }
+
+                    val leftSide = rect.left * rowWidth + sideMargins.left + iconMargin.toFloat()
+                    val topSide = rect.top * rowHeight + sideMargins.top + iconMargin.toFloat()
+                    val rightSide = leftSide + draggedItem!!.widthCells * rowWidth - sideMargins.right - iconMargin.toFloat()
+                    val bottomSide = topSide + draggedItem!!.heightCells * rowHeight - sideMargins.top
+                    canvas.drawRoundRect(leftSide, topSide, rightSide, bottomSide, roundedCornerRadius, roundedCornerRadius, dragShadowCirclePaint)
+                }
             }
         }
     }

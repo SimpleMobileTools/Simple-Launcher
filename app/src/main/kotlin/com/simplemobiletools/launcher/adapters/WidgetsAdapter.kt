@@ -59,7 +59,6 @@ class WidgetsAdapter(
         view.apply {
             widget_app_title.text = section.appTitle
             widget_app_title.setTextColor(textColor)
-
             widget_app_icon.setImageDrawable(section.appIcon)
         }
     }
