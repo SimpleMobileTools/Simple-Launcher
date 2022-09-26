@@ -16,7 +16,9 @@ import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.isRPlus
 import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.adapters.WidgetsAdapter
+import com.simplemobiletools.launcher.helpers.COLUMN_COUNT
 import com.simplemobiletools.launcher.helpers.ITEM_TYPE_WIDGET
+import com.simplemobiletools.launcher.helpers.ROW_COUNT
 import com.simplemobiletools.launcher.interfaces.WidgetsFragmentListener
 import com.simplemobiletools.launcher.models.*
 import kotlinx.android.synthetic.main.widgets_fragment.view.*
@@ -90,9 +92,9 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
                 val appIcon = appMetadata.appIcon
                 val widgetTitle = info.loadLabel(packageManager)
                 val widgetPreviewImage = info.loadPreviewImage(context, resources.displayMetrics.densityDpi) ?: appIcon
-                val widthTileCount = getTileCount(info.minWidth)
-                val heightTileCount = getTileCount(info.minHeight)
-                val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, widgetPreviewImage, widthTileCount, heightTileCount, false)
+                val widthCells = Math.min(COLUMN_COUNT, getTileCount(info.minWidth))
+                val heightCells = Math.min(ROW_COUNT, getTileCount(info.minHeight))
+                val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, widgetPreviewImage, widthCells, heightCells, false)
                 appWidgets.add(widget)
             }
 
