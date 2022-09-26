@@ -114,10 +114,14 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
             return
         }
 
-        if (draggedItem!!.type == ITEM_TYPE_ICON) {
-            addAppIcon()
-        } else if (draggedItem!!.type == ITEM_TYPE_WIDGET) {
-            addWidget()
+        when (draggedItem!!.type) {
+            ITEM_TYPE_ICON -> addAppIcon()
+            ITEM_TYPE_WIDGET -> addWidget()
+            ITEM_TYPE_SHORTCUT -> {
+                // replace this with real shortcut handling
+                draggedItem = null
+                invalidate()
+            }
         }
     }
 
@@ -327,7 +331,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
         }
 
         if (draggedItem != null && draggedItemCurrentCoords.first != -1 && draggedItemCurrentCoords.second != -1) {
-            if (draggedItem!!.type == ITEM_TYPE_ICON) {
+            if (draggedItem!!.type == ITEM_TYPE_ICON || draggedItem!!.type == ITEM_TYPE_SHORTCUT) {
                 // draw a circle under the current cell
                 val center = gridCenters.minBy {
                     Math.abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(it.second - draggedItemCurrentCoords.second + sideMargins.top)

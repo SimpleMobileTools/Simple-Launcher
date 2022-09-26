@@ -17,6 +17,7 @@ import com.simplemobiletools.commons.helpers.isRPlus
 import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.adapters.WidgetsAdapter
 import com.simplemobiletools.launcher.helpers.COLUMN_COUNT
+import com.simplemobiletools.launcher.helpers.ITEM_TYPE_SHORTCUT
 import com.simplemobiletools.launcher.helpers.ITEM_TYPE_WIDGET
 import com.simplemobiletools.launcher.helpers.ROW_COUNT
 import com.simplemobiletools.launcher.interfaces.WidgetsFragmentListener
@@ -221,6 +222,12 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
     }
 
     override fun onWidgetLongPressed(appWidget: AppWidget) {
+        val type = if (appWidget.isShortcut) {
+            ITEM_TYPE_SHORTCUT
+        } else {
+            ITEM_TYPE_WIDGET
+        }
+
         val gridItem = HomeScreenGridItem(
             null,
             -1,
@@ -231,7 +238,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             appWidget.heightCells,
             appWidget.appPackageName,
             "",
-            ITEM_TYPE_WIDGET,
+            type,
             appWidget.shortClassName,
             appWidget.widgetPreviewImage
         )
