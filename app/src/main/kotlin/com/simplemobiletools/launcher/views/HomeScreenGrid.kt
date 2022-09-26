@@ -316,6 +316,18 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
                     val bottomSide = topSide + draggedItem!!.heightCells * rowHeight - sideMargins.top
                     canvas.drawRoundRect(leftSide, topSide, rightSide, bottomSide, roundedCornerRadius, roundedCornerRadius, dragShadowCirclePaint)
                 }
+
+                // show the widget preview itself at dragging
+                val drawable = draggedItem!!.drawable!!
+                val drawableX = (draggedItemCurrentCoords.first - drawable.minimumWidth / 2f).toInt()
+                val drawableY = (draggedItemCurrentCoords.second - drawable.minimumHeight / 2f).toInt()
+                drawable.setBounds(
+                    drawableX,
+                    drawableY,
+                    drawableX + draggedItem!!.widthCells * rowWidth - iconMargin * 2,
+                    drawableY + draggedItem!!.heightCells * rowHeight - iconMargin * 2
+                )
+                drawable.draw(canvas)
             }
         }
     }
