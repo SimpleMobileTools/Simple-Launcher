@@ -1,6 +1,7 @@
 package com.simplemobiletools.launcher.views
 
 import android.annotation.SuppressLint
+import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.graphics.Canvas
@@ -28,7 +29,6 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     constructor(context: Context, attrs: AttributeSet) : this(context, attrs, 0)
 
     private var iconMargin = context.resources.getDimension(R.dimen.icon_side_margin).toInt()
-    private var widgetMargin = context.resources.getDimension(R.dimen.widget_side_margin).toInt()
     private var labelSideMargin = context.resources.getDimension(R.dimen.small_margin).toInt()
     private var roundedCornerRadius = context.resources.getDimension(R.dimen.activity_margin)
     private var textPaint: TextPaint
@@ -171,21 +171,21 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                     redrawIcons = true
                 } else if (draggedItem != null) {
                     // we are dragging a new item at the home screen from the All Apps fragment
-                    val newHomeScreenGridItem =
-                        HomeScreenGridItem(
-                            null,
-                            xIndex,
-                            yIndex,
-                            xIndex + 1,
-                            yIndex + 1,
-                            1,
-                            1,
-                            draggedItem!!.packageName,
-                            draggedItem!!.title,
-                            draggedItem!!.type,
-                            "",
-                            draggedItem!!.drawable
-                        )
+                    val newHomeScreenGridItem = HomeScreenGridItem(
+                        null,
+                        xIndex,
+                        yIndex,
+                        xIndex + 1,
+                        yIndex + 1,
+                        1,
+                        1,
+                        draggedItem!!.packageName,
+                        draggedItem!!.title,
+                        draggedItem!!.type,
+                        "",
+                        draggedItem!!.drawable
+                    )
+
                     ensureBackgroundThread {
                         val newId = context.homeScreenGridItemsDB.insert(newHomeScreenGridItem)
                         newHomeScreenGridItem.id = newId
@@ -239,7 +239,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 val infoList = AppWidgetManager.getInstance(context).installedProviders
                 val appWidgetProviderInfo = infoList.firstOrNull { it.provider.shortClassName == draggedItem?.shortClassName }
                 if (appWidgetProviderInfo != null) {
-                    val appWidgetHost = MyAppWidgetHost(context, 12345)
+                    val appWidgetHost = AppWidgetHost(context, WIDGET_HOST_ID)
                     val appWidgetId = appWidgetHost.allocateAppWidgetId()
                     val appWidgetManager = AppWidgetManager.getInstance(context)
                     val canCreateWidget = appWidgetManager.bindAppWidgetIdIfAllowed(appWidgetId, appWidgetProviderInfo.provider)
@@ -248,10 +248,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                             appWidgetHost.startAppWidgetConfigureActivityForResult(context as MainActivity, appWidgetId, 0, REQUEST_CONFIGURE_WIDGET, null)
                         } else {
                             val widgetView = appWidgetHost.createView(context, appWidgetId, appWidgetProviderInfo)
-                            widgetView.x = widgetRect.left * rowWidth + sideMargins.left.toFloat() + widgetMargin
-                            widgetView.y = widgetRect.top * rowHeight + sideMargins.top.toFloat() + widgetMargin
-                            val widgetWidth = draggedItem!!.widthCells * rowWidth - widgetMargin * 2
-                            val widgetHeight = draggedItem!!.heightCells * rowHeight - widgetMargin * 2
+                            widgetView.x = widgetRect.left * rowWidth + sideMargins.left.toFloat()
+                            widgetView.y = widgetRect.top * rowHeight + sideMargins.top.toFloat()
+                            val widgetWidth = draggedItem!!.widthCells * rowWidth
+                            val widgetHeight = draggedItem!!.heightCells * rowHeight
                             addView(widgetView, widgetWidth, widgetHeight)
                         }
                     }

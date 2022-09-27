@@ -16,3 +16,5 @@ const val REQUEST_CONFIGURE_WIDGET = 51
 const val ITEM_TYPE_ICON = 0
 const val ITEM_TYPE_WIDGET = 1
 const val ITEM_TYPE_SHORTCUT = 2
+
+const val WIDGET_HOST_ID = 12345
