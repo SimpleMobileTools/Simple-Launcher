@@ -34,6 +34,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private var textPaint: TextPaint
     private var dragShadowCirclePaint: Paint
     private var draggedItem: HomeScreenGridItem? = null
+    private var isFirstDraw = true
 
     // let's use a 6x5 grid for now with 1 special row at the bottom, prefilled with default apps
     private var rowXCoords = ArrayList<Int>(COLUMN_COUNT)
@@ -236,25 +237,17 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             }
 
             if (areAllCellsEmpty) {
-                val infoList = AppWidgetManager.getInstance(context).installedProviders
-                val appWidgetProviderInfo = infoList.firstOrNull { it.provider.shortClassName == draggedItem?.shortClassName }
-                if (appWidgetProviderInfo != null) {
-                    val appWidgetHost = AppWidgetHost(context, WIDGET_HOST_ID)
-                    val appWidgetId = appWidgetHost.allocateAppWidgetId()
-                    val appWidgetManager = AppWidgetManager.getInstance(context)
-                    val canCreateWidget = appWidgetManager.bindAppWidgetIdIfAllowed(appWidgetId, appWidgetProviderInfo.provider)
-                    if (canCreateWidget) {
-                        if (appWidgetProviderInfo.configure != null) {
-                            appWidgetHost.startAppWidgetConfigureActivityForResult(context as MainActivity, appWidgetId, 0, REQUEST_CONFIGURE_WIDGET, null)
-                        } else {
-                            val widgetView = appWidgetHost.createView(context, appWidgetId, appWidgetProviderInfo)
-                            widgetView.x = widgetRect.left * rowWidth + sideMargins.left.toFloat()
-                            widgetView.y = widgetRect.top * rowHeight + sideMargins.top.toFloat()
-                            val widgetWidth = draggedItem!!.widthCells * rowWidth
-                            val widgetHeight = draggedItem!!.heightCells * rowHeight
-                            addView(widgetView, widgetWidth, widgetHeight)
-                        }
-                    }
+                val widgetItem = draggedItem!!.copy()
+                widgetItem.apply {
+                    left = widgetRect.left
+                    top = widgetRect.top
+                    right = widgetRect.right
+                    bottom = widgetRect.bottom
+                }
+
+                bindWidget(widgetItem, false)
+                ensureBackgroundThread {
+                    context.homeScreenGridItemsDB.insert(widgetItem)
                 }
             } else {
                 performHapticFeedback()
@@ -264,6 +257,29 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         draggedItem = null
         draggedItemCurrentCoords = Pair(-1, -1)
         redrawGrid()
+    }
+
+    private fun bindWidget(item: HomeScreenGridItem, isInitialDrawAfterLaunch: Boolean) {
+        val infoList = AppWidgetManager.getInstance(context).installedProviders
+        val appWidgetProviderInfo = infoList.firstOrNull { it.provider.shortClassName == item.shortClassName }
+        if (appWidgetProviderInfo != null) {
+            val appWidgetHost = AppWidgetHost(context, WIDGET_HOST_ID)
+            val appWidgetId = appWidgetHost.allocateAppWidgetId()
+            val appWidgetManager = AppWidgetManager.getInstance(context)
+            val canCreateWidget = appWidgetManager.bindAppWidgetIdIfAllowed(appWidgetId, appWidgetProviderInfo.provider)
+            if (canCreateWidget) {
+                if (appWidgetProviderInfo.configure != null && !isInitialDrawAfterLaunch) {
+                    appWidgetHost.startAppWidgetConfigureActivityForResult(context as MainActivity, appWidgetId, 0, REQUEST_CONFIGURE_WIDGET, null)
+                } else {
+                    val widgetView = appWidgetHost.createView(context, appWidgetId, appWidgetProviderInfo)
+                    widgetView.x = item.left * rowWidth + sideMargins.left.toFloat()
+                    widgetView.y = item.top * rowHeight + sideMargins.top.toFloat()
+                    val widgetWidth = item.widthCells * rowWidth
+                    val widgetHeight = item.heightCells * rowHeight
+                    addView(widgetView, widgetWidth, widgetHeight)
+                }
+            }
+        }
     }
 
     // convert stuff like 102x192 to grid cells like 0x1
@@ -280,8 +296,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     }
 
     private fun redrawGrid() {
-        setWillNotDraw(false)
-        invalidate()
+        post {
+            setWillNotDraw(false)
+            invalidate()
+        }
     }
 
     private fun getFakeWidth() = width - sideMargins.left - sideMargins.right
@@ -310,7 +328,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             }
         }
 
-        gridItems.filter { it.drawable != null }.forEach { item ->
+        gridItems.filter { it.drawable != null && it.type == ITEM_TYPE_ICON }.forEach { item ->
             if (item.id != draggedItem?.id) {
                 val drawableX = rowXCoords[item.left] + iconMargin + sideMargins.left
 
@@ -343,6 +361,12 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             }
         }
 
+        if (isFirstDraw) {
+            gridItems.filter { it.type == ITEM_TYPE_WIDGET }.forEach { item ->
+                bindWidget(item, true)
+            }
+        }
+
         if (draggedItem != null && draggedItemCurrentCoords.first != -1 && draggedItemCurrentCoords.second != -1) {
             if (draggedItem!!.type == ITEM_TYPE_ICON || draggedItem!!.type == ITEM_TYPE_SHORTCUT) {
                 // draw a circle under the current cell
@@ -368,35 +392,40 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 draggedItem!!.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
                 draggedItem!!.drawable!!.draw(canvas)
             } else if (draggedItem!!.type == ITEM_TYPE_WIDGET) {
-                val center = gridCenters.minBy {
-                    Math.abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(it.second - draggedItemCurrentCoords.second + sideMargins.top)
-                }
+                // at first draw we are loading the widget from the database at some exact spot, not dragging it
+                if (!isFirstDraw) {
+                    val center = gridCenters.minBy {
+                        Math.abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(it.second - draggedItemCurrentCoords.second + sideMargins.top)
+                    }
 
-                val gridCells = getClosestGridCells(center)
-                if (gridCells != null) {
-                    val widgetRect = getWidgetOccupiedRect(gridCells)
-                    val leftSide = widgetRect.left * rowWidth + sideMargins.left + iconMargin.toFloat()
-                    val topSide = widgetRect.top * rowHeight + sideMargins.top + iconMargin.toFloat()
-                    val rightSide = leftSide + draggedItem!!.widthCells * rowWidth - sideMargins.right - iconMargin.toFloat()
-                    val bottomSide = topSide + draggedItem!!.heightCells * rowHeight - sideMargins.top
-                    canvas.drawRoundRect(leftSide, topSide, rightSide, bottomSide, roundedCornerRadius, roundedCornerRadius, dragShadowCirclePaint)
-                }
+                    val gridCells = getClosestGridCells(center)
+                    if (gridCells != null) {
+                        val widgetRect = getWidgetOccupiedRect(gridCells)
+                        val leftSide = widgetRect.left * rowWidth + sideMargins.left + iconMargin.toFloat()
+                        val topSide = widgetRect.top * rowHeight + sideMargins.top + iconMargin.toFloat()
+                        val rightSide = leftSide + draggedItem!!.widthCells * rowWidth - sideMargins.right - iconMargin.toFloat()
+                        val bottomSide = topSide + draggedItem!!.heightCells * rowHeight - sideMargins.top
+                        canvas.drawRoundRect(leftSide, topSide, rightSide, bottomSide, roundedCornerRadius, roundedCornerRadius, dragShadowCirclePaint)
+                    }
 
-                // show the widget preview itself at dragging
-                val drawable = draggedItem!!.drawable!!
-                val aspectRatio = drawable.minimumHeight / drawable.minimumWidth.toFloat()
-                val drawableX = (draggedItemCurrentCoords.first - drawable.minimumWidth / 2f).toInt()
-                val drawableY = (draggedItemCurrentCoords.second - drawable.minimumHeight / 3f).toInt()
-                val drawableWidth = draggedItem!!.widthCells * rowWidth - iconMargin * (draggedItem!!.widthCells - 1)
-                drawable.setBounds(
-                    drawableX,
-                    drawableY,
-                    drawableX + drawableWidth,
-                    (drawableY + drawableWidth * aspectRatio).toInt()
-                )
-                drawable.draw(canvas)
+                    // show the widget preview itself at dragging
+                    val drawable = draggedItem!!.drawable!!
+                    val aspectRatio = drawable.minimumHeight / drawable.minimumWidth.toFloat()
+                    val drawableX = (draggedItemCurrentCoords.first - drawable.minimumWidth / 2f).toInt()
+                    val drawableY = (draggedItemCurrentCoords.second - drawable.minimumHeight / 3f).toInt()
+                    val drawableWidth = draggedItem!!.widthCells * rowWidth - iconMargin * (draggedItem!!.widthCells - 1)
+                    drawable.setBounds(
+                        drawableX,
+                        drawableY,
+                        drawableX + drawableWidth,
+                        (drawableY + drawableWidth * aspectRatio).toInt()
+                    )
+                    drawable.draw(canvas)
+                }
             }
         }
+
+        isFirstDraw = false
     }
 
     // get the clickable area around the icon, it includes text too
