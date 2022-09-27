@@ -12,7 +12,7 @@ import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.TextUtils
 import android.util.AttributeSet
-import android.view.View
+import android.widget.RelativeLayout
 import com.simplemobiletools.commons.extensions.navigationBarHeight
 import com.simplemobiletools.commons.extensions.performHapticFeedback
 import com.simplemobiletools.commons.extensions.statusBarHeight
@@ -24,10 +24,11 @@ import com.simplemobiletools.launcher.extensions.homeScreenGridItemsDB
 import com.simplemobiletools.launcher.helpers.*
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
 
-class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : View(context, attrs, defStyle) {
+class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : RelativeLayout(context, attrs, defStyle) {
     constructor(context: Context, attrs: AttributeSet) : this(context, attrs, 0)
 
     private var iconMargin = context.resources.getDimension(R.dimen.icon_side_margin).toInt()
+    private var widgetMargin = context.resources.getDimension(R.dimen.widget_side_margin).toInt()
     private var labelSideMargin = context.resources.getDimension(R.dimen.small_margin).toInt()
     private var roundedCornerRadius = context.resources.getDimension(R.dimen.activity_margin)
     private var textPaint: TextPaint
@@ -78,7 +79,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
                 item.drawable = context.getDrawableForPackageName(item.packageName)
             }
 
-            invalidate()
+            redrawGrid()
         }
     }
 
@@ -86,7 +87,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
         ensureBackgroundThread {
             context.homeScreenGridItemsDB.deleteById(iconId)
             gridItems.removeIf { it.id == iconId }
-            invalidate()
+            redrawGrid()
         }
     }
 
@@ -96,7 +97,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
             draggedItem!!.drawable = context.getDrawableForPackageName(draggedGridItem.packageName)
         }
 
-        invalidate()
+        redrawGrid()
     }
 
     fun draggedItemMoved(x: Int, y: Int) {
@@ -105,7 +106,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
         }
 
         draggedItemCurrentCoords = Pair(x, y)
-        invalidate()
+        redrawGrid()
     }
 
     // figure out at which cell was the item dropped, if it is empty
@@ -120,7 +121,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
             ITEM_TYPE_SHORTCUT -> {
                 // replace this with real shortcut handling
                 draggedItem = null
-                invalidate()
+                redrawGrid()
             }
         }
     }
@@ -189,7 +190,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
                         val newId = context.homeScreenGridItemsDB.insert(newHomeScreenGridItem)
                         newHomeScreenGridItem.id = newId
                         gridItems.add(newHomeScreenGridItem)
-                        invalidate()
+                        redrawGrid()
                     }
                 }
             } else {
@@ -201,7 +202,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
         draggedItem = null
         draggedItemCurrentCoords = Pair(-1, -1)
         if (redrawIcons) {
-            invalidate()
+            redrawGrid()
         }
     }
 
@@ -245,6 +246,13 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
                     if (canCreateWidget) {
                         if (appWidgetProviderInfo.configure != null) {
                             appWidgetHost.startAppWidgetConfigureActivityForResult(context as MainActivity, appWidgetId, 0, REQUEST_CONFIGURE_WIDGET, null)
+                        } else {
+                            val widgetView = appWidgetHost.createView(context, appWidgetId, appWidgetProviderInfo)
+                            widgetView.x = widgetRect.left * rowWidth + sideMargins.left.toFloat() + widgetMargin
+                            widgetView.y = widgetRect.top * rowHeight + sideMargins.top.toFloat() + widgetMargin
+                            val widgetWidth = draggedItem!!.widthCells * rowWidth - widgetMargin * 2
+                            val widgetHeight = draggedItem!!.heightCells * rowHeight - widgetMargin * 2
+                            addView(widgetView, widgetWidth, widgetHeight)
                         }
                     }
                 }
@@ -255,7 +263,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
 
         draggedItem = null
         draggedItemCurrentCoords = Pair(-1, -1)
-        invalidate()
+        redrawGrid()
     }
 
     // convert stuff like 102x192 to grid cells like 0x1
@@ -269,6 +277,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
         }
 
         return null
+    }
+
+    private fun redrawGrid() {
+        setWillNotDraw(false)
+        invalidate()
     }
 
     private fun getFakeWidth() = width - sideMargins.left - sideMargins.right
