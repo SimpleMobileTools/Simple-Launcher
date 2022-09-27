@@ -1,7 +1,6 @@
 package com.simplemobiletools.launcher.views
 
 import android.annotation.SuppressLint
-import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.graphics.Canvas
@@ -263,7 +262,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         val infoList = AppWidgetManager.getInstance(context).installedProviders
         val appWidgetProviderInfo = infoList.firstOrNull { it.provider.shortClassName == item.shortClassName }
         if (appWidgetProviderInfo != null) {
-            val appWidgetHost = AppWidgetHost(context, WIDGET_HOST_ID)
+            val appWidgetHost = MyAppWidgetHost(context, WIDGET_HOST_ID)
             val appWidgetId = appWidgetHost.allocateAppWidgetId()
             val appWidgetManager = AppWidgetManager.getInstance(context)
             val canCreateWidget = appWidgetManager.bindAppWidgetIdIfAllowed(appWidgetId, appWidgetProviderInfo.provider)
@@ -271,7 +270,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 if (appWidgetProviderInfo.configure != null && !isInitialDrawAfterLaunch) {
                     appWidgetHost.startAppWidgetConfigureActivityForResult(context as MainActivity, appWidgetId, 0, REQUEST_CONFIGURE_WIDGET, null)
                 } else {
-                    val widgetView = appWidgetHost.createView(context, appWidgetId, appWidgetProviderInfo)
+                    val widgetView = appWidgetHost.createView(context, appWidgetId, appWidgetProviderInfo) as MyAppWidgetHostView
                     widgetView.x = item.left * rowWidth + sideMargins.left.toFloat()
                     widgetView.y = item.top * rowHeight + sideMargins.top.toFloat()
                     val widgetWidth = item.widthCells * rowWidth
