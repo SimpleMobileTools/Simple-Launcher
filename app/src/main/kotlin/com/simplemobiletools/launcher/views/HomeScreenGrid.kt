@@ -42,11 +42,15 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private var rowHeight = 0
     private var iconSize = 0
 
+    // apply fake margins at the home screen. Real ones would cause the icons be cut at dragging at screen sides
+    private var sideMargins = Rect()
+
     private var gridItems = ArrayList<HomeScreenGridItem>()
     private var gridCenters = ArrayList<Pair<Int, Int>>()
     private var draggedItemCurrentCoords = Pair(-1, -1)
 
-    private var sideMargins = Rect()   // apply fake margins at the home screen. Real ones would cause the icons be cut at dragging at screen sides
+    val appWidgetHost = MyAppWidgetHost(context, WIDGET_HOST_ID)
+    private val appWidgetManager = AppWidgetManager.getInstance(context)
 
     init {
         textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -259,18 +263,18 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     }
 
     private fun bindWidget(item: HomeScreenGridItem, isInitialDrawAfterLaunch: Boolean) {
-        val infoList = AppWidgetManager.getInstance(context).installedProviders
+        val infoList = appWidgetManager.installedProviders
         val appWidgetProviderInfo = infoList.firstOrNull { it.provider.shortClassName == item.shortClassName }
         if (appWidgetProviderInfo != null) {
-            val appWidgetHost = MyAppWidgetHost(context, WIDGET_HOST_ID)
             val appWidgetId = appWidgetHost.allocateAppWidgetId()
-            val appWidgetManager = AppWidgetManager.getInstance(context)
             val canCreateWidget = appWidgetManager.bindAppWidgetIdIfAllowed(appWidgetId, appWidgetProviderInfo.provider)
             if (canCreateWidget) {
                 if (appWidgetProviderInfo.configure != null && !isInitialDrawAfterLaunch) {
                     appWidgetHost.startAppWidgetConfigureActivityForResult(context as MainActivity, appWidgetId, 0, REQUEST_CONFIGURE_WIDGET, null)
                 } else {
                     val widgetView = appWidgetHost.createView(context, appWidgetId, appWidgetProviderInfo) as MyAppWidgetHostView
+                    widgetView.setAppWidget(appWidgetId, appWidgetProviderInfo)
+
                     widgetView.x = item.left * rowWidth + sideMargins.left.toFloat()
                     widgetView.y = item.top * rowHeight + sideMargins.top.toFloat()
                     val widgetWidth = item.widthCells * rowWidth

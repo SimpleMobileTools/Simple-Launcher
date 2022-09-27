@@ -91,6 +91,16 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        home_screen_grid.appWidgetHost.startListening()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        home_screen_grid.appWidgetHost.stopListening()
+    }
+
     override fun onBackPressed() {
         if (isAllAppsFragmentExpanded()) {
             hideFragment(all_apps_fragment)
