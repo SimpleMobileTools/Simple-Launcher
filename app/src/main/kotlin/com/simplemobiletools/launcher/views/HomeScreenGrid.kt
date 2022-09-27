@@ -388,9 +388,9 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Vie
 
     // get the clickable area around the icon, it includes text too
     private fun getClickableRect(item: HomeScreenGridItem): Rect {
-        val debugLeft = item.left * rowWidth + sideMargins.left
-        val debugTop = rowYCoords[item.top] + iconSize / 3 + sideMargins.top
-        return Rect(debugLeft, debugTop, debugLeft + rowWidth, debugTop + iconSize * 2)
+        val clickableLeft = item.left * rowWidth + sideMargins.left
+        val clickableTop = rowYCoords[item.top] + iconSize / 3 + sideMargins.top
+        return Rect(clickableLeft, clickableTop, clickableLeft + rowWidth, clickableTop + iconSize * 2)
     }
 
     // drag the center of the widget, not the top left corner
