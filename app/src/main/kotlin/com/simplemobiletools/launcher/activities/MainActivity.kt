@@ -2,6 +2,9 @@ package com.simplemobiletools.launcher.activities
 
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.appwidget.AppWidgetManager
+import android.appwidget.AppWidgetProviderInfo
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -25,10 +28,7 @@ import com.simplemobiletools.launcher.extensions.*
 import com.simplemobiletools.launcher.fragments.AllAppsFragment
 import com.simplemobiletools.launcher.fragments.MyFragment
 import com.simplemobiletools.launcher.fragments.WidgetsFragment
-import com.simplemobiletools.launcher.helpers.ITEM_TYPE_ICON
-import com.simplemobiletools.launcher.helpers.ITEM_TYPE_WIDGET
-import com.simplemobiletools.launcher.helpers.ROW_COUNT
-import com.simplemobiletools.launcher.helpers.UNINSTALL_APP_REQUEST_CODE
+import com.simplemobiletools.launcher.helpers.*
 import com.simplemobiletools.launcher.interfaces.FlingListener
 import com.simplemobiletools.launcher.models.AppLauncher
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
@@ -47,6 +47,7 @@ class MainActivity : SimpleActivity(), FlingListener {
     private var mOpenPopupMenu: PopupMenu? = null
     private var mCachedLaunchers = ArrayList<AppLauncher>()
     private var mLastTouchCoords = Pair(0f, 0f)
+    private var mActionOnCanBindWidget: ((granted: Boolean) -> Unit)? = null
 
     private lateinit var mDetector: GestureDetectorCompat
 
@@ -117,6 +118,8 @@ class MainActivity : SimpleActivity(), FlingListener {
             ensureBackgroundThread {
                 refetchLaunchers()
             }
+        } else if (requestCode == REQUEST_ALLOW_BINDING_WIDGET) {
+            mActionOnCanBindWidget?.invoke(resultCode == Activity.RESULT_OK)
         }
     }
 
@@ -480,6 +483,21 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
 
         homeScreenGridItemsDB.insertAll(homeScreenGridItems)
+    }
+
+    fun handleWidgetBinding(appWidgetManager: AppWidgetManager, appWidgetId: Int, appWidgetInfo: AppWidgetProviderInfo, callback: (canBind: Boolean) -> Unit) {
+        mActionOnCanBindWidget = null
+        val canCreateWidget = appWidgetManager.bindAppWidgetIdIfAllowed(appWidgetId, appWidgetInfo.provider)
+        if (canCreateWidget) {
+            callback(true)
+        } else {
+            mActionOnCanBindWidget = callback
+            Intent(AppWidgetManager.ACTION_APPWIDGET_BIND).apply {
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, appWidgetInfo.provider)
+                startActivityForResult(this, REQUEST_ALLOW_BINDING_WIDGET)
+            }
+        }
     }
 
     // taken from https://gist.github.com/maxjvh/a6ab15cbba9c82a5065d

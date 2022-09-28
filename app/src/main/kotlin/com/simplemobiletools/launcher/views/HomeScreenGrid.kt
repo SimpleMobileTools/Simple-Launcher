@@ -248,9 +248,12 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                     bottom = widgetRect.bottom
                 }
 
-                bindWidget(widgetItem, false)
                 ensureBackgroundThread {
-                    context.homeScreenGridItemsDB.insert(widgetItem)
+                    val itemId = context.homeScreenGridItemsDB.insert(widgetItem)
+                    widgetItem.id = itemId
+                    post {
+                        bindWidget(widgetItem, false)
+                    }
                 }
             } else {
                 performHapticFeedback()
@@ -263,23 +266,35 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     }
 
     private fun bindWidget(item: HomeScreenGridItem, isInitialDrawAfterLaunch: Boolean) {
-        val infoList = appWidgetManager.installedProviders
+        val activity = context as MainActivity
+        val infoList = appWidgetManager!!.installedProviders
         val appWidgetProviderInfo = infoList.firstOrNull { it.provider.shortClassName == item.shortClassName }
         if (appWidgetProviderInfo != null) {
             val appWidgetId = appWidgetHost.allocateAppWidgetId()
-            val canCreateWidget = appWidgetManager.bindAppWidgetIdIfAllowed(appWidgetId, appWidgetProviderInfo.provider)
-            if (canCreateWidget) {
-                if (appWidgetProviderInfo.configure != null && !isInitialDrawAfterLaunch) {
-                    appWidgetHost.startAppWidgetConfigureActivityForResult(context as MainActivity, appWidgetId, 0, REQUEST_CONFIGURE_WIDGET, null)
-                } else {
-                    val widgetView = appWidgetHost.createView(context, appWidgetId, appWidgetProviderInfo) as MyAppWidgetHostView
-                    widgetView.setAppWidget(appWidgetId, appWidgetProviderInfo)
+            activity.handleWidgetBinding(appWidgetManager, appWidgetId, appWidgetProviderInfo) { canBind ->
+                if (canBind) {
+                    if (appWidgetProviderInfo.configure != null && !isInitialDrawAfterLaunch) {
+                        appWidgetHost.startAppWidgetConfigureActivityForResult(
+                            context as MainActivity,
+                            appWidgetId,
+                            0,
+                            REQUEST_CONFIGURE_WIDGET,
+                            null
+                        )
+                    } else {
+                        val widgetView = appWidgetHost.createView(context, appWidgetId, appWidgetProviderInfo) as MyAppWidgetHostView
+                        widgetView.setAppWidget(appWidgetId, appWidgetProviderInfo)
 
-                    widgetView.x = item.left * rowWidth + sideMargins.left.toFloat()
-                    widgetView.y = item.top * rowHeight + sideMargins.top.toFloat()
-                    val widgetWidth = item.widthCells * rowWidth
-                    val widgetHeight = item.heightCells * rowHeight
-                    addView(widgetView, widgetWidth, widgetHeight)
+                        widgetView.x = item.left * rowWidth + sideMargins.left.toFloat()
+                        widgetView.y = item.top * rowHeight + sideMargins.top.toFloat()
+                        val widgetWidth = item.widthCells * rowWidth
+                        val widgetHeight = item.heightCells * rowHeight
+                        addView(widgetView, widgetWidth, widgetHeight)
+                    }
+                } else if (item.id != null) {
+                    ensureBackgroundThread {
+                        context.homeScreenGridItemsDB.deleteById(item.id!!)
+                    }
                 }
             }
         }
