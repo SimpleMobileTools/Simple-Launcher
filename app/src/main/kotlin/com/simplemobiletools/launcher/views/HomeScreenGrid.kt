@@ -282,7 +282,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                             null
                         )
                     } else {
-                        val widgetView = appWidgetHost.createView(context, appWidgetId, appWidgetProviderInfo) as MyAppWidgetHostView
+                        // we have to pass the base context here, else there will be errors with the themes
+                        val widgetView = appWidgetHost.createView(activity.baseContext, appWidgetId, appWidgetProviderInfo) as MyAppWidgetHostView
                         widgetView.setAppWidget(appWidgetId, appWidgetProviderInfo)
 
                         widgetView.x = item.left * rowWidth + sideMargins.left.toFloat()
