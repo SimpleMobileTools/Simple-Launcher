@@ -2,6 +2,7 @@ package com.simplemobiletools.launcher.views
 
 import android.annotation.SuppressLint
 import android.appwidget.AppWidgetManager
+import android.appwidget.AppWidgetProviderInfo
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
@@ -274,23 +275,17 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             activity.handleWidgetBinding(appWidgetManager, appWidgetId, appWidgetProviderInfo) { canBind ->
                 if (canBind) {
                     if (appWidgetProviderInfo.configure != null && !isInitialDrawAfterLaunch) {
-                        appWidgetHost.startAppWidgetConfigureActivityForResult(
-                            context as MainActivity,
-                            appWidgetId,
-                            0,
-                            REQUEST_CONFIGURE_WIDGET,
-                            null
-                        )
+                        activity.handleWidgetConfigureScreen(appWidgetHost, appWidgetId) { success ->
+                            if (success) {
+                                placeAppWidget(appWidgetId, appWidgetProviderInfo, item)
+                            } else if (item.id != null) {
+                                ensureBackgroundThread {
+                                    context.homeScreenGridItemsDB.deleteById(item.id!!)
+                                }
+                            }
+                        }
                     } else {
-                        // we have to pass the base context here, else there will be errors with the themes
-                        val widgetView = appWidgetHost.createView(activity.baseContext, appWidgetId, appWidgetProviderInfo) as MyAppWidgetHostView
-                        widgetView.setAppWidget(appWidgetId, appWidgetProviderInfo)
-
-                        widgetView.x = item.left * rowWidth + sideMargins.left.toFloat()
-                        widgetView.y = item.top * rowHeight + sideMargins.top.toFloat()
-                        val widgetWidth = item.widthCells * rowWidth
-                        val widgetHeight = item.heightCells * rowHeight
-                        addView(widgetView, widgetWidth, widgetHeight)
+                        placeAppWidget(appWidgetId, appWidgetProviderInfo, item)
                     }
                 } else if (item.id != null) {
                     ensureBackgroundThread {
@@ -299,6 +294,18 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 }
             }
         }
+    }
+
+    private fun placeAppWidget(appWidgetId: Int, appWidgetProviderInfo: AppWidgetProviderInfo, item: HomeScreenGridItem) {
+        // we have to pass the base context here, else there will be errors with the themes
+        val widgetView = appWidgetHost.createView((context as MainActivity).baseContext, appWidgetId, appWidgetProviderInfo) as MyAppWidgetHostView
+        widgetView.setAppWidget(appWidgetId, appWidgetProviderInfo)
+
+        widgetView.x = item.left * rowWidth + sideMargins.left.toFloat()
+        widgetView.y = item.top * rowHeight + sideMargins.top.toFloat()
+        val widgetWidth = item.widthCells * rowWidth
+        val widgetHeight = item.heightCells * rowHeight
+        addView(widgetView, widgetWidth, widgetHeight)
     }
 
     // convert stuff like 102x192 to grid cells like 0x1

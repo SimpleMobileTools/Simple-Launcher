@@ -3,6 +3,7 @@ package com.simplemobiletools.launcher.activities
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProviderInfo
 import android.content.Context
@@ -48,6 +49,7 @@ class MainActivity : SimpleActivity(), FlingListener {
     private var mCachedLaunchers = ArrayList<AppLauncher>()
     private var mLastTouchCoords = Pair(0f, 0f)
     private var mActionOnCanBindWidget: ((granted: Boolean) -> Unit)? = null
+    private var mActionOnWidgetConfiguredWidget: ((granted: Boolean) -> Unit)? = null
 
     private lateinit var mDetector: GestureDetectorCompat
 
@@ -114,12 +116,14 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
         super.onActivityResult(requestCode, resultCode, resultData)
-        if (requestCode == UNINSTALL_APP_REQUEST_CODE) {
-            ensureBackgroundThread {
-                refetchLaunchers()
+        when (requestCode) {
+            UNINSTALL_APP_REQUEST_CODE -> {
+                ensureBackgroundThread {
+                    refetchLaunchers()
+                }
             }
-        } else if (requestCode == REQUEST_ALLOW_BINDING_WIDGET) {
-            mActionOnCanBindWidget?.invoke(resultCode == Activity.RESULT_OK)
+            REQUEST_ALLOW_BINDING_WIDGET -> mActionOnCanBindWidget?.invoke(resultCode == Activity.RESULT_OK)
+            REQUEST_CONFIGURE_WIDGET -> mActionOnWidgetConfiguredWidget?.invoke(resultCode == Activity.RESULT_OK)
         }
     }
 
@@ -498,6 +502,17 @@ class MainActivity : SimpleActivity(), FlingListener {
                 startActivityForResult(this, REQUEST_ALLOW_BINDING_WIDGET)
             }
         }
+    }
+
+    fun handleWidgetConfigureScreen(appWidgetHost: AppWidgetHost, appWidgetId: Int, callback: (canBind: Boolean) -> Unit) {
+        mActionOnWidgetConfiguredWidget = callback
+        appWidgetHost.startAppWidgetConfigureActivityForResult(
+            this,
+            appWidgetId,
+            0,
+            REQUEST_CONFIGURE_WIDGET,
+            null
+        )
     }
 
     // taken from https://gist.github.com/maxjvh/a6ab15cbba9c82a5065d
