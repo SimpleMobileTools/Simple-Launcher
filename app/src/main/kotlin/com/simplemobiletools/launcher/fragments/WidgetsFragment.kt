@@ -240,6 +240,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             "",
             type,
             appWidget.shortClassName,
+            -1,
             appWidget.widgetPreviewImage
         )
 

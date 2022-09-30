@@ -49,6 +49,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private var gridItems = ArrayList<HomeScreenGridItem>()
     private var gridCenters = ArrayList<Pair<Int, Int>>()
     private var draggedItemCurrentCoords = Pair(-1, -1)
+    private var widgetViews = ArrayList<MyAppWidgetHostView>()
 
     val appWidgetHost = MyAppWidgetHost(context, WIDGET_HOST_ID)
     private val appWidgetManager = AppWidgetManager.getInstance(context)
@@ -88,10 +89,18 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
     }
 
-    fun removeAppIcon(iconId: Long) {
+    fun removeAppIcon(item: HomeScreenGridItem) {
         ensureBackgroundThread {
-            context.homeScreenGridItemsDB.deleteById(iconId)
-            gridItems.removeIf { it.id == iconId }
+            context.homeScreenGridItemsDB.deleteById(item.id!!)
+            if (item.type == ITEM_TYPE_WIDGET) {
+                appWidgetHost.deleteAppWidgetId(item.widgetId)
+
+                post {
+                    removeView(widgetViews.firstOrNull { it.tag == item.widgetId })
+                }
+            }
+
+            gridItems.removeIf { it.id == item.id }
             redrawGrid()
         }
     }
@@ -188,6 +197,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         draggedItem!!.title,
                         draggedItem!!.type,
                         "",
+                        -1,
                         draggedItem!!.drawable
                     )
 
@@ -297,15 +307,21 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     }
 
     private fun placeAppWidget(appWidgetId: Int, appWidgetProviderInfo: AppWidgetProviderInfo, item: HomeScreenGridItem) {
+        item.widgetId = appWidgetId
         // we have to pass the base context here, else there will be errors with the themes
         val widgetView = appWidgetHost.createView((context as MainActivity).baseContext, appWidgetId, appWidgetProviderInfo) as MyAppWidgetHostView
+        widgetView.tag = appWidgetId
         widgetView.setAppWidget(appWidgetId, appWidgetProviderInfo)
+        widgetView.longPressListener = { x, y ->
+            (context as? MainActivity)?.showHomeIconMenu(x, y, item, false)
+        }
 
         widgetView.x = item.left * rowWidth + sideMargins.left.toFloat()
         widgetView.y = item.top * rowHeight + sideMargins.top.toFloat()
         val widgetWidth = item.widthCells * rowWidth
         val widgetHeight = item.heightCells * rowHeight
         addView(widgetView, widgetWidth, widgetHeight)
+        widgetViews.add(widgetView)
     }
 
     // convert stuff like 102x192 to grid cells like 0x1
