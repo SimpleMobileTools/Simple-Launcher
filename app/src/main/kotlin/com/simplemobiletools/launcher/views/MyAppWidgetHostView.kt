@@ -10,8 +10,8 @@ import com.simplemobiletools.commons.extensions.performHapticFeedback
 
 class MyAppWidgetHostView(context: Context) : AppWidgetHostView(context) {
     private var longPressHandler = Handler()
-    private var hasLongPressed = false
     private var actionDownCoords = PointF()
+    var hasLongPressed = false
     var longPressListener: ((x: Float, y: Float) -> Unit)? = null
 
     override fun onInterceptTouchEvent(event: MotionEvent): Boolean {

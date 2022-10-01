@@ -142,6 +142,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     // figure out at which cell was the item dropped, if it is empty
     fun itemDraggingStopped() {
+        widgetViews.forEach {
+            it.hasLongPressed = false
+        }
+
         if (draggedItem == null) {
             return
         }

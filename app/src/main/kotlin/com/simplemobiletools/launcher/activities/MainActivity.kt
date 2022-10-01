@@ -271,12 +271,17 @@ class MainActivity : SimpleActivity(), FlingListener {
         mIgnoreMoveEvents = true
         val clickedGridItem = home_screen_grid.isClickingGridItem(x.toInt(), y.toInt())
         if (clickedGridItem != null) {
+            if (clickedGridItem.type == ITEM_TYPE_ICON) {
+                main_holder.performHapticFeedback()
+            }
+
             val yOffset = resources.getDimension(R.dimen.long_press_anchor_button_offset_y)
             val anchorY = home_screen_grid.sideMargins.top + (clickedGridItem.top * home_screen_grid.rowHeight.toFloat()) - yOffset
             showHomeIconMenu(x, anchorY, clickedGridItem, false)
             return
         }
 
+        main_holder.performHapticFeedback()
         showMainLongPressMenu(x, y)
     }
 
