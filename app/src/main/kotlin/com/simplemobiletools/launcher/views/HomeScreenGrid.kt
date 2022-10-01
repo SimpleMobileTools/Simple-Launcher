@@ -248,7 +248,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             }
 
             var areAllCellsEmpty = true
-            gridItems.forEach { item ->
+            gridItems.filter { it.id != draggedItem?.id }.forEach { item ->
                 for (xCell in item.left until item.right) {
                     for (yCell in item.top until item.bottom) {
                         val cell = Pair(xCell, yCell)
