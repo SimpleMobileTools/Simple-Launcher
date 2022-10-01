@@ -133,7 +133,11 @@ class MainActivity : SimpleActivity(), FlingListener {
         (widgets_fragment as WidgetsFragment).onConfigurationChanged()
     }
 
-    override fun onTouchEvent(event: MotionEvent): Boolean {
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        if (event == null) {
+            return false
+        }
+
         if (mLongPressedIcon != null && event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
             mLastUpEvent = System.currentTimeMillis()
         }
