@@ -4,20 +4,15 @@ import android.annotation.SuppressLint
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProviderInfo
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Rect
-import android.graphics.drawable.BitmapDrawable
+import android.graphics.*
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.TextUtils
 import android.util.AttributeSet
 import android.widget.RelativeLayout
-import com.simplemobiletools.commons.extensions.navigationBarHeight
-import com.simplemobiletools.commons.extensions.performHapticFeedback
-import com.simplemobiletools.commons.extensions.statusBarHeight
+import androidx.core.graphics.drawable.toDrawable
+import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.MainActivity
@@ -128,6 +123,17 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     fun draggedItemMoved(x: Int, y: Int) {
         if (draggedItem == null) {
             return
+        }
+
+        if (draggedItemCurrentCoords.first == -1 && draggedItemCurrentCoords.second == -1 && draggedItem != null) {
+            if (draggedItem!!.type == ITEM_TYPE_WIDGET) {
+                val draggedWidgetView = widgetViews.firstOrNull { it.tag == draggedItem?.widgetId }
+                if (draggedWidgetView != null) {
+                    draggedWidgetView.buildDrawingCache()
+                    draggedItem!!.drawable = Bitmap.createBitmap(draggedWidgetView.drawingCache).toDrawable(context.resources)
+                    draggedWidgetView.beGone()
+                }
+            }
         }
 
         draggedItemCurrentCoords = Pair(x, y)
@@ -282,8 +288,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         context.homeScreenGridItemsDB.updateItemPosition(widgetItem.left, widgetItem.top, widgetItem.right, widgetItem.bottom, widgetItem.id!!)
                         val widgetView = widgetViews.firstOrNull { it.tag == widgetItem.widgetId }
                         if (widgetView != null) {
-                            widgetView.x = calculateWidgetX(widgetItem.left)
-                            widgetView.y = calculateWidgetY(widgetItem.top)
+                            post {
+                                widgetView.x = calculateWidgetX(widgetItem.left)
+                                widgetView.y = calculateWidgetY(widgetItem.top)
+                                widgetView.beVisible()
+                            }
                         }
 
                         gridItems.firstOrNull { it.id == widgetItem.id }?.apply {
@@ -296,6 +305,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 }
             } else {
                 performHapticFeedback()
+                widgetViews.firstOrNull { it.tag == draggedItem?.widgetId }?.apply {
+                    post {
+                        beVisible()
+                    }
+                }
             }
         }
 
@@ -339,12 +353,6 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         widgetView.longPressListener = { x, y ->
             val yOffset = resources.getDimension(R.dimen.home_long_press_anchor_offset_y)
             (context as? MainActivity)?.showHomeIconMenu(x, widgetView.y - yOffset, item, false)
-
-            val gridItem = gridItems.firstOrNull { it.widgetId == appWidgetId }
-            if (gridItem != null) {
-                widgetView.buildDrawingCache()
-                gridItem.drawable = BitmapDrawable(widgetView.drawingCache)
-            }
         }
 
         widgetView.x = calculateWidgetX(item.left)
