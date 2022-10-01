@@ -5,15 +5,18 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProviderInfo
 import android.content.Context
 import android.graphics.*
+import android.os.Bundle
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.TextUtils
 import android.util.AttributeSet
+import android.util.SizeF
 import android.widget.RelativeLayout
 import androidx.core.graphics.drawable.toDrawable
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
+import com.simplemobiletools.commons.helpers.isSPlus
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.extensions.getDrawableForPackageName
@@ -363,6 +366,17 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         widgetView.y = calculateWidgetY(item.top)
         val widgetWidth = item.widthCells * rowWidth
         val widgetHeight = item.heightCells * rowHeight
+
+        // set initial sizes to avoid some glitches
+        if (isSPlus()) {
+            val sizes = listOf(SizeF(widgetWidth.toFloat(), widgetHeight.toFloat()))
+            widgetView.updateAppWidgetSize(Bundle(), sizes)
+        } else {
+            val minWidth = appWidgetProviderInfo.minWidth
+            val minHeight = appWidgetProviderInfo.minHeight
+            widgetView.updateAppWidgetSize(Bundle(), minWidth, minHeight, minWidth, minHeight)
+        }
+
         addView(widgetView, widgetWidth, widgetHeight)
         widgetViews.add(widgetView)
 
