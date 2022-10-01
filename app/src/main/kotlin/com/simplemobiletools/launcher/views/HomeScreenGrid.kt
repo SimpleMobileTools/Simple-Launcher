@@ -287,7 +287,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private fun bindWidget(item: HomeScreenGridItem, isInitialDrawAfterLaunch: Boolean) {
         val activity = context as MainActivity
         val infoList = appWidgetManager!!.installedProviders
-        val appWidgetProviderInfo = infoList.firstOrNull { it.provider.shortClassName == item.shortClassName }
+        val appWidgetProviderInfo = infoList.firstOrNull { it.provider.className == item.className }
         if (appWidgetProviderInfo != null) {
             val appWidgetId = appWidgetHost.allocateAppWidgetId()
             activity.handleWidgetBinding(appWidgetManager, appWidgetId, appWidgetProviderInfo) { canBind ->

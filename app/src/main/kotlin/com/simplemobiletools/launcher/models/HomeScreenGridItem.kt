@@ -17,7 +17,7 @@ data class HomeScreenGridItem(
     @ColumnInfo(name = "package_name") var packageName: String,
     @ColumnInfo(name = "title") var title: String,
     @ColumnInfo(name = "type") var type: Int,
-    @ColumnInfo(name = "short_class_name") var shortClassName: String,
+    @ColumnInfo(name = "class_name") var className: String,
     @ColumnInfo(name = "widget_id") var widgetId: Int,
 
     @Ignore var drawable: Drawable?
