@@ -8,6 +8,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
+import android.graphics.drawable.BitmapDrawable
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
@@ -82,7 +83,9 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         ensureBackgroundThread {
             gridItems = context.homeScreenGridItemsDB.getAllItems() as ArrayList<HomeScreenGridItem>
             gridItems.forEach { item ->
-                item.drawable = context.getDrawableForPackageName(item.packageName)
+                if (item.type == ITEM_TYPE_ICON) {
+                    item.drawable = context.getDrawableForPackageName(item.packageName)
+                }
             }
 
             redrawGrid()
@@ -187,7 +190,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         bottom = yIndex + 1
 
                         ensureBackgroundThread {
-                            context.homeScreenGridItemsDB.updateAppPosition(left, top, right, bottom, id!!)
+                            context.homeScreenGridItemsDB.updateItemPosition(left, top, right, bottom, id!!)
                         }
                     }
                     redrawIcons = true
@@ -268,10 +271,27 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 }
 
                 ensureBackgroundThread {
-                    val itemId = context.homeScreenGridItemsDB.insert(widgetItem)
-                    widgetItem.id = itemId
-                    post {
-                        bindWidget(widgetItem, false)
+                    // store the new widget at creating it, else just move the existing one
+                    if (widgetItem.id == null) {
+                        val itemId = context.homeScreenGridItemsDB.insert(widgetItem)
+                        widgetItem.id = itemId
+                        post {
+                            bindWidget(widgetItem, false)
+                        }
+                    } else {
+                        context.homeScreenGridItemsDB.updateItemPosition(widgetItem.left, widgetItem.top, widgetItem.right, widgetItem.bottom, widgetItem.id!!)
+                        val widgetView = widgetViews.firstOrNull { it.tag == widgetItem.widgetId }
+                        if (widgetView != null) {
+                            widgetView.x = calculateWidgetX(widgetItem.left)
+                            widgetView.y = calculateWidgetY(widgetItem.top)
+                        }
+
+                        gridItems.firstOrNull { it.id == widgetItem.id }?.apply {
+                            left = widgetItem.left
+                            right = widgetItem.right
+                            top = widgetItem.top
+                            bottom = widgetItem.bottom
+                        }
                     }
                 }
             } else {
@@ -319,15 +339,29 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         widgetView.longPressListener = { x, y ->
             val yOffset = resources.getDimension(R.dimen.home_long_press_anchor_offset_y)
             (context as? MainActivity)?.showHomeIconMenu(x, widgetView.y - yOffset, item, false)
+
+            val gridItem = gridItems.firstOrNull { it.widgetId == appWidgetId }
+            if (gridItem != null) {
+                widgetView.buildDrawingCache()
+                gridItem.drawable = BitmapDrawable(widgetView.drawingCache)
+            }
         }
 
-        widgetView.x = item.left * rowWidth + sideMargins.left.toFloat()
-        widgetView.y = item.top * rowHeight + sideMargins.top.toFloat()
+        widgetView.x = calculateWidgetX(item.left)
+        widgetView.y = calculateWidgetY(item.top)
         val widgetWidth = item.widthCells * rowWidth
         val widgetHeight = item.heightCells * rowHeight
         addView(widgetView, widgetWidth, widgetHeight)
         widgetViews.add(widgetView)
+
+        // remove the drawable so that it gets refreshed on long press
+        item.drawable = null
+        gridItems.add(item)
     }
+
+    private fun calculateWidgetX(leftCell: Int) = leftCell * rowWidth + sideMargins.left.toFloat()
+
+    private fun calculateWidgetY(topCell: Int) = topCell * rowHeight + sideMargins.top.toFloat()
 
     // convert stuff like 102x192 to grid cells like 0x1
     private fun getClosestGridCells(center: Pair<Int, Int>): Pair<Int, Int>? {

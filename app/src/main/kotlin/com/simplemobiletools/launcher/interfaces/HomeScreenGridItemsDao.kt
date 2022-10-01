@@ -21,7 +21,7 @@ interface HomeScreenGridItemsDao {
     fun updateAppTitle(title: String, packageName: String)
 
     @Query("UPDATE home_screen_grid_items SET `left` = :left, `top` = :top, `right` = :right, `bottom` = :bottom WHERE id = :id")
-    fun updateAppPosition(left: Int, top: Int, right: Int, bottom: Int, id: Long)
+    fun updateItemPosition(left: Int, top: Int, right: Int, bottom: Int, id: Long)
 
     @Query("DELETE FROM home_screen_grid_items WHERE id = :id")
     fun deleteById(id: Long)
