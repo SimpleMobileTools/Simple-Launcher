@@ -296,8 +296,10 @@ class MainActivity : SimpleActivity(), FlingListener {
         mLongPressedIcon = gridItem
         val anchorY = if (isOnAllAppsFragment || gridItem.type == ITEM_TYPE_WIDGET) {
             y
-        } else {
+        } else if (gridItem.top == ROW_COUNT - 1) {
             home_screen_grid.sideMargins.top + (gridItem.top * home_screen_grid.rowHeight.toFloat())
+        } else {
+            (gridItem.top * home_screen_grid.rowHeight.toFloat())
         }
 
         home_screen_popup_menu_anchor.x = x
