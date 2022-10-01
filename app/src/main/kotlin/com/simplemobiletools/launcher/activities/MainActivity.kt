@@ -47,7 +47,7 @@ class MainActivity : SimpleActivity(), FlingListener {
     private var mLongPressedIcon: HomeScreenGridItem? = null
     private var mOpenPopupMenu: PopupMenu? = null
     private var mCachedLaunchers = ArrayList<AppLauncher>()
-    private var mLastTouchCoords = Pair(0f, 0f)
+    private var mLastTouchCoords = Pair(-1f, -1f)
     private var mActionOnCanBindWidget: ((granted: Boolean) -> Unit)? = null
     private var mActionOnWidgetConfiguredWidget: ((granted: Boolean) -> Unit)? = null
 
@@ -152,14 +152,14 @@ class MainActivity : SimpleActivity(), FlingListener {
             }
 
             MotionEvent.ACTION_MOVE -> {
-                if (mLongPressedIcon != null && mOpenPopupMenu != null && (mLastTouchCoords.first != event.x || mLastTouchCoords.second != event.y)) {
+                if (mLongPressedIcon != null && mOpenPopupMenu != null && hasFingerMoved(event)) {
                     mOpenPopupMenu?.dismiss()
                     mOpenPopupMenu = null
                     home_screen_grid.itemDraggingStarted(mLongPressedIcon!!)
                     hideFragment(all_apps_fragment)
                 }
 
-                if (mLongPressedIcon != null) {
+                if (mLongPressedIcon != null && hasFingerMoved(event)) {
                     home_screen_grid.draggedItemMoved(event.x.toInt(), event.y.toInt())
                 }
 
@@ -183,6 +183,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                 mTouchDownY = -1
                 mIgnoreMoveEvents = false
                 mLongPressedIcon = null
+                mLastTouchCoords = Pair(-1f, -1f)
                 (widgets_fragment as WidgetsFragment).ignoreTouches = false
                 (all_apps_fragment as AllAppsFragment).ignoreTouches = false
                 home_screen_grid.itemDraggingStopped()
@@ -205,6 +206,11 @@ class MainActivity : SimpleActivity(), FlingListener {
 
         return true
     }
+
+    // some devices ACTION_MOVE keeps triggering for the whole long press duration, but we are interested in real moves only, when coords change
+    private fun hasFingerMoved(event: MotionEvent) = mLastTouchCoords.first != -1f && mLastTouchCoords.second != -1f &&
+        (mLastTouchCoords.first != event.x || mLastTouchCoords.second != event.y)
+
 
     private fun refetchLaunchers() {
         val launchers = getAllAppLaunchers()
