@@ -91,17 +91,25 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     fun removeAppIcon(item: HomeScreenGridItem) {
         ensureBackgroundThread {
-            context.homeScreenGridItemsDB.deleteById(item.id!!)
-            if (item.type == ITEM_TYPE_WIDGET) {
-                appWidgetHost.deleteAppWidgetId(item.widgetId)
-
-                post {
-                    removeView(widgetViews.firstOrNull { it.tag == item.widgetId })
-                }
+            removeItemFromHomeScreen(item)
+            post {
+                removeView(widgetViews.firstOrNull { it.tag == item.widgetId })
             }
 
             gridItems.removeIf { it.id == item.id }
             redrawGrid()
+        }
+    }
+
+    private fun removeItemFromHomeScreen(item: HomeScreenGridItem) {
+        ensureBackgroundThread {
+            if (item.id != null) {
+                context.homeScreenGridItemsDB.deleteById(item.id!!)
+            }
+
+            if (item.type == ITEM_TYPE_WIDGET) {
+                appWidgetHost.deleteAppWidgetId(item.widgetId)
+            }
         }
     }
 
@@ -288,19 +296,15 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         activity.handleWidgetConfigureScreen(appWidgetHost, appWidgetId) { success ->
                             if (success) {
                                 placeAppWidget(appWidgetId, appWidgetProviderInfo, item)
-                            } else if (item.id != null) {
-                                ensureBackgroundThread {
-                                    context.homeScreenGridItemsDB.deleteById(item.id!!)
-                                }
+                            } else {
+                                removeItemFromHomeScreen(item)
                             }
                         }
                     } else {
                         placeAppWidget(appWidgetId, appWidgetProviderInfo, item)
                     }
-                } else if (item.id != null) {
-                    ensureBackgroundThread {
-                        context.homeScreenGridItemsDB.deleteById(item.id!!)
-                    }
+                } else {
+                    removeItemFromHomeScreen(item)
                 }
             }
         }
