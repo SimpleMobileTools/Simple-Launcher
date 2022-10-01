@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Simple Launcher</string>
+    <string name="app_launcher_name">Llançador</string>
+    <string name="launcher_settings">Configuració del llançador</string>
+    <string name="app_info">Informació de l\'aplicació</string>
+    <string name="touch_hold_widget">Premeu llargament el giny i arrossegueu-lo a la pantalla d\'inici</string>
+    <string name="uninstall">Desinstal·la</string>
+</resources>
