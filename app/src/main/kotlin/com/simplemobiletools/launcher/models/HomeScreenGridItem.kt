@@ -4,7 +4,7 @@ import android.graphics.drawable.Drawable
 import androidx.room.*
 import com.simplemobiletools.launcher.helpers.ITEM_TYPE_ICON
 
-// grid coords are from 0-5 by default. Icons occupy 1 slot only, widgets can be bigger
+// grid cells are from 0-5 by default. Icons occupy 1 slot only, widgets can be bigger
 @Entity(tableName = "home_screen_grid_items", indices = [(Index(value = ["id"], unique = true))])
 data class HomeScreenGridItem(
     @PrimaryKey(autoGenerate = true) var id: Long?,

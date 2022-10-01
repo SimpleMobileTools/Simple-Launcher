@@ -9,7 +9,10 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
-import com.simplemobiletools.commons.extensions.*
+import com.simplemobiletools.commons.extensions.getColoredDrawableWithColor
+import com.simplemobiletools.commons.extensions.getProperTextColor
+import com.simplemobiletools.commons.extensions.portrait
+import com.simplemobiletools.commons.extensions.realScreenSize
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.SimpleActivity
 import com.simplemobiletools.launcher.interfaces.AllAppsListener
@@ -19,7 +22,6 @@ import kotlinx.android.synthetic.main.item_launcher_label.view.*
 class LaunchersAdapter(
     val activity: SimpleActivity,
     var launchers: ArrayList<AppLauncher>,
-    val fastScroller: RecyclerViewFastScroller,
     val allAppsListener: AllAppsListener,
     val itemClick: (Any) -> Unit
 ) : RecyclerView.Adapter<LaunchersAdapter.ViewHolder>(), RecyclerViewFastScroller.OnPopupTextUpdate {
@@ -85,7 +87,7 @@ class LaunchersAdapter(
 
                 setOnClickListener { itemClick(launcher) }
                 setOnLongClickListener { view ->
-                    allAppsListener.onAppLauncherLongPressed(view.x, view.y, launcher)
+                    allAppsListener.onAppLauncherLongPressed(view.x + width / 2, view.y, launcher)
                     true
                 }
             }

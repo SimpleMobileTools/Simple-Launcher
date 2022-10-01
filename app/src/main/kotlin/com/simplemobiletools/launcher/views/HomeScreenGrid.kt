@@ -35,12 +35,12 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     // let's use a 6x5 grid for now with 1 special row at the bottom, prefilled with default apps
     private var rowXCoords = ArrayList<Int>(COLUMN_COUNT)
     private var rowYCoords = ArrayList<Int>(ROW_COUNT)
-    private var rowWidth = 0
-    private var rowHeight = 0
+    var rowWidth = 0
+    var rowHeight = 0
     private var iconSize = 0
 
     // apply fake margins at the home screen. Real ones would cause the icons be cut at dragging at screen sides
-    private var sideMargins = Rect()
+    var sideMargins = Rect()
 
     private var gridItems = ArrayList<HomeScreenGridItem>()
     private var gridCenters = ArrayList<Pair<Int, Int>>()
@@ -351,7 +351,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         widgetView.tag = appWidgetId
         widgetView.setAppWidget(appWidgetId, appWidgetProviderInfo)
         widgetView.longPressListener = { x, y ->
-            val yOffset = resources.getDimension(R.dimen.home_long_press_anchor_offset_y)
+            val yOffset = resources.getDimension(R.dimen.long_press_anchor_button_offset_y)
             (context as? MainActivity)?.showHomeIconMenu(x, widgetView.y - yOffset, item, false)
         }
 
@@ -549,9 +549,20 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     fun isClickingGridItem(x: Int, y: Int): HomeScreenGridItem? {
         for (gridItem in gridItems) {
-            val rect = getClickableRect(gridItem)
-            if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
-                return gridItem
+            if (gridItem.type == ITEM_TYPE_ICON) {
+                val rect = getClickableRect(gridItem)
+                if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+                    return gridItem
+                }
+            } else if (gridItem.type == ITEM_TYPE_WIDGET) {
+                val left = calculateWidgetX(gridItem.left)
+                val top = calculateWidgetY(gridItem.top)
+                val right = left + gridItem.widthCells * rowWidth
+                val bottom = top + gridItem.heightCells * rowHeight
+
+                if (x >= left && x <= right && y >= top && y <= bottom) {
+                    return gridItem
+                }
             }
         }
 
