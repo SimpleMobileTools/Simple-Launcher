@@ -316,10 +316,6 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     private fun handleGridItemPopupMenu(anchorView: View, gridItem: HomeScreenGridItem, isOnAllAppsFragment: Boolean): PopupMenu {
-        if (gridItem.type == ITEM_TYPE_WIDGET) {
-            anchorView.y -= resources.getDimension(R.dimen.home_long_press_anchor_offset_y)
-        }
-
         val contextTheme = ContextThemeWrapper(this, getPopupMenuTheme())
         return PopupMenu(contextTheme, anchorView, Gravity.TOP or Gravity.END).apply {
             inflate(R.menu.menu_app_icon)

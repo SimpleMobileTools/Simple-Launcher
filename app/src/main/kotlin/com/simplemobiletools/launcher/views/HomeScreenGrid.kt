@@ -317,7 +317,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         widgetView.tag = appWidgetId
         widgetView.setAppWidget(appWidgetId, appWidgetProviderInfo)
         widgetView.longPressListener = { x, y ->
-            (context as? MainActivity)?.showHomeIconMenu(x, y, item, false)
+            val yOffset = resources.getDimension(R.dimen.home_long_press_anchor_offset_y)
+            (context as? MainActivity)?.showHomeIconMenu(x, widgetView.y - yOffset, item, false)
         }
 
         widgetView.x = item.left * rowWidth + sideMargins.left.toFloat()
