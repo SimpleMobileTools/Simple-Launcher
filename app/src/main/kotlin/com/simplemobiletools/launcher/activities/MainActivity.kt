@@ -211,7 +211,6 @@ class MainActivity : SimpleActivity(), FlingListener {
     private fun hasFingerMoved(event: MotionEvent) = mLastTouchCoords.first != -1f && mLastTouchCoords.second != -1f &&
         (mLastTouchCoords.first != event.x || mLastTouchCoords.second != event.y)
 
-
     private fun refetchLaunchers() {
         val launchers = getAllAppLaunchers()
         (all_apps_fragment as AllAppsFragment).gotLaunchers(launchers)
@@ -262,6 +261,7 @@ class MainActivity : SimpleActivity(), FlingListener {
 
         window.navigationBarColor = resources.getColor(R.color.semitransparent_navigation)
         home_screen_grid.fragmentExpanded()
+        home_screen_grid.hideResizeLines()
     }
 
     private fun hideFragment(fragment: View) {
@@ -287,8 +287,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                 main_holder.performHapticFeedback()
             }
 
-            val yOffset = resources.getDimension(R.dimen.long_press_anchor_button_offset_y)
-            val anchorY = home_screen_grid.sideMargins.top + (clickedGridItem.top * home_screen_grid.rowHeight.toFloat()) - yOffset
+            val anchorY = home_screen_grid.sideMargins.top + (clickedGridItem.top * home_screen_grid.rowHeight.toFloat())
             showHomeIconMenu(x, anchorY, clickedGridItem, false)
             return
         }
@@ -298,6 +297,7 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     fun homeScreenClicked(x: Float, y: Float) {
+        home_screen_grid.hideResizeLines()
         val clickedGridItem = home_screen_grid.isClickingGridItem(x.toInt(), y.toInt())
         if (clickedGridItem != null) {
             launchApp(clickedGridItem.packageName)
@@ -305,6 +305,7 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     fun showHomeIconMenu(x: Float, y: Float, gridItem: HomeScreenGridItem, isOnAllAppsFragment: Boolean) {
+        home_screen_grid.hideResizeLines()
         mLongPressedIcon = gridItem
         val anchorY = if (isOnAllAppsFragment || gridItem.type == ITEM_TYPE_WIDGET) {
             y
@@ -329,6 +330,7 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     private fun showMainLongPressMenu(x: Float, y: Float) {
+        home_screen_grid.hideResizeLines()
         home_screen_popup_menu_anchor.x = x
         home_screen_popup_menu_anchor.y = y - resources.getDimension(R.dimen.long_press_anchor_button_offset_y)
         val contextTheme = ContextThemeWrapper(this, getPopupMenuTheme())
@@ -345,32 +347,34 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     private fun handleGridItemPopupMenu(anchorView: View, gridItem: HomeScreenGridItem, isOnAllAppsFragment: Boolean): PopupMenu {
-        var visibleMenuButtons = 3
+        var visibleMenuButtons = 4
         if (gridItem.type != ITEM_TYPE_ICON) {
             visibleMenuButtons -= 2
         }
 
         if (isOnAllAppsFragment) {
-            visibleMenuButtons -= 1
+            visibleMenuButtons--
+        }
+
+        if (gridItem.type != ITEM_TYPE_WIDGET) {
+            visibleMenuButtons--
         }
 
         val yOffset = resources.getDimension(R.dimen.long_press_anchor_button_offset_y) * (visibleMenuButtons - 1)
         anchorView.y -= yOffset
 
-        if (gridItem.type == ITEM_TYPE_WIDGET) {
-            home_screen_grid.widgetLongPressed(gridItem)
-        }
-
         val contextTheme = ContextThemeWrapper(this, getPopupMenuTheme())
         return PopupMenu(contextTheme, anchorView, Gravity.TOP or Gravity.END).apply {
             setForceShowIcon(true)
             inflate(R.menu.menu_app_icon)
+            menu.findItem(R.id.resize).isVisible = gridItem.type == ITEM_TYPE_WIDGET
             menu.findItem(R.id.app_info).isVisible = gridItem.type == ITEM_TYPE_ICON
             menu.findItem(R.id.uninstall).isVisible = gridItem.type == ITEM_TYPE_ICON
             menu.findItem(R.id.remove).isVisible = !isOnAllAppsFragment
             setOnMenuItemClickListener { item ->
                 (all_apps_fragment as AllAppsFragment).ignoreTouches = false
                 when (item.itemId) {
+                    R.id.resize -> home_screen_grid.widgetLongPressed(gridItem)
                     R.id.app_info -> launchAppInfo(gridItem.packageName)
                     R.id.remove -> home_screen_grid.removeAppIcon(gridItem)
                     R.id.uninstall -> uninstallApp(gridItem.packageName)
@@ -381,10 +385,6 @@ class MainActivity : SimpleActivity(), FlingListener {
             setOnDismissListener {
                 mOpenPopupMenu = null
                 (all_apps_fragment as AllAppsFragment).ignoreTouches = false
-
-                if (gridItem.type == ITEM_TYPE_WIDGET) {
-                    home_screen_grid.hideResizeLines()
-                }
             }
 
             show()

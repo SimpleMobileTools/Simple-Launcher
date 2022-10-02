@@ -7,16 +7,17 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.drawable.ColorDrawable
-import android.widget.FrameLayout
+import android.util.AttributeSet
 import android.widget.RelativeLayout
 import com.simplemobiletools.launcher.R
 
 @SuppressLint("ViewConstructor")
-class MyAppWidgetResizeFrame(context: Context) : FrameLayout(context) {
+class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: Int) : RelativeLayout(context, attrs, defStyle) {
+    constructor(context: Context, attrs: AttributeSet) : this(context, attrs, 0)
+
     private var resizeWidgetLinePaint: Paint
 
     init {
-        layoutParams = RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT)
         background = ColorDrawable(Color.TRANSPARENT)
 
         resizeWidgetLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {

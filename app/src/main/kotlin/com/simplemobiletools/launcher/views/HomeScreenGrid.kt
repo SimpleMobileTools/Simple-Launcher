@@ -23,6 +23,7 @@ import com.simplemobiletools.launcher.extensions.getDrawableForPackageName
 import com.simplemobiletools.launcher.extensions.homeScreenGridItemsDB
 import com.simplemobiletools.launcher.helpers.*
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
+import kotlinx.android.synthetic.main.activity_main.view.*
 
 class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : RelativeLayout(context, attrs, defStyle) {
     constructor(context: Context, attrs: AttributeSet) : this(context, attrs, 0)
@@ -35,14 +36,13 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private var draggedItem: HomeScreenGridItem? = null
     private var resizedWidget: HomeScreenGridItem? = null
     private var isFirstDraw = true
-    private var resizeWidgetFrame: MyAppWidgetResizeFrame
+    private var iconSize = 0
 
     // let's use a 6x5 grid for now with 1 special row at the bottom, prefilled with default apps
     private var rowXCoords = ArrayList<Int>(COLUMN_COUNT)
     private var rowYCoords = ArrayList<Int>(ROW_COUNT)
     var rowWidth = 0
     var rowHeight = 0
-    private var iconSize = 0
 
     // apply fake margins at the home screen. Real ones would cause the icons be cut at dragging at screen sides
     var sideMargins = Rect()
@@ -77,7 +77,6 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         fetchGridItems()
-        resizeWidgetFrame = MyAppWidgetResizeFrame(context)
     }
 
     fun fetchGridItems() {
@@ -172,19 +171,23 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         redrawGrid()
 
         val widgetView = widgetViews.firstOrNull { it.tag == resizedWidget!!.widgetId }
-        removeView(resizeWidgetFrame)
+        resize_frame.beGone()
         if (widgetView != null) {
             val viewX = widgetView.x.toInt()
             val viewY = widgetView.y.toInt()
             val frameRect = Rect(viewX, viewY, viewX + widgetView.width, viewY + widgetView.height)
-            resizeWidgetFrame.updateFrameCoords(frameRect)
-            addView(resizeWidgetFrame)
+            resize_frame.updateFrameCoords(frameRect)
+            resize_frame.beVisible()
         }
     }
 
     fun hideResizeLines() {
+        if (resizedWidget == null) {
+            return
+        }
+
         resizedWidget = null
-        removeView(resizeWidgetFrame)
+        resize_frame.beGone()
     }
 
     private fun addAppIcon() {
@@ -381,8 +384,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         widgetView.tag = appWidgetId
         widgetView.setAppWidget(appWidgetId, appWidgetProviderInfo)
         widgetView.longPressListener = { x, y ->
-            val yOffset = resources.getDimension(R.dimen.long_press_anchor_button_offset_y)
-            (context as? MainActivity)?.showHomeIconMenu(x, widgetView.y - yOffset, item, false)
+            (context as? MainActivity)?.showHomeIconMenu(x, widgetView.y, item, false)
         }
 
         widgetView.x = calculateWidgetX(item.left)

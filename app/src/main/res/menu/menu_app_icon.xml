@@ -7,6 +7,11 @@
         android:title="@string/app_info"
         app:showAsAction="always" />
     <item
+        android:id="@+id/resize"
+        android:icon="@drawable/ic_resize_vector"
+        android:title="@string/resize"
+        app:showAsAction="always" />
+    <item
         android:id="@+id/remove"
         android:icon="@drawable/ic_cross_vector"
         android:title="@string/remove"
