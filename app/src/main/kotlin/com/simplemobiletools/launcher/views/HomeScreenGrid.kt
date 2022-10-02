@@ -32,10 +32,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private var roundedCornerRadius = context.resources.getDimension(R.dimen.activity_margin)
     private var textPaint: TextPaint
     private var dragShadowCirclePaint: Paint
-    private var resizeWidgetLinePaint: Paint
     private var draggedItem: HomeScreenGridItem? = null
     private var resizedWidget: HomeScreenGridItem? = null
     private var isFirstDraw = true
+    private var resizeWidgetFrame: MyAppWidgetResizeFrame
 
     // let's use a 6x5 grid for now with 1 special row at the bottom, prefilled with default apps
     private var rowXCoords = ArrayList<Int>(COLUMN_COUNT)
@@ -68,12 +68,6 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             style = Paint.Style.STROKE
         }
 
-        resizeWidgetLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.WHITE
-            strokeWidth = context.resources.getDimension(R.dimen.tiny_margin)
-            style = Paint.Style.STROKE
-        }
-
         val sideMargin = context.resources.getDimension(R.dimen.normal_margin).toInt()
         sideMargins.apply {
             top = context.statusBarHeight
@@ -83,6 +77,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         fetchGridItems()
+        resizeWidgetFrame = MyAppWidgetResizeFrame(context)
     }
 
     fun fetchGridItems() {
@@ -175,11 +170,21 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     fun widgetLongPressed(item: HomeScreenGridItem) {
         resizedWidget = item
         redrawGrid()
+
+        val widgetView = widgetViews.firstOrNull { it.tag == resizedWidget!!.widgetId }
+        removeView(resizeWidgetFrame)
+        if (widgetView != null) {
+            val viewX = widgetView.x.toInt()
+            val viewY = widgetView.y.toInt()
+            val frameRect = Rect(viewX, viewY, viewX + widgetView.width, viewY + widgetView.height)
+            resizeWidgetFrame.updateFrameCoords(frameRect)
+            addView(resizeWidgetFrame)
+        }
     }
 
     fun hideResizeLines() {
         resizedWidget = null
-        redrawGrid()
+        removeView(resizeWidgetFrame)
     }
 
     private fun addAppIcon() {
@@ -547,15 +552,6 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                     )
                     drawable.draw(canvas)
                 }
-            }
-        }
-
-        if (resizedWidget != null) {
-            val widgetView = widgetViews.firstOrNull { it.tag == resizedWidget!!.widgetId }
-            if (widgetView != null) {
-                val viewX = widgetView.x.toInt()
-                val viewY = widgetView.y.toInt()
-                canvas.drawRect(Rect(viewX, viewY, viewX + widgetView.width, viewY + widgetView.height), resizeWidgetLinePaint)
             }
         }
 
