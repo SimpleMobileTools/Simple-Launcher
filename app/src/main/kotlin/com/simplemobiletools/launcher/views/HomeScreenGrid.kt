@@ -166,6 +166,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     fun widgetLongPressed(item: HomeScreenGridItem) {
         resizedWidget = item
         redrawGrid()
@@ -178,7 +179,15 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             val frameRect = Rect(viewX, viewY, viewX + widgetView.width, viewY + widgetView.height)
             resize_frame.updateFrameCoords(frameRect)
             resize_frame.beVisible()
+            resize_frame.onClickListener = {
+                hideResizeLines()
+            }
+
             widgetView.ignoreTouches = true
+            widgetView.setOnTouchListener { v, event ->
+                resize_frame.onTouchEvent(event)
+                return@setOnTouchListener true
+            }
         }
     }
 
@@ -188,7 +197,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         resize_frame.beGone()
-        widgetViews.firstOrNull { it.tag == resizedWidget!!.widgetId }?.ignoreTouches = false
+        widgetViews.firstOrNull { it.tag == resizedWidget!!.widgetId }?.apply {
+            ignoreTouches = false
+            setOnTouchListener(null)
+        }
         resizedWidget = null
     }
 
