@@ -20,3 +20,4 @@ const val ITEM_TYPE_SHORTCUT = 2
 
 const val WIDGET_HOST_ID = 12345
 const val MAX_ALLOWED_MOVE_PX = 10
+const val MAX_CLICK_DURATION = 150
