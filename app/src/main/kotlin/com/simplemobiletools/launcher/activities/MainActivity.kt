@@ -357,6 +357,10 @@ class MainActivity : SimpleActivity(), FlingListener {
         val yOffset = resources.getDimension(R.dimen.long_press_anchor_button_offset_y) * (visibleMenuButtons - 1)
         anchorView.y -= yOffset
 
+        if (gridItem.type == ITEM_TYPE_WIDGET) {
+            home_screen_grid.widgetLongPressed(gridItem)
+        }
+
         val contextTheme = ContextThemeWrapper(this, getPopupMenuTheme())
         return PopupMenu(contextTheme, anchorView, Gravity.TOP or Gravity.END).apply {
             setForceShowIcon(true)
@@ -377,6 +381,10 @@ class MainActivity : SimpleActivity(), FlingListener {
             setOnDismissListener {
                 mOpenPopupMenu = null
                 (all_apps_fragment as AllAppsFragment).ignoreTouches = false
+
+                if (gridItem.type == ITEM_TYPE_WIDGET) {
+                    home_screen_grid.hideResizeLines()
+                }
             }
 
             show()

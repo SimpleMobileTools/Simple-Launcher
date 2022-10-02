@@ -32,7 +32,9 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private var roundedCornerRadius = context.resources.getDimension(R.dimen.activity_margin)
     private var textPaint: TextPaint
     private var dragShadowCirclePaint: Paint
+    private var resizeWidgetLinePaint: Paint
     private var draggedItem: HomeScreenGridItem? = null
+    private var resizedWidget: HomeScreenGridItem? = null
     private var isFirstDraw = true
 
     // let's use a 6x5 grid for now with 1 special row at the bottom, prefilled with default apps
@@ -63,6 +65,12 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         dragShadowCirclePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = context.resources.getColor(R.color.light_grey_stroke)
             strokeWidth = context.resources.getDimension(R.dimen.small_margin)
+            style = Paint.Style.STROKE
+        }
+
+        resizeWidgetLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.WHITE
+            strokeWidth = context.resources.getDimension(R.dimen.tiny_margin)
             style = Paint.Style.STROKE
         }
 
@@ -162,6 +170,16 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 redrawGrid()
             }
         }
+    }
+
+    fun widgetLongPressed(item: HomeScreenGridItem) {
+        resizedWidget = item
+        redrawGrid()
+    }
+
+    fun hideResizeLines() {
+        resizedWidget = null
+        redrawGrid()
     }
 
     private fun addAppIcon() {
@@ -529,6 +547,15 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                     )
                     drawable.draw(canvas)
                 }
+            }
+        }
+
+        if (resizedWidget != null) {
+            val widgetView = widgetViews.firstOrNull { it.tag == resizedWidget!!.widgetId }
+            if (widgetView != null) {
+                val viewX = widgetView.x.toInt()
+                val viewY = widgetView.y.toInt()
+                canvas.drawRect(Rect(viewX, viewY, viewX + widgetView.width, viewY + widgetView.height), resizeWidgetLinePaint)
             }
         }
 
