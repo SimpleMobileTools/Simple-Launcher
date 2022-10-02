@@ -21,6 +21,7 @@ import android.view.animation.DecelerateInterpolator
 import android.widget.PopupMenu
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.GestureDetectorCompat
+import androidx.core.view.isVisible
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.launcher.BuildConfig
@@ -34,6 +35,7 @@ import com.simplemobiletools.launcher.interfaces.FlingListener
 import com.simplemobiletools.launcher.models.AppLauncher
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_main.view.*
 
 class MainActivity : SimpleActivity(), FlingListener {
     private val ANIMATION_DURATION = 150L
@@ -109,6 +111,8 @@ class MainActivity : SimpleActivity(), FlingListener {
             hideFragment(all_apps_fragment)
         } else if (isWidgetsFragmentExpanded()) {
             hideFragment(widgets_fragment)
+        } else if (home_screen_grid.resize_frame.isVisible) {
+            home_screen_grid.hideResizeLines()
         } else {
             super.onBackPressed()
         }
