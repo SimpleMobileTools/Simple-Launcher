@@ -244,7 +244,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
     }
 
-    private fun isAllAppsFragmentExpanded() = all_apps_fragment.y != mScreenHeight.toFloat()
+    fun isAllAppsFragmentExpanded() = all_apps_fragment.y != mScreenHeight.toFloat()
 
     private fun isWidgetsFragmentExpanded() = widgets_fragment.y != mScreenHeight.toFloat()
 
@@ -309,6 +309,10 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     fun showHomeIconMenu(x: Float, y: Float, gridItem: HomeScreenGridItem, isOnAllAppsFragment: Boolean) {
+        if (isAllAppsFragmentExpanded()) {
+            return
+        }
+
         home_screen_grid.hideResizeLines()
         mLongPressedIcon = gridItem
         val anchorY = if (isOnAllAppsFragment || gridItem.type == ITEM_TYPE_WIDGET) {

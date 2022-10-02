@@ -399,7 +399,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         widgetView.tag = appWidgetId
         widgetView.setAppWidget(appWidgetId, appWidgetProviderInfo)
         widgetView.longPressListener = { x, y ->
-            (context as? MainActivity)?.showHomeIconMenu(x, widgetView.y, item, false)
+            val activity = context as? MainActivity
+            if (activity?.isAllAppsFragmentExpanded() == false) {
+                activity.showHomeIconMenu(x, widgetView.y, item, false)
+                performHapticFeedback()
+            }
         }
 
         widgetView.onIgnoreInterceptedListener = {

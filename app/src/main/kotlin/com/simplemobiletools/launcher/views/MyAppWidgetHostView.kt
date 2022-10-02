@@ -64,7 +64,6 @@ class MyAppWidgetHostView(context: Context) : AppWidgetHostView(context) {
             longPressHandler.removeCallbacksAndMessages(null)
             hasLongPressed = true
             longPressListener?.invoke(actionDownCoords.x, actionDownCoords.y)
-            performHapticFeedback()
         }
     }
 }
