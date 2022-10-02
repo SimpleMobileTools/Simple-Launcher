@@ -14,9 +14,22 @@ class MyAppWidgetHostView(context: Context) : AppWidgetHostView(context) {
     private var actionDownCoords = PointF()
     private var currentCoords = PointF()
     var hasLongPressed = false
+    var ignoreTouches = false
     var longPressListener: ((x: Float, y: Float) -> Unit)? = null
 
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        return if (ignoreTouches) {
+            true
+        } else {
+            super.onTouchEvent(event)
+        }
+    }
+
     override fun onInterceptTouchEvent(event: MotionEvent): Boolean {
+        if (ignoreTouches) {
+            return true
+        }
+
         if (hasLongPressed) {
             hasLongPressed = false
             return true
@@ -34,7 +47,9 @@ class MyAppWidgetHostView(context: Context) : AppWidgetHostView(context) {
                 currentCoords.x = event.rawX
                 currentCoords.y = event.rawY
             }
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> longPressHandler.removeCallbacksAndMessages(null)
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                longPressHandler.removeCallbacksAndMessages(null)
+            }
         }
 
         return false

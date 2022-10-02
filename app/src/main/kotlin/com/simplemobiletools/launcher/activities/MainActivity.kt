@@ -261,6 +261,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
 
         window.navigationBarColor = resources.getColor(R.color.semitransparent_navigation)
+        home_screen_grid.fragmentExpanded()
     }
 
     private fun hideFragment(fragment: View) {
@@ -271,6 +272,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
 
         window.navigationBarColor = Color.TRANSPARENT
+        home_screen_grid.fragmentCollapsed()
     }
 
     fun homeScreenLongPressed(x: Float, y: Float) {

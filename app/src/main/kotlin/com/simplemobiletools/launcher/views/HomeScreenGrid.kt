@@ -535,6 +535,18 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         isFirstDraw = false
     }
 
+    fun fragmentExpanded() {
+        widgetViews.forEach {
+            it.ignoreTouches = true
+        }
+    }
+
+    fun fragmentCollapsed() {
+        widgetViews.forEach {
+            it.ignoreTouches = false
+        }
+    }
+
     // get the clickable area around the icon, it includes text too
     private fun getClickableRect(item: HomeScreenGridItem): Rect {
         val clickableLeft = item.left * rowWidth + sideMargins.left
