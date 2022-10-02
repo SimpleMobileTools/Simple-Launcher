@@ -10,7 +10,6 @@ import com.simplemobiletools.commons.extensions.performHapticFeedback
 import com.simplemobiletools.launcher.helpers.MAX_ALLOWED_MOVE_PX
 
 class MyAppWidgetHostView(context: Context) : AppWidgetHostView(context) {
-    private var MAX_CLICK_DURATION = 150
     private var longPressHandler = Handler()
     private var actionDownCoords = PointF()
     private var currentCoords = PointF()

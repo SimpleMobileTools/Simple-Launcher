@@ -4,4 +4,5 @@
     <dimen name="long_press_anchor_button_offset_y">50dp</dimen>
     <dimen name="widget_preview_size">140dp</dimen>
     <dimen name="icon_side_margin">10dp</dimen>
+    <dimen name="resize_frame_dot_radius">8dp</dimen>
 </resources>

@@ -15,9 +15,11 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
     constructor(context: Context, attrs: AttributeSet) : this(context, attrs, 0)
 
     private var resizeWidgetLinePaint: Paint
+    private var resizeWidgetLineDotPaint: Paint
     private var actionDownCoords = PointF()
     private var actionDownMS = 0L
     private var MAX_CLICK_DURATION = 150
+    private val lineDotRadius = context.resources.getDimension(R.dimen.resize_frame_dot_radius)
     var onClickListener: (() -> Unit)? = null
 
     init {
@@ -27,6 +29,10 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
             color = Color.WHITE
             strokeWidth = context.resources.getDimension(R.dimen.tiny_margin)
             style = Paint.Style.STROKE
+        }
+
+        resizeWidgetLineDotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.WHITE
         }
     }
 
@@ -65,7 +71,11 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         if (x != 0f || y != 0f) {
-            canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), resizeWidgetLinePaint)
+            canvas.drawRect(lineDotRadius, lineDotRadius, width.toFloat() - lineDotRadius, height.toFloat() - lineDotRadius, resizeWidgetLinePaint)
+            canvas.drawCircle(lineDotRadius, height / 2f, lineDotRadius, resizeWidgetLineDotPaint)
+            canvas.drawCircle(width / 2f, lineDotRadius, lineDotRadius, resizeWidgetLineDotPaint)
+            canvas.drawCircle(width - lineDotRadius, height / 2f, lineDotRadius, resizeWidgetLineDotPaint)
+            canvas.drawCircle(width / 2f, height - lineDotRadius, lineDotRadius, resizeWidgetLineDotPaint)
         }
     }
 }
