@@ -16,9 +16,11 @@ class MyAppWidgetHostView(context: Context) : AppWidgetHostView(context) {
     var hasLongPressed = false
     var ignoreTouches = false
     var longPressListener: ((x: Float, y: Float) -> Unit)? = null
+    var onIgnoreInterceptedListener: (() -> Unit)? = null       // let the home grid react on swallowed clicks, for example by hiding the widget resize frame
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         return if (ignoreTouches) {
+            onIgnoreInterceptedListener?.invoke()
             true
         } else {
             super.onTouchEvent(event)

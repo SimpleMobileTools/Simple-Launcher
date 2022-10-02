@@ -178,6 +178,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             val frameRect = Rect(viewX, viewY, viewX + widgetView.width, viewY + widgetView.height)
             resize_frame.updateFrameCoords(frameRect)
             resize_frame.beVisible()
+            widgetView.ignoreTouches = true
         }
     }
 
@@ -186,8 +187,9 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             return
         }
 
-        resizedWidget = null
         resize_frame.beGone()
+        widgetViews.firstOrNull { it.tag == resizedWidget!!.widgetId }?.ignoreTouches = false
+        resizedWidget = null
     }
 
     private fun addAppIcon() {
@@ -385,6 +387,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         widgetView.setAppWidget(appWidgetId, appWidgetProviderInfo)
         widgetView.longPressListener = { x, y ->
             (context as? MainActivity)?.showHomeIconMenu(x, widgetView.y, item, false)
+        }
+
+        widgetView.onIgnoreInterceptedListener = {
+            hideResizeLines()
         }
 
         widgetView.x = calculateWidgetX(item.left)
