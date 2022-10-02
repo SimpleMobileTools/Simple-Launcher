@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">Simpelt startprogram</string>
     <string name="app_launcher_name">Startprogram</string>
-    <string name="launcher_settings">Launcher Settings</string>
+    <string name="launcher_settings">Inställningar för startprogrammet</string>
     <string name="app_info">Appinformation</string>
     <string name="touch_hold_widget">Tryck länge på widgeten och dra den på startskärmen</string>
     <string name="uninstall">Avinstallera</string>
