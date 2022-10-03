@@ -177,7 +177,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             val viewX = widgetView.x.toInt()
             val viewY = widgetView.y.toInt()
             val frameRect = Rect(viewX, viewY, viewX + widgetView.width, viewY + widgetView.height)
-            resize_frame.updateFrameCoords(frameRect)
+            resize_frame.updateFrameCoords(frameRect, rowWidth, rowHeight, sideMargins)
             resize_frame.beVisible()
             resize_frame.z = 1f     // make sure the frame isnt behind the widget itself
             resize_frame.onClickListener = {

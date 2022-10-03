@@ -19,6 +19,9 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
     private var actionDownCoords = PointF()
     private var actionDownMS = 0L
     private var frameRect = Rect(0, 0, 0, 0)
+    private var rowWidth = 0
+    private var rowHeight = 0
+    private var sideMargins = Rect()
     private val lineDotRadius = context.resources.getDimension(R.dimen.resize_frame_dot_radius)
     private val MAX_TOUCH_LINE_DISTANCE = lineDotRadius * 5     // how close we have to be to the widgets side to drag it
     var onClickListener: (() -> Unit)? = null
@@ -44,8 +47,11 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
         }
     }
 
-    fun updateFrameCoords(coords: Rect) {
+    fun updateFrameCoords(coords: Rect, rowWidth: Int, rowHeight: Int, sideMargins: Rect) {
         frameRect = coords
+        this.rowWidth = rowWidth
+        this.rowHeight = rowHeight
+        this.sideMargins = sideMargins
         redrawFrame()
     }
 
@@ -96,11 +102,23 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                 } else if (System.currentTimeMillis() - actionDownMS < MAX_CLICK_DURATION) {
                     onClickListener?.invoke()
                     dragDirection = DRAGGING_NONE
+                } else {
+                    when (dragDirection) {
+                        DRAGGING_LEFT -> frameRect.left = roundToClosestMultiplyOfNumber(frameRect.left - sideMargins.left, rowWidth) + sideMargins.left
+                        DRAGGING_TOP -> frameRect.top = roundToClosestMultiplyOfNumber(frameRect.top - sideMargins.top, rowHeight) + sideMargins.top
+                        DRAGGING_RIGHT -> frameRect.right = roundToClosestMultiplyOfNumber(frameRect.right - sideMargins.left, rowWidth) + sideMargins.left
+                        DRAGGING_BOTTOM -> frameRect.bottom = roundToClosestMultiplyOfNumber(frameRect.bottom - sideMargins.top, rowHeight) + sideMargins.top
+                    }
+                    redrawFrame()
                 }
             }
         }
 
         return true
+    }
+
+    private fun roundToClosestMultiplyOfNumber(value: Int, number: Int): Int {
+        return number * (Math.round(Math.abs(value / number.toDouble()))).toInt()
     }
 
     override fun onDraw(canvas: Canvas) {
