@@ -18,6 +18,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
     private var resizeWidgetLineDotPaint: Paint
     private var actionDownCoords = PointF()
     private var actionDownMS = 0L
+    private var frameRect = Rect(0, 0, 0, 0)
     private val lineDotRadius = context.resources.getDimension(R.dimen.resize_frame_dot_radius)
     private val MAX_TOUCH_LINE_DISTANCE = lineDotRadius * 5     // how close we have to be to the widgets side to drag it
     var onClickListener: (() -> Unit)? = null
@@ -44,10 +45,15 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
     }
 
     fun updateFrameCoords(coords: Rect) {
-        layoutParams.width = coords.right - coords.left
-        layoutParams.height = coords.bottom - coords.top
-        x = coords.left.toFloat()
-        y = coords.top.toFloat()
+        frameRect = coords
+        redrawFrame()
+    }
+
+    private fun redrawFrame() {
+        layoutParams.width = frameRect.right - frameRect.left
+        layoutParams.height = frameRect.bottom - frameRect.top
+        x = frameRect.left.toFloat()
+        y = frameRect.top.toFloat()
         requestLayout()
     }
 
@@ -61,6 +67,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                 actionDownCoords.x = event.rawX
                 actionDownCoords.y = event.rawY
                 actionDownMS = System.currentTimeMillis()
+                dragDirection = DRAGGING_NONE
                 if (event.x < MAX_TOUCH_LINE_DISTANCE) {
                     dragDirection = DRAGGING_LEFT
                 } else if (event.y < MAX_TOUCH_LINE_DISTANCE) {
@@ -69,6 +76,18 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                     dragDirection = DRAGGING_RIGHT
                 } else if (event.y > height - MAX_TOUCH_LINE_DISTANCE) {
                     dragDirection = DRAGGING_BOTTOM
+                }
+            }
+            MotionEvent.ACTION_MOVE -> {
+                when (dragDirection) {
+                    DRAGGING_LEFT -> frameRect.left = event.rawX.toInt()
+                    DRAGGING_TOP -> frameRect.top = event.rawY.toInt()
+                    DRAGGING_RIGHT -> frameRect.right = event.rawX.toInt()
+                    DRAGGING_BOTTOM -> frameRect.bottom = event.rawY.toInt()
+                }
+
+                if (dragDirection != DRAGGING_NONE) {
+                    redrawFrame()
                 }
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
@@ -81,13 +100,14 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
             }
         }
 
-        return super.onTouchEvent(event)
+        return true
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         if (x != 0f || y != 0f) {
             canvas.drawRect(lineDotRadius, lineDotRadius, width.toFloat() - lineDotRadius, height.toFloat() - lineDotRadius, resizeWidgetLinePaint)
+
             canvas.drawCircle(lineDotRadius, height / 2f, lineDotRadius, resizeWidgetLineDotPaint)
             canvas.drawCircle(width / 2f, lineDotRadius, lineDotRadius, resizeWidgetLineDotPaint)
             canvas.drawCircle(width - lineDotRadius, height / 2f, lineDotRadius, resizeWidgetLineDotPaint)
