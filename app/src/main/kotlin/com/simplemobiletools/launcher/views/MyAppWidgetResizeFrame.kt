@@ -1,7 +1,7 @@
 package com.simplemobiletools.launcher.views
 
 import android.annotation.SuppressLint
-import android.appwidget.AppWidgetProviderInfo
+import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.ColorDrawable
@@ -23,13 +23,14 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
     private var resizeWidgetLineDotPaint: Paint
     private var actionDownCoords = PointF()
     private var actionDownMS = 0L
-    private var frameRect = Rect(0, 0, 0, 0)
+    private var frameRect = Rect(0, 0, 0, 0)    // coords in pixels
+    private var cellsRect = Rect(0, 0, 0, 0)    // cell IDs like 0, 1, 2..
     private var cellWidth = 0
     private var cellHeight = 0
     private var minResizeWidthCells = 1
     private var minResizeHeightCells = 1
     private val occupiedCells = ArrayList<Pair<Int, Int>>()
-    private var providerInfo: AppWidgetProviderInfo? = null
+    private var resizedItem: HomeScreenGridItem? = null
     private var sideMargins = Rect()
     private val lineDotRadius = context.resources.getDimension(R.dimen.resize_frame_dot_radius)
     private val MAX_TOUCH_LINE_DISTANCE = lineDotRadius * 5     // how close we have to be to the widgets side to drag it
@@ -61,14 +62,19 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
         cellWidth: Int,
         cellHeight: Int,
         sideMargins: Rect,
-        providerInfo: AppWidgetProviderInfo,
+        gridItem: HomeScreenGridItem,
         allGridItems: ArrayList<HomeScreenGridItem>
     ) {
         frameRect = coords
+        cellsRect = Rect(gridItem.left, gridItem.top, gridItem.right, gridItem.bottom)
         this.cellWidth = cellWidth
         this.cellHeight = cellHeight
         this.sideMargins = sideMargins
-        this.providerInfo = providerInfo
+        this.resizedItem = gridItem
+        val providerInfo = gridItem.providerInfo ?: AppWidgetManager.getInstance(context)!!.installedProviders.firstOrNull {
+            it.provider.className == gridItem.className
+        } ?: return
+
         minResizeWidthCells = Math.min(COLUMN_COUNT, context.getTileCount(providerInfo.minResizeWidth))
         minResizeHeightCells = Math.min(ROW_COUNT, context.getTileCount(providerInfo.minResizeHeight))
         redrawFrame()
@@ -89,6 +95,10 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
         x = frameRect.left.toFloat()
         y = frameRect.top.toFloat()
         requestLayout()
+    }
+
+    private fun cellChanged() {
+
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
@@ -118,11 +128,25 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                 when (dragDirection) {
                     DRAGGING_LEFT -> {
                         val newWidth = frameRect.right - event.rawX.toInt()
-                        if (newWidth >= minWidth) {
-                            frameRect.left = event.rawX.toInt()
+                        val wantedLeft = if (newWidth >= minWidth) {
+                            event.rawX.toInt()
                         } else {
-                            frameRect.left = frameRect.right - minWidth
+                            frameRect.right - minWidth
                         }
+
+                        val closestCellX = roundToClosestMultiplyOfNumber(wantedLeft - sideMargins.left, cellWidth) / cellWidth
+                        var areAllCellsFree = true
+                        for (yCell in cellsRect.top until cellsRect.bottom) {
+                            if (occupiedCells.contains(Pair(closestCellX, yCell))) {
+                                areAllCellsFree = false
+                            }
+                        }
+
+                        if (areAllCellsFree && cellsRect.left != closestCellX) {
+                            cellsRect.left = closestCellX
+                            cellChanged()
+                        }
+                        frameRect.left = wantedLeft
                     }
                     DRAGGING_TOP -> {
                         val newHeight = frameRect.bottom - event.rawY.toInt()
@@ -162,7 +186,23 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                     dragDirection = DRAGGING_NONE
                 } else {
                     when (dragDirection) {
-                        DRAGGING_LEFT -> frameRect.left = roundToClosestMultiplyOfNumber(frameRect.left - sideMargins.left, cellWidth) + sideMargins.left
+                        DRAGGING_LEFT -> {
+                            val wantedLeft = roundToClosestMultiplyOfNumber(frameRect.left - sideMargins.left, cellWidth)
+                            val wantedLeftCellX = wantedLeft / cellWidth
+                            var areAllCellsFree = true
+                            for (yCell in cellsRect.top until cellsRect.bottom) {
+                                if (occupiedCells.contains(Pair(wantedLeftCellX, yCell))) {
+                                    areAllCellsFree = false
+                                }
+                            }
+
+                            if (areAllCellsFree) {
+                                frameRect.left = wantedLeft + sideMargins.left
+                                cellsRect.left = wantedLeftCellX
+                            } else {
+                                frameRect.left = cellsRect.left * cellWidth
+                            }
+                        }
                         DRAGGING_TOP -> frameRect.top = roundToClosestMultiplyOfNumber(frameRect.top - sideMargins.top, cellHeight) + sideMargins.top
                         DRAGGING_RIGHT -> frameRect.right = roundToClosestMultiplyOfNumber(frameRect.right - sideMargins.left, cellWidth) + sideMargins.left
                         DRAGGING_BOTTOM -> frameRect.bottom = roundToClosestMultiplyOfNumber(frameRect.bottom - sideMargins.top, cellHeight) + sideMargins.top

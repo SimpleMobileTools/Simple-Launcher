@@ -177,15 +177,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         val widgetView = widgetViews.firstOrNull { it.tag == resizedWidget!!.widgetId }
         resize_frame.beGone()
         if (widgetView != null) {
-            val appWidgetProviderInfo = item.providerInfo ?: appWidgetManager!!.installedProviders.firstOrNull {
-                it.provider.className == item.className
-            } ?: return
-
             val viewX = widgetView.x.toInt()
             val viewY = widgetView.y.toInt()
             val frameRect = Rect(viewX, viewY, viewX + widgetView.width, viewY + widgetView.height)
             val otherGridItems = gridItems.filter { it.widgetId != item.widgetId }.toMutableList() as ArrayList<HomeScreenGridItem>
-            resize_frame.updateFrameCoords(frameRect, cellWidth, cellHeight, sideMargins, appWidgetProviderInfo, otherGridItems)
+            resize_frame.updateFrameCoords(frameRect, cellWidth, cellHeight, sideMargins, item, otherGridItems)
             resize_frame.beVisible()
             resize_frame.z = 1f     // make sure the frame isnt behind the widget itself
             resize_frame.onClickListener = {
