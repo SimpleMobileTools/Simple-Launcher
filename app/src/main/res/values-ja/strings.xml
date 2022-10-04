@@ -1,2 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="app_name">シンプルランチャー</string>
+    <string name="app_info">アプリ情報</string>
+    <string name="uninstall">アンインストール</string>
+    <string name="touch_hold_widget">ウィジェットを長押しして、ホーム画面にドラッグします</string>
+    <string name="app_launcher_name">ランチャー</string>
+    <string name="launcher_settings">ランチャー設定</string>
+</resources>
