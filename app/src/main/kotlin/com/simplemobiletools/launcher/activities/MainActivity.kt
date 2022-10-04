@@ -14,6 +14,7 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
 import android.provider.Telephony
 import android.telecom.TelecomManager
 import android.view.*
@@ -36,6 +37,8 @@ import com.simplemobiletools.launcher.models.AppLauncher
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.view.*
+import kotlinx.android.synthetic.main.all_apps_fragment.view.*
+import kotlinx.android.synthetic.main.widgets_fragment.view.*
 
 class MainActivity : SimpleActivity(), FlingListener {
     private val ANIMATION_DURATION = 150L
@@ -277,6 +280,13 @@ class MainActivity : SimpleActivity(), FlingListener {
 
         window.navigationBarColor = Color.TRANSPARENT
         home_screen_grid.fragmentCollapsed()
+        Handler().postDelayed({
+            if (fragment is AllAppsFragment) {
+                fragment.all_apps_grid.scrollToPosition(0)
+            } else if (fragment is WidgetsFragment) {
+                fragment.widgets_list.scrollToPosition(0)
+            }
+        }, ANIMATION_DURATION)
     }
 
     fun homeScreenLongPressed(x: Float, y: Float) {
@@ -508,7 +518,8 @@ class MainActivity : SimpleActivity(), FlingListener {
             val resolveInfo = packageManager.resolveActivity(browserIntent, PackageManager.MATCH_DEFAULT_ONLY)
             val defaultBrowserPackage = resolveInfo!!.activityInfo.packageName
             appLaunchers.firstOrNull { it.packageName == defaultBrowserPackage }?.apply {
-                val browserIcon = HomeScreenGridItem(null, 2, ROW_COUNT - 1, 3, ROW_COUNT, 1, 1, defaultBrowserPackage, title, ITEM_TYPE_ICON, "", -1, null, null)
+                val browserIcon =
+                    HomeScreenGridItem(null, 2, ROW_COUNT - 1, 3, ROW_COUNT, 1, 1, defaultBrowserPackage, title, ITEM_TYPE_ICON, "", -1, null, null)
                 homeScreenGridItems.add(browserIcon)
             }
         } catch (e: Exception) {
