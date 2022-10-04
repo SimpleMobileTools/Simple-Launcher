@@ -146,15 +146,31 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                             cellsRect.left = closestCellX
                             cellChanged()
                         }
+
                         frameRect.left = wantedLeft
                     }
                     DRAGGING_TOP -> {
                         val newHeight = frameRect.bottom - event.rawY.toInt()
-                        if (newHeight >= minHeight) {
-                            frameRect.top = event.rawY.toInt()
+                        val wantedTop = if (newHeight >= minHeight) {
+                            event.rawY.toInt()
                         } else {
-                            frameRect.top = frameRect.bottom - minHeight
+                            frameRect.bottom - minHeight
                         }
+
+                        val closestCellY = roundToClosestMultiplyOfNumber(wantedTop - sideMargins.top, cellHeight) / cellHeight
+                        var areAllCellsFree = true
+                        for (xCell in cellsRect.left until cellsRect.right) {
+                            if (occupiedCells.contains(Pair(xCell, closestCellY))) {
+                                areAllCellsFree = false
+                            }
+                        }
+
+                        if (areAllCellsFree && cellsRect.top != closestCellY) {
+                            cellsRect.top = closestCellY
+                            cellChanged()
+                        }
+
+                        frameRect.top = wantedTop
                     }
                     DRAGGING_RIGHT -> {
                         val newWidth = event.rawX.toInt() - frameRect.left
@@ -176,6 +192,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                             cellsRect.right = closestCellX
                             cellChanged()
                         }
+
                         frameRect.right = wantedRight
                     }
                     DRAGGING_BOTTOM -> {
@@ -217,7 +234,23 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                                 frameRect.left = cellsRect.left * cellWidth + sideMargins.left
                             }
                         }
-                        DRAGGING_TOP -> frameRect.top = roundToClosestMultiplyOfNumber(frameRect.top - sideMargins.top, cellHeight) + sideMargins.top
+                        DRAGGING_TOP -> {
+                            val wantedTop = roundToClosestMultiplyOfNumber(frameRect.top - sideMargins.top, cellHeight)
+                            val wantedTopCellY = wantedTop / cellHeight
+                            var areAllCellsFree = true
+                            for (xCell in cellsRect.left until cellsRect.right) {
+                                if (occupiedCells.contains(Pair(xCell, wantedTopCellY))) {
+                                    areAllCellsFree = false
+                                }
+                            }
+
+                            if (areAllCellsFree) {
+                                frameRect.top = wantedTop + sideMargins.top
+                                cellsRect.top = wantedTopCellY
+                            } else {
+                                frameRect.top = cellsRect.top * cellHeight + sideMargins.top
+                            }
+                        }
                         DRAGGING_RIGHT -> {
                             val wantedRight = roundToClosestMultiplyOfNumber(frameRect.right - sideMargins.left, cellWidth)
                             val wantedRightCellX = wantedRight / cellWidth - 1
