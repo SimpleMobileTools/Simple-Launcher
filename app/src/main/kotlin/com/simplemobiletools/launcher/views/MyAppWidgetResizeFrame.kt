@@ -200,7 +200,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                                 frameRect.left = wantedLeft + sideMargins.left
                                 cellsRect.left = wantedLeftCellX
                             } else {
-                                frameRect.left = cellsRect.left * cellWidth
+                                frameRect.left = cellsRect.left * cellWidth + sideMargins.left
                             }
                         }
                         DRAGGING_TOP -> frameRect.top = roundToClosestMultiplyOfNumber(frameRect.top - sideMargins.top, cellHeight) + sideMargins.top
