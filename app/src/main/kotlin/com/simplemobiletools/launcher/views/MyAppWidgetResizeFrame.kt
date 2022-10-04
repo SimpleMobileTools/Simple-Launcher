@@ -158,11 +158,25 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                     }
                     DRAGGING_RIGHT -> {
                         val newWidth = event.rawX.toInt() - frameRect.left
-                        if (newWidth >= minWidth) {
-                            frameRect.right = event.rawX.toInt()
+                        val wantedRight = if (newWidth >= minWidth) {
+                            event.rawX.toInt()
                         } else {
-                            frameRect.right = frameRect.left + minWidth
+                            frameRect.left + minWidth
                         }
+
+                        val closestCellX = roundToClosestMultiplyOfNumber(wantedRight - sideMargins.left, cellWidth) / cellWidth - 1
+                        var areAllCellsFree = true
+                        for (yCell in cellsRect.top until cellsRect.bottom) {
+                            if (occupiedCells.contains(Pair(closestCellX, yCell))) {
+                                areAllCellsFree = false
+                            }
+                        }
+
+                        if (areAllCellsFree && cellsRect.right != closestCellX) {
+                            cellsRect.right = closestCellX
+                            cellChanged()
+                        }
+                        frameRect.right = wantedRight
                     }
                     DRAGGING_BOTTOM -> {
                         val newHeight = event.rawY.toInt() - frameRect.top
@@ -204,7 +218,23 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                             }
                         }
                         DRAGGING_TOP -> frameRect.top = roundToClosestMultiplyOfNumber(frameRect.top - sideMargins.top, cellHeight) + sideMargins.top
-                        DRAGGING_RIGHT -> frameRect.right = roundToClosestMultiplyOfNumber(frameRect.right - sideMargins.left, cellWidth) + sideMargins.left
+                        DRAGGING_RIGHT -> {
+                            val wantedRight = roundToClosestMultiplyOfNumber(frameRect.right - sideMargins.left, cellWidth)
+                            val wantedRightCellX = wantedRight / cellWidth - 1
+                            var areAllCellsFree = true
+                            for (yCell in cellsRect.top until cellsRect.bottom) {
+                                if (occupiedCells.contains(Pair(wantedRightCellX, yCell))) {
+                                    areAllCellsFree = false
+                                }
+                            }
+
+                            if (areAllCellsFree) {
+                                frameRect.right = wantedRight + sideMargins.left
+                                cellsRect.right = wantedRightCellX
+                            } else {
+                                frameRect.right = (cellsRect.right + 1) * cellWidth + sideMargins.left
+                            }
+                        }
                         DRAGGING_BOTTOM -> frameRect.bottom = roundToClosestMultiplyOfNumber(frameRect.bottom - sideMargins.top, cellHeight) + sideMargins.top
                     }
                     redrawFrame()
