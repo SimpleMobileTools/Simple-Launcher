@@ -20,8 +20,8 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
     private var actionDownCoords = PointF()
     private var actionDownMS = 0L
     private var frameRect = Rect(0, 0, 0, 0)
-    private var rowWidth = 0
-    private var rowHeight = 0
+    private var cellWidth = 0
+    private var cellHeight = 0
     private var providerInfo: AppWidgetProviderInfo? = null
     private var sideMargins = Rect()
     private val lineDotRadius = context.resources.getDimension(R.dimen.resize_frame_dot_radius)
@@ -49,10 +49,10 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
         }
     }
 
-    fun updateFrameCoords(coords: Rect, rowWidth: Int, rowHeight: Int, sideMargins: Rect, providerInfo: AppWidgetProviderInfo?) {
+    fun updateFrameCoords(coords: Rect, cellWidth: Int, cellHeight: Int, sideMargins: Rect, providerInfo: AppWidgetProviderInfo?) {
         frameRect = coords
-        this.rowWidth = rowWidth
-        this.rowHeight = rowHeight
+        this.cellWidth = cellWidth
+        this.cellHeight = cellHeight
         this.sideMargins = sideMargins
         this.providerInfo = providerInfo
         redrawFrame()
@@ -107,10 +107,10 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                     dragDirection = DRAGGING_NONE
                 } else {
                     when (dragDirection) {
-                        DRAGGING_LEFT -> frameRect.left = roundToClosestMultiplyOfNumber(frameRect.left - sideMargins.left, rowWidth) + sideMargins.left
-                        DRAGGING_TOP -> frameRect.top = roundToClosestMultiplyOfNumber(frameRect.top - sideMargins.top, rowHeight) + sideMargins.top
-                        DRAGGING_RIGHT -> frameRect.right = roundToClosestMultiplyOfNumber(frameRect.right - sideMargins.left, rowWidth) + sideMargins.left
-                        DRAGGING_BOTTOM -> frameRect.bottom = roundToClosestMultiplyOfNumber(frameRect.bottom - sideMargins.top, rowHeight) + sideMargins.top
+                        DRAGGING_LEFT -> frameRect.left = roundToClosestMultiplyOfNumber(frameRect.left - sideMargins.left, cellWidth) + sideMargins.left
+                        DRAGGING_TOP -> frameRect.top = roundToClosestMultiplyOfNumber(frameRect.top - sideMargins.top, cellHeight) + sideMargins.top
+                        DRAGGING_RIGHT -> frameRect.right = roundToClosestMultiplyOfNumber(frameRect.right - sideMargins.left, cellWidth) + sideMargins.left
+                        DRAGGING_BOTTOM -> frameRect.bottom = roundToClosestMultiplyOfNumber(frameRect.bottom - sideMargins.top, cellHeight) + sideMargins.top
                     }
                     redrawFrame()
                 }
