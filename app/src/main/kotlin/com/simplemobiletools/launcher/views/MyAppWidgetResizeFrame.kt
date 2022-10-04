@@ -203,11 +203,28 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                     }
                     DRAGGING_BOTTOM -> {
                         val newHeight = event.rawY.toInt() - frameRect.top
-                        if (newHeight >= minHeight) {
-                            frameRect.bottom = event.rawY.toInt()
+                        val wantedBottom = if (newHeight >= minHeight) {
+                            event.rawY.toInt()
                         } else {
-                            frameRect.bottom = frameRect.top + minHeight
+                            frameRect.top + minHeight
                         }
+
+                        val closestCellY = roundToClosestMultiplyOfNumber(wantedBottom - sideMargins.top, cellHeight) / cellHeight - 1
+                        var areAllCellsFree = true
+                        for (xCell in cellsRect.left until cellsRect.right) {
+                            for (yCell in cellsRect.top until closestCellY + 1) {
+                                if (occupiedCells.contains(Pair(xCell, yCell))) {
+                                    areAllCellsFree = false
+                                }
+                            }
+                        }
+
+                        if (areAllCellsFree && cellsRect.bottom != closestCellY) {
+                            cellsRect.bottom = closestCellY
+                            cellChanged()
+                        }
+
+                        frameRect.bottom = wantedBottom
                     }
                 }
 
@@ -280,7 +297,25 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                                 frameRect.right = (cellsRect.right + 1) * cellWidth + sideMargins.left
                             }
                         }
-                        DRAGGING_BOTTOM -> frameRect.bottom = roundToClosestMultiplyOfNumber(frameRect.bottom - sideMargins.top, cellHeight) + sideMargins.top
+                        DRAGGING_BOTTOM -> {
+                            val wantedBottom = roundToClosestMultiplyOfNumber(frameRect.bottom - sideMargins.top, cellHeight)
+                            val wantedBottomCellY = wantedBottom / cellHeight - 1
+                            var areAllCellsFree = true
+                            for (xCell in cellsRect.left until cellsRect.right) {
+                                for (yCell in cellsRect.top until wantedBottomCellY + 1) {
+                                    if (occupiedCells.contains(Pair(xCell, yCell))) {
+                                        areAllCellsFree = false
+                                    }
+                                }
+                            }
+
+                            if (areAllCellsFree) {
+                                frameRect.bottom = wantedBottom + sideMargins.top
+                                cellsRect.bottom = wantedBottomCellY
+                            } else {
+                                frameRect.bottom = (cellsRect.bottom + 1) * cellHeight + sideMargins.top
+                            }
+                        }
                     }
                     redrawFrame()
                 }
