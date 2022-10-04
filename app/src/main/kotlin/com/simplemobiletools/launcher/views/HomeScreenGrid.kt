@@ -188,6 +188,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 hideResizeLines()
             }
 
+            resize_frame.onResizeListener = { cellsRect ->
+
+            }
+
             widgetView.ignoreTouches = true
             widgetView.setOnTouchListener { v, event ->
                 resize_frame.onTouchEvent(event)

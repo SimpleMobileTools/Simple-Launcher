@@ -35,6 +35,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
     private val lineDotRadius = context.resources.getDimension(R.dimen.resize_frame_dot_radius)
     private val MAX_TOUCH_LINE_DISTANCE = lineDotRadius * 5     // how close we have to be to the widgets side to drag it
     var onClickListener: (() -> Unit)? = null
+    var onResizeListener: ((cellsRect: Rect) -> Unit)? = null
 
     private val DRAGGING_NONE = 0
     private val DRAGGING_LEFT = 1
@@ -66,7 +67,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
         allGridItems: ArrayList<HomeScreenGridItem>
     ) {
         frameRect = coords
-        cellsRect = Rect(gridItem.left, gridItem.top, gridItem.right, gridItem.bottom)
+        cellsRect = Rect(gridItem.left, gridItem.top, gridItem.right - 1, gridItem.bottom - 1)
         this.cellWidth = cellWidth
         this.cellHeight = cellHeight
         this.sideMargins = sideMargins
@@ -98,7 +99,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
     }
 
     private fun cellChanged() {
-
+        onResizeListener?.invoke(cellsRect)
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
