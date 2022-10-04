@@ -95,11 +95,41 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                 }
             }
             MotionEvent.ACTION_MOVE -> {
+                val minWidth = minResizeWidthCells * cellWidth
+                val minHeight = minResizeHeightCells * cellHeight
                 when (dragDirection) {
-                    DRAGGING_LEFT -> frameRect.left = event.rawX.toInt()
-                    DRAGGING_TOP -> frameRect.top = event.rawY.toInt()
-                    DRAGGING_RIGHT -> frameRect.right = event.rawX.toInt()
-                    DRAGGING_BOTTOM -> frameRect.bottom = event.rawY.toInt()
+                    DRAGGING_LEFT -> {
+                        val newWidth = frameRect.right - event.rawX.toInt()
+                        if (newWidth >= minWidth) {
+                            frameRect.left = event.rawX.toInt()
+                        } else {
+                            frameRect.left = frameRect.right - minWidth
+                        }
+                    }
+                    DRAGGING_TOP -> {
+                        val newHeight = frameRect.bottom - event.rawY.toInt()
+                        if (newHeight >= minHeight) {
+                            frameRect.top = event.rawY.toInt()
+                        } else {
+                            frameRect.top = frameRect.bottom - minHeight
+                        }
+                    }
+                    DRAGGING_RIGHT -> {
+                        val newWidth = event.rawX.toInt() - frameRect.left
+                        if (newWidth >= minWidth) {
+                            frameRect.right = event.rawX.toInt()
+                        } else {
+                            frameRect.right = frameRect.left + minWidth
+                        }
+                    }
+                    DRAGGING_BOTTOM -> {
+                        val newHeight = event.rawY.toInt() - frameRect.top
+                        if (newHeight >= minHeight) {
+                            frameRect.bottom = event.rawY.toInt()
+                        } else {
+                            frameRect.bottom = frameRect.top + minHeight
+                        }
+                    }
                 }
 
                 if (dragDirection != DRAGGING_NONE) {
