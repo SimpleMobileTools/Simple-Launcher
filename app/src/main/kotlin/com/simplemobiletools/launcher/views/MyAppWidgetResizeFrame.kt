@@ -1,6 +1,7 @@
 package com.simplemobiletools.launcher.views
 
 import android.annotation.SuppressLint
+import android.appwidget.AppWidgetProviderInfo
 import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.ColorDrawable
@@ -21,6 +22,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
     private var frameRect = Rect(0, 0, 0, 0)
     private var rowWidth = 0
     private var rowHeight = 0
+    private var providerInfo: AppWidgetProviderInfo? = null
     private var sideMargins = Rect()
     private val lineDotRadius = context.resources.getDimension(R.dimen.resize_frame_dot_radius)
     private val MAX_TOUCH_LINE_DISTANCE = lineDotRadius * 5     // how close we have to be to the widgets side to drag it
@@ -47,11 +49,12 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
         }
     }
 
-    fun updateFrameCoords(coords: Rect, rowWidth: Int, rowHeight: Int, sideMargins: Rect) {
+    fun updateFrameCoords(coords: Rect, rowWidth: Int, rowHeight: Int, sideMargins: Rect, providerInfo: AppWidgetProviderInfo?) {
         frameRect = coords
         this.rowWidth = rowWidth
         this.rowHeight = rowHeight
         this.sideMargins = sideMargins
+        this.providerInfo = providerInfo
         redrawFrame()
     }
 

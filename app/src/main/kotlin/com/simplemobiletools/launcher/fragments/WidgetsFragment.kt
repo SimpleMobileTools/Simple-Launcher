@@ -96,7 +96,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
                 val widthCells = Math.min(COLUMN_COUNT, getTileCount(info.minWidth))
                 val heightCells = Math.min(ROW_COUNT, getTileCount(info.minHeight))
                 val className = info.provider.className
-                val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, widgetPreviewImage, widthCells, heightCells, false, className)
+                val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, widgetPreviewImage, widthCells, heightCells, false, className, info)
                 appWidgets.add(widget)
             }
 
@@ -111,7 +111,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
                 val appIcon = appMetadata.appIcon
                 val widgetTitle = info.loadLabel(packageManager).toString()
                 val widgetPreviewImage = packageManager.getDrawable(componentInfo.packageName, info.iconResource, componentInfo)
-                val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, widgetPreviewImage, 0, 0, true, "")
+                val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, widgetPreviewImage, 0, 0, true, "", null)
                 appWidgets.add(widget)
             }
 
@@ -241,7 +241,8 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             type,
             appWidget.className,
             -1,
-            appWidget.widgetPreviewImage
+            appWidget.widgetPreviewImage,
+            appWidget.providerInfo
         )
 
         activity?.widgetLongPressedOnList(gridItem)

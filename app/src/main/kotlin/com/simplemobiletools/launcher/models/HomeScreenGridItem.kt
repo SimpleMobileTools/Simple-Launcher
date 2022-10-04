@@ -1,5 +1,6 @@
 package com.simplemobiletools.launcher.models
 
+import android.appwidget.AppWidgetProviderInfo
 import android.graphics.drawable.Drawable
 import androidx.room.*
 import com.simplemobiletools.launcher.helpers.ITEM_TYPE_ICON
@@ -20,7 +21,8 @@ data class HomeScreenGridItem(
     @ColumnInfo(name = "class_name") var className: String,
     @ColumnInfo(name = "widget_id") var widgetId: Int,
 
-    @Ignore var drawable: Drawable?
+    @Ignore var drawable: Drawable?,
+    @Ignore var providerInfo: AppWidgetProviderInfo?
 ) {
-    constructor() : this(null, -1, -1, -1, -1, 1, 1, "", "", ITEM_TYPE_ICON, "", -1, null)
+    constructor() : this(null, -1, -1, -1, -1, 1, 1, "", "", ITEM_TYPE_ICON, "", -1, null, null)
 }

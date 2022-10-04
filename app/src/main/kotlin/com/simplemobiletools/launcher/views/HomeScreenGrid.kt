@@ -81,11 +81,14 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     fun fetchGridItems() {
         ensureBackgroundThread {
+            val providers = appWidgetManager.installedProviders
             gridItems = context.homeScreenGridItemsDB.getAllItems() as ArrayList<HomeScreenGridItem>
             gridItems.forEach { item ->
                 if (item.type == ITEM_TYPE_ICON) {
                     item.drawable = context.getDrawableForPackageName(item.packageName)
                 }
+
+                item.providerInfo = providers.firstOrNull { it.provider.className == item.className }
             }
 
             redrawGrid()
@@ -174,10 +177,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         val widgetView = widgetViews.firstOrNull { it.tag == resizedWidget!!.widgetId }
         resize_frame.beGone()
         if (widgetView != null) {
+            val appWidgetProviderInfo = item.providerInfo ?: appWidgetManager!!.installedProviders.firstOrNull { it.provider.className == item.className }
             val viewX = widgetView.x.toInt()
             val viewY = widgetView.y.toInt()
             val frameRect = Rect(viewX, viewY, viewX + widgetView.width, viewY + widgetView.height)
-            resize_frame.updateFrameCoords(frameRect, rowWidth, rowHeight, sideMargins)
+            resize_frame.updateFrameCoords(frameRect, rowWidth, rowHeight, sideMargins, appWidgetProviderInfo)
             resize_frame.beVisible()
             resize_frame.z = 1f     // make sure the frame isnt behind the widget itself
             resize_frame.onClickListener = {
@@ -263,7 +267,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         draggedItem!!.type,
                         "",
                         -1,
-                        draggedItem!!.drawable
+                        draggedItem!!.drawable,
+                        draggedItem!!.providerInfo
                     )
 
                     ensureBackgroundThread {
@@ -368,8 +373,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     private fun bindWidget(item: HomeScreenGridItem, isInitialDrawAfterLaunch: Boolean) {
         val activity = context as MainActivity
-        val infoList = appWidgetManager!!.installedProviders
-        val appWidgetProviderInfo = infoList.firstOrNull { it.provider.className == item.className }
+        val appWidgetProviderInfo = item.providerInfo ?: appWidgetManager!!.installedProviders.firstOrNull { it.provider.className == item.className }
         if (appWidgetProviderInfo != null) {
             val appWidgetId = appWidgetHost.allocateAppWidgetId()
             activity.handleWidgetBinding(appWidgetManager, appWidgetId, appWidgetProviderInfo) { canBind ->
