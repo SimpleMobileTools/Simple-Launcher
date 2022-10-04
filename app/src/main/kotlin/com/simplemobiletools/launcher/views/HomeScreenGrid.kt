@@ -177,7 +177,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         val widgetView = widgetViews.firstOrNull { it.tag == resizedWidget!!.widgetId }
         resize_frame.beGone()
         if (widgetView != null) {
-            val appWidgetProviderInfo = item.providerInfo ?: appWidgetManager!!.installedProviders.firstOrNull { it.provider.className == item.className }
+            val appWidgetProviderInfo = item.providerInfo ?: appWidgetManager!!.installedProviders.firstOrNull {
+                it.provider.className == item.className
+            } ?: return
+
             val viewX = widgetView.x.toInt()
             val viewY = widgetView.y.toInt()
             val frameRect = Rect(viewX, viewY, viewX + widgetView.width, viewY + widgetView.height)

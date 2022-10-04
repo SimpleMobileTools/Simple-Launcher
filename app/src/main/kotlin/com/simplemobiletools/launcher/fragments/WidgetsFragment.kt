@@ -16,6 +16,7 @@ import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.isRPlus
 import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.adapters.WidgetsAdapter
+import com.simplemobiletools.launcher.extensions.getTileCount
 import com.simplemobiletools.launcher.helpers.COLUMN_COUNT
 import com.simplemobiletools.launcher.helpers.ITEM_TYPE_SHORTCUT
 import com.simplemobiletools.launcher.helpers.ITEM_TYPE_WIDGET
@@ -93,8 +94,8 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
                 val appIcon = appMetadata.appIcon
                 val widgetTitle = info.loadLabel(packageManager)
                 val widgetPreviewImage = info.loadPreviewImage(context, resources.displayMetrics.densityDpi) ?: appIcon
-                val widthCells = Math.min(COLUMN_COUNT, getTileCount(info.minWidth))
-                val heightCells = Math.min(ROW_COUNT, getTileCount(info.minHeight))
+                val widthCells = Math.min(COLUMN_COUNT, context.getTileCount(info.minWidth))
+                val heightCells = Math.min(ROW_COUNT, context.getTileCount(info.minHeight))
                 val className = info.provider.className
                 val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, widgetPreviewImage, widthCells, heightCells, false, className, info)
                 appWidgets.add(widget)
@@ -118,11 +119,6 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             appWidgets = appWidgets.sortedWith(compareBy({ it.appTitle }, { it.widgetTitle })).toMutableList() as ArrayList<AppWidget>
             splitWidgetsByApps(appWidgets)
         }
-    }
-
-    private fun getTileCount(size: Int): Int {
-        val tiles = Math.ceil(((size / resources.displayMetrics.density) - 30) / 70.0).toInt()
-        return Math.max(tiles, 1)
     }
 
     private fun splitWidgetsByApps(appWidgets: ArrayList<AppWidget>) {

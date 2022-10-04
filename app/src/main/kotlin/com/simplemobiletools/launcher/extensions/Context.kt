@@ -46,3 +46,8 @@ fun Context.getDrawableForPackageName(packageName: String): Drawable? {
 
     return drawable
 }
+
+fun Context.getTileCount(size: Int): Int {
+    val tiles = Math.ceil(((size / resources.displayMetrics.density) - 30) / 70.0).toInt()
+    return Math.max(tiles, 1)
+}
