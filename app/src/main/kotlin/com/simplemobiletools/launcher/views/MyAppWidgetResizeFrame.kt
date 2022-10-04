@@ -13,6 +13,7 @@ import com.simplemobiletools.launcher.extensions.getTileCount
 import com.simplemobiletools.launcher.helpers.COLUMN_COUNT
 import com.simplemobiletools.launcher.helpers.MAX_CLICK_DURATION
 import com.simplemobiletools.launcher.helpers.ROW_COUNT
+import com.simplemobiletools.launcher.models.HomeScreenGridItem
 
 @SuppressLint("ViewConstructor")
 class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: Int) : RelativeLayout(context, attrs, defStyle) {
@@ -27,6 +28,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
     private var cellHeight = 0
     private var minResizeWidthCells = 1
     private var minResizeHeightCells = 1
+    private val occupiedCells = ArrayList<Pair<Int, Int>>()
     private var providerInfo: AppWidgetProviderInfo? = null
     private var sideMargins = Rect()
     private val lineDotRadius = context.resources.getDimension(R.dimen.resize_frame_dot_radius)
@@ -54,7 +56,14 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
         }
     }
 
-    fun updateFrameCoords(coords: Rect, cellWidth: Int, cellHeight: Int, sideMargins: Rect, providerInfo: AppWidgetProviderInfo) {
+    fun updateFrameCoords(
+        coords: Rect,
+        cellWidth: Int,
+        cellHeight: Int,
+        sideMargins: Rect,
+        providerInfo: AppWidgetProviderInfo,
+        allGridItems: ArrayList<HomeScreenGridItem>
+    ) {
         frameRect = coords
         this.cellWidth = cellWidth
         this.cellHeight = cellHeight
@@ -63,6 +72,15 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
         minResizeWidthCells = Math.min(COLUMN_COUNT, context.getTileCount(providerInfo.minResizeWidth))
         minResizeHeightCells = Math.min(ROW_COUNT, context.getTileCount(providerInfo.minResizeHeight))
         redrawFrame()
+
+        occupiedCells.clear()
+        allGridItems.forEach { item ->
+            for (xCell in item.left until item.right) {
+                for (yCell in item.top until item.bottom) {
+                    occupiedCells.add(Pair(xCell, yCell))
+                }
+            }
+        }
     }
 
     private fun redrawFrame() {
