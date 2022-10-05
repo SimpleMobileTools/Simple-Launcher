@@ -1,6 +1,7 @@
 package com.simplemobiletools.launcher.views
 
 import android.annotation.SuppressLint
+import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProviderInfo
 import android.content.Context
@@ -11,6 +12,7 @@ import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.TextUtils
 import android.util.AttributeSet
+import android.util.Size
 import android.util.SizeF
 import android.widget.RelativeLayout
 import androidx.core.graphics.drawable.toDrawable
@@ -189,11 +191,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             }
 
             resize_frame.onResizeListener = { cellsRect ->
-                val minWidth = (cellsRect.width() + 1) * cellWidth
-                val minHeight = (cellsRect.height() + 1) * cellHeight
-                widgetView.updateAppWidgetSize(Bundle(), minWidth, minHeight, minWidth, minHeight)
-                widgetView.layoutParams.width = minWidth
-                widgetView.layoutParams.height = minHeight
+                item.left = cellsRect.left
+                item.top = cellsRect.top
+                item.right = cellsRect.right
+                item.bottom = cellsRect.bottom
+                updateWidgetPositionAndSize(widgetView, item)
                 ensureBackgroundThread {
                     context.homeScreenGridItemsDB.updateItemPosition(cellsRect.left, cellsRect.top, cellsRect.right, cellsRect.bottom, item.id!!)
                 }
@@ -423,27 +425,31 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             hideResizeLines()
         }
 
-        widgetView.x = calculateWidgetX(item.left)
-        widgetView.y = calculateWidgetY(item.top)
-        val widgetWidth = item.getWidthInCells() * cellWidth
-        val widgetHeight = item.getHeightInCells() * cellHeight
-
-        // set initial sizes to avoid some glitches
-        if (isSPlus()) {
-            val sizes = listOf(SizeF(widgetWidth.toFloat(), widgetHeight.toFloat()))
-            widgetView.updateAppWidgetSize(Bundle(), sizes)
-        } else {
-            val minWidth = appWidgetProviderInfo.minWidth
-            val minHeight = appWidgetProviderInfo.minHeight
-            widgetView.updateAppWidgetSize(Bundle(), minWidth, minHeight, minWidth, minHeight)
-        }
-
-        addView(widgetView, widgetWidth, widgetHeight)
+        val widgetSize = updateWidgetPositionAndSize(widgetView, item)
+        addView(widgetView, widgetSize.width, widgetSize.height)
         widgetViews.add(widgetView)
 
         // remove the drawable so that it gets refreshed on long press
         item.drawable = null
         gridItems.add(item)
+    }
+
+    private fun updateWidgetPositionAndSize(widgetView: AppWidgetHostView, item: HomeScreenGridItem): Size {
+        widgetView.x = calculateWidgetX(item.left)
+        widgetView.y = calculateWidgetY(item.top)
+        val widgetWidth = item.getWidthInCells() * cellWidth
+        val widgetHeight = item.getHeightInCells() * cellHeight
+
+        if (isSPlus()) {
+            val sizes = listOf(SizeF(widgetWidth.toFloat(), widgetHeight.toFloat()))
+            widgetView.updateAppWidgetSize(Bundle(), sizes)
+        } else {
+            widgetView.updateAppWidgetSize(Bundle(), widgetWidth, widgetHeight, widgetWidth, widgetHeight)
+            widgetView.layoutParams?.width = widgetWidth
+            widgetView.layoutParams?.height = widgetHeight
+        }
+
+        return Size(widgetWidth, widgetHeight)
     }
 
     private fun calculateWidgetX(leftCell: Int) = leftCell * cellWidth + sideMargins.left.toFloat()
