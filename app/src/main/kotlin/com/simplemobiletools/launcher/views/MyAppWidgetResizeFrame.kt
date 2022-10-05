@@ -67,7 +67,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
         allGridItems: ArrayList<HomeScreenGridItem>
     ) {
         frameRect = coords
-        cellsRect = Rect(gridItem.left, gridItem.top, gridItem.right - 1, gridItem.bottom - 1)
+        cellsRect = Rect(gridItem.left, gridItem.top, gridItem.right, gridItem.bottom)
         this.cellWidth = cellWidth
         this.cellHeight = cellHeight
         this.sideMargins = sideMargins
@@ -187,7 +187,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
 
                         val closestCellX = roundToClosestMultiplyOfNumber(wantedRight - sideMargins.left, cellWidth) / cellWidth - 1
                         var areAllCellsFree = true
-                        for (xCell in cellsRect.left..closestCellX + 1) {
+                        for (xCell in cellsRect.left..closestCellX) {
                             for (yCell in cellsRect.top..cellsRect.bottom) {
                                 if (occupiedCells.contains(Pair(xCell, yCell))) {
                                     areAllCellsFree = false
@@ -213,7 +213,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                         val closestCellY = roundToClosestMultiplyOfNumber(wantedBottom - sideMargins.top, cellHeight) / cellHeight - 1
                         var areAllCellsFree = true
                         for (xCell in cellsRect.left..cellsRect.right) {
-                            for (yCell in cellsRect.top..closestCellY + 1) {
+                            for (yCell in cellsRect.top..closestCellY) {
                                 if (occupiedCells.contains(Pair(xCell, yCell))) {
                                     areAllCellsFree = false
                                 }

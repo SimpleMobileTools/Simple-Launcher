@@ -17,7 +17,6 @@ import androidx.core.graphics.drawable.toDrawable
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.isSPlus
-import com.simplemobiletools.commons.helpers.mydebug
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.extensions.getDrawableForPackageName
@@ -190,7 +189,6 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             }
 
             resize_frame.onResizeListener = { cellsRect ->
-                mydebug("resized to $cellsRect")
                 val minWidth = (cellsRect.width() + 1) * cellWidth
                 val minHeight = (cellsRect.height() + 1) * cellHeight
                 widgetView.updateAppWidgetSize(Bundle(), minWidth, minHeight, minWidth, minHeight)
@@ -237,8 +235,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             var areAllCellsEmpty = true
             val wantedCell = Pair(xIndex, yIndex)
             gridItems.forEach { item ->
-                for (xCell in item.left .. item.right) {
-                    for (yCell in item.top .. item.bottom) {
+                for (xCell in item.left..item.right) {
+                    for (yCell in item.top..item.bottom) {
                         val cell = Pair(xCell, yCell)
                         val isAnyCellOccupied = wantedCell == cell
                         if (isAnyCellOccupied) {
@@ -311,16 +309,16 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         if (gridCells != null) {
             val widgetRect = getWidgetOccupiedRect(gridCells)
             val widgetTargetCells = ArrayList<Pair<Int, Int>>()
-            for (xCell in widgetRect.left .. widgetRect.right) {
-                for (yCell in widgetRect.top .. widgetRect.bottom) {
+            for (xCell in widgetRect.left..widgetRect.right) {
+                for (yCell in widgetRect.top..widgetRect.bottom) {
                     widgetTargetCells.add(Pair(xCell, yCell))
                 }
             }
 
             var areAllCellsEmpty = true
             gridItems.filter { it.id != draggedItem?.id }.forEach { item ->
-                for (xCell in item.left .. item.right) {
-                    for (yCell in item.top .. item.bottom) {
+                for (xCell in item.left..item.right) {
+                    for (yCell in item.top..item.bottom) {
                         val cell = Pair(xCell, yCell)
                         val isAnyCellOccupied = widgetTargetCells.contains(cell)
                         if (isAnyCellOccupied) {
@@ -620,7 +618,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     // drag the center of the widget, not the top left corner
     private fun getWidgetOccupiedRect(item: Pair<Int, Int>): Rect {
         val left = item.first - Math.floor((draggedItem!!.getWidthInCells() - 1) / 2.0).toInt()
-        val rect = Rect(left, item.second, left + draggedItem!!.getWidthInCells(), item.second + draggedItem!!.getHeightInCells())
+        val rect = Rect(left, item.second, left + draggedItem!!.getWidthInCells() - 1, item.second + draggedItem!!.getHeightInCells() - 1)
         if (rect.left < 0) {
             rect.right -= rect.left
             rect.left = 0
