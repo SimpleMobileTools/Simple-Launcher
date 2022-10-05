@@ -28,8 +28,8 @@ class MyAppWidgetHostView(context: Context) : AppWidgetHostView(context) {
         }
     }
 
-    override fun onInterceptTouchEvent(event: MotionEvent): Boolean {
-        if (ignoreTouches) {
+    override fun onInterceptTouchEvent(event: MotionEvent?): Boolean {
+        if (ignoreTouches || event == null) {
             return true
         }
 

@@ -51,7 +51,11 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
         setupAdapter(launchers)
     }
 
-    override fun onInterceptTouchEvent(event: MotionEvent): Boolean {
+    override fun onInterceptTouchEvent(event: MotionEvent?): Boolean {
+        if (event == null) {
+            return super.onInterceptTouchEvent(event)
+        }
+
         if (ignoreTouches) {
             // some devices ACTION_MOVE keeps triggering for the whole long press duration, but we are interested in real moves only, when coords change
             if (lastTouchCoords.first != event.x || lastTouchCoords.second != event.y) {
