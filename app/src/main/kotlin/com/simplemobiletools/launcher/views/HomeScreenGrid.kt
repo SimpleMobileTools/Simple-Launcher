@@ -628,15 +628,15 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         if (rect.left < 0) {
             rect.right -= rect.left
             rect.left = 0
-        } else if (rect.right > COLUMN_COUNT) {
-            val diff = rect.right - COLUMN_COUNT
+        } else if (rect.right > COLUMN_COUNT - 1) {
+            val diff = rect.right - COLUMN_COUNT + 1
             rect.right -= diff
             rect.left -= diff
         }
 
         // do not allow placing widgets at the bottom row, that is for pinned default apps
-        if (rect.bottom >= ROW_COUNT) {
-            val diff = rect.bottom - ROW_COUNT + 1
+        if (rect.bottom >= ROW_COUNT - 1) {
+            val diff = rect.bottom - ROW_COUNT + 2
             rect.bottom -= diff
             rect.top -= diff
         }
