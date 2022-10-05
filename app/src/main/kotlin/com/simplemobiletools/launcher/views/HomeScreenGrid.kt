@@ -445,10 +445,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             widgetView.updateAppWidgetSize(Bundle(), sizes)
         } else {
             widgetView.updateAppWidgetSize(Bundle(), widgetWidth, widgetHeight, widgetWidth, widgetHeight)
-            widgetView.layoutParams?.width = widgetWidth
-            widgetView.layoutParams?.height = widgetHeight
         }
 
+        widgetView.layoutParams?.width = widgetWidth
+        widgetView.layoutParams?.height = widgetHeight
         return Size(widgetWidth, widgetHeight)
     }
 
