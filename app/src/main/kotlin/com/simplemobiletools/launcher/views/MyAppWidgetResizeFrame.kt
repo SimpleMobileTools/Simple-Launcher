@@ -135,18 +135,19 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                             frameRect.right - minWidth
                         }
 
-                        val closestCellX = roundToClosestMultiplyOfNumber(wantedLeft - sideMargins.left, cellWidth) / cellWidth
+                        val wantedLeftCellX = roundToClosestMultiplyOfNumber(wantedLeft - sideMargins.left, cellWidth) / cellWidth
                         var areAllCellsFree = true
-                        for (xCell in closestCellX..cellsRect.right) {
+                        for (xCell in wantedLeftCellX..cellsRect.right) {
                             for (yCell in cellsRect.top..cellsRect.bottom) {
                                 if (occupiedCells.contains(Pair(xCell, yCell))) {
                                     areAllCellsFree = false
+                                    break
                                 }
                             }
                         }
 
-                        if (areAllCellsFree && cellsRect.left != closestCellX) {
-                            cellsRect.left = closestCellX
+                        if (areAllCellsFree && cellsRect.left != wantedLeftCellX) {
+                            cellsRect.left = wantedLeftCellX
                             cellChanged()
                         }
 
@@ -160,18 +161,19 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                             frameRect.bottom - minHeight
                         }
 
-                        val closestCellY = roundToClosestMultiplyOfNumber(wantedTop - sideMargins.top, cellHeight) / cellHeight
+                        val wantedTopCellY = roundToClosestMultiplyOfNumber(wantedTop - sideMargins.top, cellHeight) / cellHeight
                         var areAllCellsFree = true
                         for (xCell in cellsRect.left..cellsRect.right) {
-                            for (yCell in closestCellY..cellsRect.bottom) {
+                            for (yCell in wantedTopCellY..cellsRect.bottom) {
                                 if (occupiedCells.contains(Pair(xCell, yCell))) {
                                     areAllCellsFree = false
+                                    break
                                 }
                             }
                         }
 
-                        if (areAllCellsFree && cellsRect.top != closestCellY) {
-                            cellsRect.top = closestCellY
+                        if (areAllCellsFree && cellsRect.top != wantedTopCellY) {
+                            cellsRect.top = wantedTopCellY
                             cellChanged()
                         }
 
@@ -185,18 +187,19 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                             frameRect.left + minWidth
                         }
 
-                        val closestCellX = roundToClosestMultiplyOfNumber(wantedRight - sideMargins.left, cellWidth) / cellWidth - 1
+                        val wantedRightCellX = roundToClosestMultiplyOfNumber(wantedRight - sideMargins.left, cellWidth) / cellWidth - 1
                         var areAllCellsFree = true
-                        for (xCell in cellsRect.left..closestCellX) {
+                        for (xCell in cellsRect.left..wantedRightCellX) {
                             for (yCell in cellsRect.top..cellsRect.bottom) {
                                 if (occupiedCells.contains(Pair(xCell, yCell))) {
                                     areAllCellsFree = false
+                                    break
                                 }
                             }
                         }
 
-                        if (areAllCellsFree && cellsRect.right != closestCellX) {
-                            cellsRect.right = closestCellX
+                        if (areAllCellsFree && cellsRect.right != wantedRightCellX) {
+                            cellsRect.right = wantedRightCellX
                             cellChanged()
                         }
 
@@ -210,18 +213,23 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                             frameRect.top + minHeight
                         }
 
-                        val closestCellY = roundToClosestMultiplyOfNumber(wantedBottom - sideMargins.top, cellHeight) / cellHeight - 1
+                        val wantedBottomCellY = roundToClosestMultiplyOfNumber(wantedBottom - sideMargins.top, cellHeight) / cellHeight - 1
                         var areAllCellsFree = true
                         for (xCell in cellsRect.left..cellsRect.right) {
-                            for (yCell in cellsRect.top..closestCellY) {
+                            for (yCell in cellsRect.top..wantedBottomCellY) {
                                 if (occupiedCells.contains(Pair(xCell, yCell))) {
                                     areAllCellsFree = false
+                                    break
                                 }
                             }
                         }
 
-                        if (areAllCellsFree && cellsRect.bottom != closestCellY) {
-                            cellsRect.bottom = closestCellY
+                        if (wantedBottomCellY == ROW_COUNT - 1) {
+                            areAllCellsFree = false
+                        }
+
+                        if (areAllCellsFree && cellsRect.bottom != wantedBottomCellY) {
+                            cellsRect.bottom = wantedBottomCellY
                             cellChanged()
                         }
 
@@ -249,6 +257,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                                 for (yCell in cellsRect.top..cellsRect.bottom) {
                                     if (occupiedCells.contains(Pair(xCell, yCell))) {
                                         areAllCellsFree = false
+                                        break
                                     }
                                 }
                             }
@@ -268,6 +277,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                                 for (yCell in wantedTopCellY..cellsRect.bottom) {
                                     if (occupiedCells.contains(Pair(xCell, yCell))) {
                                         areAllCellsFree = false
+                                        break
                                     }
                                 }
                             }
@@ -287,6 +297,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                                 for (yCell in cellsRect.top..cellsRect.bottom) {
                                     if (occupiedCells.contains(Pair(xCell, yCell))) {
                                         areAllCellsFree = false
+                                        break
                                     }
                                 }
                             }
@@ -306,8 +317,13 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                                 for (yCell in cellsRect.top..wantedBottomCellY + 1) {
                                     if (occupiedCells.contains(Pair(xCell, yCell))) {
                                         areAllCellsFree = false
+                                        break
                                     }
                                 }
+                            }
+
+                            if (wantedBottomCellY == ROW_COUNT - 1) {
+                                areAllCellsFree = false
                             }
 
                             if (areAllCellsFree) {
