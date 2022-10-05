@@ -255,8 +255,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                     draggedHomeGridItem.apply {
                         left = xIndex
                         top = yIndex
-                        right = xIndex + 1
-                        bottom = yIndex + 1
+                        right = xIndex
+                        bottom = yIndex
 
                         ensureBackgroundThread {
                             context.homeScreenGridItemsDB.updateItemPosition(left, top, right, bottom, id!!)
@@ -269,8 +269,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         null,
                         xIndex,
                         yIndex,
-                        xIndex + 1,
-                        yIndex + 1,
+                        xIndex,
+                        yIndex,
                         draggedItem!!.packageName,
                         draggedItem!!.title,
                         draggedItem!!.type,
