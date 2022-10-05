@@ -13,16 +13,28 @@ data class HomeScreenGridItem(
     @ColumnInfo(name = "top") var top: Int,
     @ColumnInfo(name = "right") var right: Int,
     @ColumnInfo(name = "bottom") var bottom: Int,
-    @ColumnInfo(name = "width_cells") var widthCells: Int,
-    @ColumnInfo(name = "height_cells") var heightCells: Int,
     @ColumnInfo(name = "package_name") var packageName: String,
     @ColumnInfo(name = "title") var title: String,
     @ColumnInfo(name = "type") var type: Int,
     @ColumnInfo(name = "class_name") var className: String,
     @ColumnInfo(name = "widget_id") var widgetId: Int,
 
-    @Ignore var drawable: Drawable?,
-    @Ignore var providerInfo: AppWidgetProviderInfo?
+    @Ignore var drawable: Drawable? = null,
+    @Ignore var providerInfo: AppWidgetProviderInfo? = null,
+    @Ignore var widthCells: Int = 1,
+    @Ignore var heightCells: Int = 1
 ) {
-    constructor() : this(null, -1, -1, -1, -1, 1, 1, "", "", ITEM_TYPE_ICON, "", -1, null, null)
+    constructor() : this(null, -1, -1, -1, -1, "", "", ITEM_TYPE_ICON, "", -1, null, null, 1, 1)
+
+    fun getWidthInCells() = if (right == -1 || left == -1) {
+        widthCells
+    } else {
+        right - left + 1
+    }
+
+    fun getHeightInCells() = if (bottom == -1 || top == -1) {
+        heightCells
+    } else {
+        bottom - top + 1
+    }
 }

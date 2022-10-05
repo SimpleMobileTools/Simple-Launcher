@@ -137,8 +137,8 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
 
                         val closestCellX = roundToClosestMultiplyOfNumber(wantedLeft - sideMargins.left, cellWidth) / cellWidth
                         var areAllCellsFree = true
-                        for (xCell in closestCellX until cellsRect.right) {
-                            for (yCell in cellsRect.top until cellsRect.bottom) {
+                        for (xCell in closestCellX..cellsRect.right) {
+                            for (yCell in cellsRect.top..cellsRect.bottom) {
                                 if (occupiedCells.contains(Pair(xCell, yCell))) {
                                     areAllCellsFree = false
                                 }
@@ -162,8 +162,8 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
 
                         val closestCellY = roundToClosestMultiplyOfNumber(wantedTop - sideMargins.top, cellHeight) / cellHeight
                         var areAllCellsFree = true
-                        for (xCell in cellsRect.left until cellsRect.right) {
-                            for (yCell in closestCellY until cellsRect.bottom) {
+                        for (xCell in cellsRect.left..cellsRect.right) {
+                            for (yCell in closestCellY..cellsRect.bottom) {
                                 if (occupiedCells.contains(Pair(xCell, yCell))) {
                                     areAllCellsFree = false
                                 }
@@ -187,8 +187,8 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
 
                         val closestCellX = roundToClosestMultiplyOfNumber(wantedRight - sideMargins.left, cellWidth) / cellWidth - 1
                         var areAllCellsFree = true
-                        for (xCell in cellsRect.left until closestCellX + 1) {
-                            for (yCell in cellsRect.top until cellsRect.bottom) {
+                        for (xCell in cellsRect.left..closestCellX + 1) {
+                            for (yCell in cellsRect.top..cellsRect.bottom) {
                                 if (occupiedCells.contains(Pair(xCell, yCell))) {
                                     areAllCellsFree = false
                                 }
@@ -212,8 +212,8 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
 
                         val closestCellY = roundToClosestMultiplyOfNumber(wantedBottom - sideMargins.top, cellHeight) / cellHeight - 1
                         var areAllCellsFree = true
-                        for (xCell in cellsRect.left until cellsRect.right) {
-                            for (yCell in cellsRect.top until closestCellY + 1) {
+                        for (xCell in cellsRect.left..cellsRect.right) {
+                            for (yCell in cellsRect.top..closestCellY + 1) {
                                 if (occupiedCells.contains(Pair(xCell, yCell))) {
                                     areAllCellsFree = false
                                 }
@@ -245,8 +245,8 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                             val wantedLeft = roundToClosestMultiplyOfNumber(frameRect.left - sideMargins.left, cellWidth)
                             val wantedLeftCellX = wantedLeft / cellWidth
                             var areAllCellsFree = true
-                            for (xCell in wantedLeftCellX until cellsRect.right) {
-                                for (yCell in cellsRect.top until cellsRect.bottom) {
+                            for (xCell in wantedLeftCellX..cellsRect.right) {
+                                for (yCell in cellsRect.top..cellsRect.bottom) {
                                     if (occupiedCells.contains(Pair(xCell, yCell))) {
                                         areAllCellsFree = false
                                     }
@@ -264,8 +264,8 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                             val wantedTop = roundToClosestMultiplyOfNumber(frameRect.top - sideMargins.top, cellHeight)
                             val wantedTopCellY = wantedTop / cellHeight
                             var areAllCellsFree = true
-                            for (xCell in cellsRect.left until cellsRect.right) {
-                                for (yCell in wantedTopCellY until cellsRect.bottom) {
+                            for (xCell in cellsRect.left..cellsRect.right) {
+                                for (yCell in wantedTopCellY..cellsRect.bottom) {
                                     if (occupiedCells.contains(Pair(xCell, yCell))) {
                                         areAllCellsFree = false
                                     }
@@ -283,8 +283,8 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                             val wantedRight = roundToClosestMultiplyOfNumber(frameRect.right - sideMargins.left, cellWidth)
                             val wantedRightCellX = wantedRight / cellWidth - 1
                             var areAllCellsFree = true
-                            for (xCell in cellsRect.left until wantedRightCellX + 1) {
-                                for (yCell in cellsRect.top until cellsRect.bottom) {
+                            for (xCell in cellsRect.left..wantedRightCellX + 1) {
+                                for (yCell in cellsRect.top..cellsRect.bottom) {
                                     if (occupiedCells.contains(Pair(xCell, yCell))) {
                                         areAllCellsFree = false
                                     }
@@ -302,8 +302,8 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                             val wantedBottom = roundToClosestMultiplyOfNumber(frameRect.bottom - sideMargins.top, cellHeight)
                             val wantedBottomCellY = wantedBottom / cellHeight - 1
                             var areAllCellsFree = true
-                            for (xCell in cellsRect.left until cellsRect.right) {
-                                for (yCell in cellsRect.top until wantedBottomCellY + 1) {
+                            for (xCell in cellsRect.left..cellsRect.right) {
+                                for (yCell in cellsRect.top..wantedBottomCellY + 1) {
                                     if (occupiedCells.contains(Pair(xCell, yCell))) {
                                         areAllCellsFree = false
                                     }

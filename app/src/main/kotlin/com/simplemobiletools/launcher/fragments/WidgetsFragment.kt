@@ -230,15 +230,15 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             -1,
             -1,
             -1,
-            appWidget.widthCells,
-            appWidget.heightCells,
             appWidget.appPackageName,
             "",
             type,
             appWidget.className,
             -1,
             appWidget.widgetPreviewImage,
-            appWidget.providerInfo
+            appWidget.providerInfo,
+            appWidget.widthCells,
+            appWidget.heightCells
         )
 
         activity?.widgetLongPressedOnList(gridItem)

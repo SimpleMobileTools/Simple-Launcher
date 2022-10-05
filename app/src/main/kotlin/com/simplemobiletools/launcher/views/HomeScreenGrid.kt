@@ -17,6 +17,7 @@ import androidx.core.graphics.drawable.toDrawable
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.isSPlus
+import com.simplemobiletools.commons.helpers.mydebug
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.extensions.getDrawableForPackageName
@@ -189,7 +190,15 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             }
 
             resize_frame.onResizeListener = { cellsRect ->
-
+                mydebug("resized to $cellsRect")
+                val minWidth = (cellsRect.width() + 1) * cellWidth
+                val minHeight = (cellsRect.height() + 1) * cellHeight
+                widgetView.updateAppWidgetSize(Bundle(), minWidth, minHeight, minWidth, minHeight)
+                widgetView.layoutParams.width = minWidth
+                widgetView.layoutParams.height = minHeight
+                ensureBackgroundThread {
+                    context.homeScreenGridItemsDB.updateItemPosition(cellsRect.left, cellsRect.top, cellsRect.right, cellsRect.bottom, item.id!!)
+                }
             }
 
             widgetView.ignoreTouches = true
@@ -264,8 +273,6 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         yIndex,
                         xIndex + 1,
                         yIndex + 1,
-                        1,
-                        1,
                         draggedItem!!.packageName,
                         draggedItem!!.title,
                         draggedItem!!.type,
@@ -420,8 +427,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
         widgetView.x = calculateWidgetX(item.left)
         widgetView.y = calculateWidgetY(item.top)
-        val widgetWidth = item.widthCells * cellWidth
-        val widgetHeight = item.heightCells * cellHeight
+        val widgetWidth = item.getWidthInCells() * cellWidth
+        val widgetHeight = item.getHeightInCells() * cellHeight
 
         // set initial sizes to avoid some glitches
         if (isSPlus()) {
@@ -566,8 +573,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         val widgetRect = getWidgetOccupiedRect(gridCells)
                         val leftSide = widgetRect.left * cellWidth + sideMargins.left + iconMargin.toFloat()
                         val topSide = widgetRect.top * cellHeight + sideMargins.top + iconMargin.toFloat()
-                        val rightSide = leftSide + draggedItem!!.widthCells * cellWidth - sideMargins.right - iconMargin.toFloat()
-                        val bottomSide = topSide + draggedItem!!.heightCells * cellHeight - sideMargins.top
+                        val rightSide = leftSide + draggedItem!!.getWidthInCells() * cellWidth - sideMargins.right - iconMargin.toFloat()
+                        val bottomSide = topSide + draggedItem!!.getHeightInCells() * cellHeight - sideMargins.top
                         canvas.drawRoundRect(leftSide, topSide, rightSide, bottomSide, roundedCornerRadius, roundedCornerRadius, dragShadowCirclePaint)
                     }
 
@@ -576,7 +583,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                     val aspectRatio = drawable.minimumHeight / drawable.minimumWidth.toFloat()
                     val drawableX = (draggedItemCurrentCoords.first - drawable.minimumWidth / 2f).toInt()
                     val drawableY = (draggedItemCurrentCoords.second - drawable.minimumHeight / 3f).toInt()
-                    val drawableWidth = draggedItem!!.widthCells * cellWidth - iconMargin * (draggedItem!!.widthCells - 1)
+                    val drawableWidth = draggedItem!!.getWidthInCells() * cellWidth - iconMargin * (draggedItem!!.getWidthInCells() - 1)
                     drawable.setBounds(
                         drawableX,
                         drawableY,
@@ -612,8 +619,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     // drag the center of the widget, not the top left corner
     private fun getWidgetOccupiedRect(item: Pair<Int, Int>): Rect {
-        val left = item.first - Math.floor((draggedItem!!.widthCells - 1) / 2.0).toInt()
-        val rect = Rect(left, item.second, left + draggedItem!!.widthCells, item.second + draggedItem!!.heightCells)
+        val left = item.first - Math.floor((draggedItem!!.getWidthInCells() - 1) / 2.0).toInt()
+        val rect = Rect(left, item.second, left + draggedItem!!.getWidthInCells(), item.second + draggedItem!!.getHeightInCells())
         if (rect.left < 0) {
             rect.right -= rect.left
             rect.left = 0
@@ -643,8 +650,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             } else if (gridItem.type == ITEM_TYPE_WIDGET) {
                 val left = calculateWidgetX(gridItem.left)
                 val top = calculateWidgetY(gridItem.top)
-                val right = left + gridItem.widthCells * cellWidth
-                val bottom = top + gridItem.heightCells * cellHeight
+                val right = left + gridItem.getWidthInCells() * cellWidth
+                val bottom = top + gridItem.getHeightInCells() * cellHeight
 
                 if (x >= left && x <= right && y >= top && y <= bottom) {
                     return gridItem
