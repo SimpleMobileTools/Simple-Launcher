@@ -5,4 +5,8 @@
         android:id="@+id/widgets"
         android:title="@string/widgets"
         app:showAsAction="always" />
+    <item
+        android:id="@+id/wallpapers"
+        android:title="@string/wallpapers"
+        app:showAsAction="always" />
 </menu>

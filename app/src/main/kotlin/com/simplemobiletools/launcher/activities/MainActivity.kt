@@ -6,6 +6,7 @@ import android.app.Activity
 import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProviderInfo
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -346,13 +347,14 @@ class MainActivity : SimpleActivity(), FlingListener {
     private fun showMainLongPressMenu(x: Float, y: Float) {
         home_screen_grid.hideResizeLines()
         home_screen_popup_menu_anchor.x = x
-        home_screen_popup_menu_anchor.y = y - resources.getDimension(R.dimen.long_press_anchor_button_offset_y)
+        home_screen_popup_menu_anchor.y = y - resources.getDimension(R.dimen.long_press_anchor_button_offset_y) * 2
         val contextTheme = ContextThemeWrapper(this, getPopupMenuTheme())
         PopupMenu(contextTheme, home_screen_popup_menu_anchor, Gravity.TOP or Gravity.END).apply {
             inflate(R.menu.menu_home_screen)
             setOnMenuItemClickListener { item ->
                 when (item.itemId) {
                     R.id.widgets -> showWidgetsFragment()
+                    R.id.wallpapers -> launchWallpapersIntent()
                 }
                 true
             }
@@ -407,6 +409,18 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     private fun showWidgetsFragment() {
         showFragment(widgets_fragment)
+    }
+
+    private fun launchWallpapersIntent() {
+        try {
+            Intent(Intent.ACTION_SET_WALLPAPER).apply {
+                startActivity(this)
+            }
+        } catch (e: ActivityNotFoundException) {
+            toast(R.string.no_app_found)
+        } catch (e: Exception) {
+            showErrorToast(e)
+        }
     }
 
     private class MyGestureListener(private val flingListener: FlingListener) : GestureDetector.SimpleOnGestureListener() {
