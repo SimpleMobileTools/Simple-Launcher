@@ -82,8 +82,8 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
 
         occupiedCells.clear()
         allGridItems.forEach { item ->
-            for (xCell in item.left until item.right) {
-                for (yCell in item.top until item.bottom) {
+            for (xCell in item.left..item.right) {
+                for (yCell in item.top..item.bottom) {
                     occupiedCells.add(Pair(xCell, yCell))
                 }
             }

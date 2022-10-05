@@ -237,8 +237,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             var areAllCellsEmpty = true
             val wantedCell = Pair(xIndex, yIndex)
             gridItems.forEach { item ->
-                for (xCell in item.left until item.right) {
-                    for (yCell in item.top until item.bottom) {
+                for (xCell in item.left .. item.right) {
+                    for (yCell in item.top .. item.bottom) {
                         val cell = Pair(xCell, yCell)
                         val isAnyCellOccupied = wantedCell == cell
                         if (isAnyCellOccupied) {
@@ -311,16 +311,16 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         if (gridCells != null) {
             val widgetRect = getWidgetOccupiedRect(gridCells)
             val widgetTargetCells = ArrayList<Pair<Int, Int>>()
-            for (xCell in widgetRect.left until widgetRect.right) {
-                for (yCell in widgetRect.top until widgetRect.bottom) {
+            for (xCell in widgetRect.left .. widgetRect.right) {
+                for (yCell in widgetRect.top .. widgetRect.bottom) {
                     widgetTargetCells.add(Pair(xCell, yCell))
                 }
             }
 
             var areAllCellsEmpty = true
             gridItems.filter { it.id != draggedItem?.id }.forEach { item ->
-                for (xCell in item.left until item.right) {
-                    for (yCell in item.top until item.bottom) {
+                for (xCell in item.left .. item.right) {
+                    for (yCell in item.top .. item.bottom) {
                         val cell = Pair(xCell, yCell)
                         val isAnyCellOccupied = widgetTargetCells.contains(cell)
                         if (isAnyCellOccupied) {
