@@ -120,7 +120,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
                 appWidgets.add(widget)
             }
 
-            appWidgets = appWidgets.sortedWith(compareBy({ it.appTitle }, { it.widgetTitle })).toMutableList() as ArrayList<AppWidget>
+            appWidgets = appWidgets.sortedWith(compareBy({ it.appTitle }, { it.appPackageName }, { it.widgetTitle })).toMutableList() as ArrayList<AppWidget>
             splitWidgetsByApps(appWidgets)
         }
     }
