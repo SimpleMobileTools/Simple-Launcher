@@ -1,2 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="app_name">Простой рабочий стол</string>
+    <string name="app_launcher_name">Рабочий стол</string>
+    <string name="launcher_settings">Настройки</string>
+    <string name="app_info">О приложении</string>
+    <string name="touch_hold_widget">Удерживайте нажатие на виджет и перетащите его на главный экран</string>
+    <string name="uninstall">Удалить</string>
+</resources>
