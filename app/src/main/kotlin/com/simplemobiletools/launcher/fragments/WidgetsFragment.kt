@@ -106,7 +106,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             }
 
             // show also the widgets that are technically shortcuts
-            val intent = Intent(Intent.ACTION_CREATE_SHORTCUT, null)
+            /*val intent = Intent(Intent.ACTION_CREATE_SHORTCUT, null)
             val list = packageManager.queryIntentActivities(intent, PackageManager.PERMISSION_GRANTED)
             for (info in list) {
                 val componentInfo = info.activityInfo.applicationInfo
@@ -118,7 +118,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
                 val widgetPreviewImage = packageManager.getDrawable(componentInfo.packageName, info.iconResource, componentInfo)
                 val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, widgetPreviewImage, 0, 0, true, "", null)
                 appWidgets.add(widget)
-            }
+            }*/
 
             appWidgets = appWidgets.sortedWith(compareBy({ it.appTitle }, { it.appPackageName }, { it.widgetTitle })).toMutableList() as ArrayList<AppWidget>
             splitWidgetsByApps(appWidgets)
