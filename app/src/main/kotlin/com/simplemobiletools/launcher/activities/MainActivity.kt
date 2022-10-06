@@ -424,14 +424,12 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     private class MyGestureListener(private val flingListener: FlingListener) : GestureDetector.SimpleOnGestureListener() {
-        override fun onSingleTapUp(event: MotionEvent?): Boolean {
-            if (event != null) {
-                (flingListener as MainActivity).homeScreenClicked(event.x, event.y)
-            }
+        override fun onSingleTapUp(event: MotionEvent): Boolean {
+            (flingListener as MainActivity).homeScreenClicked(event.x, event.y)
             return super.onSingleTapUp(event)
         }
 
-        override fun onFling(event1: MotionEvent?, event2: MotionEvent?, velocityX: Float, velocityY: Float): Boolean {
+        override fun onFling(event1: MotionEvent, event2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
             // ignore fling events just after releasing an icon from dragging
             if (System.currentTimeMillis() - mLastUpEvent < 500L) {
                 return true
@@ -445,10 +443,8 @@ class MainActivity : SimpleActivity(), FlingListener {
             return true
         }
 
-        override fun onLongPress(event: MotionEvent?) {
-            if (event != null) {
-                (flingListener as MainActivity).homeScreenLongPressed(event.x, event.y)
-            }
+        override fun onLongPress(event: MotionEvent) {
+            (flingListener as MainActivity).homeScreenLongPressed(event.x, event.y)
         }
     }
 
