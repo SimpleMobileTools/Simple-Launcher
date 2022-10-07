@@ -279,7 +279,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         "",
                         -1,
                         draggedItem!!.drawable,
-                        draggedItem!!.providerInfo
+                        draggedItem!!.providerInfo,
+                        draggedItem!!.activityInfo
                     )
 
                     ensureBackgroundThread {

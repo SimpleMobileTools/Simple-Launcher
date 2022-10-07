@@ -1,6 +1,7 @@
 package com.simplemobiletools.launcher.models
 
 import android.appwidget.AppWidgetProviderInfo
+import android.content.pm.ActivityInfo
 import android.graphics.drawable.Drawable
 
 data class AppWidget(
@@ -13,7 +14,8 @@ data class AppWidget(
     val heightCells: Int,
     val isShortcut: Boolean,
     val className: String,      // identifier to know which app widget are we using
-    val providerInfo: AppWidgetProviderInfo?
+    val providerInfo: AppWidgetProviderInfo?,       // used at widgets
+    val activityInfo: ActivityInfo?                 // used at shortcuts
 ) : WidgetsListItem() {
     override fun getHashToCompare() = getStringToCompare().hashCode()
 

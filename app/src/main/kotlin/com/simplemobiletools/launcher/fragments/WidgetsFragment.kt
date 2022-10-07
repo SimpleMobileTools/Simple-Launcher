@@ -3,7 +3,9 @@ package com.simplemobiletools.launcher.fragments
 import android.annotation.SuppressLint
 import android.appwidget.AppWidgetManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.LauncherApps
+import android.content.pm.PackageManager
 import android.os.Process
 import android.util.AttributeSet
 import android.view.MotionEvent
@@ -20,6 +22,7 @@ import com.simplemobiletools.launcher.helpers.ITEM_TYPE_WIDGET
 import com.simplemobiletools.launcher.interfaces.WidgetsFragmentListener
 import com.simplemobiletools.launcher.models.*
 import kotlinx.android.synthetic.main.widgets_fragment.view.*
+
 
 class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment(context, attributeSet), WidgetsFragmentListener {
     private var touchDownY = -1
@@ -98,12 +101,13 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
                 val widthCells = cellSize.width
                 val heightCells = cellSize.height
                 val className = info.provider.className
-                val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, widgetPreviewImage, widthCells, heightCells, false, className, info)
+                val widget =
+                    AppWidget(appPackageName, appTitle, appIcon, widgetTitle, widgetPreviewImage, widthCells, heightCells, false, className, info, null)
                 appWidgets.add(widget)
             }
 
             // show also the widgets that are technically shortcuts
-            /*val intent = Intent(Intent.ACTION_CREATE_SHORTCUT, null)
+            val intent = Intent(Intent.ACTION_CREATE_SHORTCUT, null)
             val list = packageManager.queryIntentActivities(intent, PackageManager.PERMISSION_GRANTED)
             for (info in list) {
                 val componentInfo = info.activityInfo.applicationInfo
@@ -113,9 +117,9 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
                 val appIcon = appMetadata.appIcon
                 val widgetTitle = info.loadLabel(packageManager).toString()
                 val widgetPreviewImage = packageManager.getDrawable(componentInfo.packageName, info.iconResource, componentInfo)
-                val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, widgetPreviewImage, 0, 0, true, "", null)
+                val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, widgetPreviewImage, 0, 0, true, "", null, info.activityInfo)
                 appWidgets.add(widget)
-            }*/
+            }
 
             appWidgets = appWidgets.sortedWith(compareBy({ it.appTitle }, { it.appPackageName }, { it.widgetTitle })).toMutableList() as ArrayList<AppWidget>
             splitWidgetsByApps(appWidgets)
@@ -238,6 +242,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             -1,
             appWidget.widgetPreviewImage,
             appWidget.providerInfo,
+            appWidget.activityInfo,
             appWidget.widthCells,
             appWidget.heightCells
         )

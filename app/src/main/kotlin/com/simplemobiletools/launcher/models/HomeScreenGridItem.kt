@@ -1,6 +1,8 @@
 package com.simplemobiletools.launcher.models
 
 import android.appwidget.AppWidgetProviderInfo
+import android.content.ComponentName
+import android.content.pm.ActivityInfo
 import android.graphics.drawable.Drawable
 import androidx.room.*
 import com.simplemobiletools.launcher.helpers.ITEM_TYPE_ICON
@@ -20,11 +22,12 @@ data class HomeScreenGridItem(
     @ColumnInfo(name = "widget_id") var widgetId: Int,
 
     @Ignore var drawable: Drawable? = null,
-    @Ignore var providerInfo: AppWidgetProviderInfo? = null,
+    @Ignore var providerInfo: AppWidgetProviderInfo? = null,    // used at widgets
+    @Ignore var activityInfo: ActivityInfo? = null,             // used at shortcuts
     @Ignore var widthCells: Int = 1,
     @Ignore var heightCells: Int = 1
 ) {
-    constructor() : this(null, -1, -1, -1, -1, "", "", ITEM_TYPE_ICON, "", -1, null, null, 1, 1)
+    constructor() : this(null, -1, -1, -1, -1, "", "", ITEM_TYPE_ICON, "", -1, null, null, null, 1, 1)
 
     fun getWidthInCells() = if (right == -1 || left == -1) {
         widthCells
@@ -37,4 +40,6 @@ data class HomeScreenGridItem(
     } else {
         bottom - top + 1
     }
+
+    fun getComponentName() = ComponentName(activityInfo?.packageName ?: "", activityInfo?.name ?: "")
 }
