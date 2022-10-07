@@ -7,8 +7,10 @@ import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProviderInfo
 import android.content.ActivityNotFoundException
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Bitmap
@@ -124,6 +126,7 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
         super.onActivityResult(requestCode, resultCode, resultData)
+
         when (requestCode) {
             UNINSTALL_APP_REQUEST_CODE -> {
                 ensureBackgroundThread {
@@ -132,6 +135,13 @@ class MainActivity : SimpleActivity(), FlingListener {
             }
             REQUEST_ALLOW_BINDING_WIDGET -> mActionOnCanBindWidget?.invoke(resultCode == Activity.RESULT_OK)
             REQUEST_CONFIGURE_WIDGET -> mActionOnWidgetConfiguredWidget?.invoke(resultCode == Activity.RESULT_OK)
+            REQUEST_CREATE_SHORTCUT -> {
+                if (resultCode == Activity.RESULT_OK && resultData != null) {
+                    val launchIntent = resultData.getParcelableExtra(Intent.EXTRA_SHORTCUT_INTENT) as? Intent
+                    val label = resultData.getStringExtra(Intent.EXTRA_SHORTCUT_NAME)
+                    val icon = resultData.getParcelableExtra(Intent.EXTRA_SHORTCUT_ICON) as? Bitmap
+                }
+            }
         }
     }
 
@@ -589,6 +599,14 @@ class MainActivity : SimpleActivity(), FlingListener {
             REQUEST_CONFIGURE_WIDGET,
             null
         )
+    }
+
+    fun handleShorcutCreation(activityInfo: ActivityInfo) {
+        val componentName = ComponentName(activityInfo.packageName, activityInfo.name)
+        Intent(Intent.ACTION_CREATE_SHORTCUT).apply {
+            setComponent(componentName)
+            startActivityForResult(this, REQUEST_CREATE_SHORTCUT)
+        }
     }
 
     // taken from https://gist.github.com/maxjvh/a6ab15cbba9c82a5065d

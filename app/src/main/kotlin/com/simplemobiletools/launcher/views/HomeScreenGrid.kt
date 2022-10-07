@@ -161,13 +161,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         when (draggedItem!!.type) {
-            ITEM_TYPE_ICON -> addAppIcon()
+            ITEM_TYPE_ICON, ITEM_TYPE_SHORTCUT -> addAppIconOrShortcut()
             ITEM_TYPE_WIDGET -> addWidget()
-            ITEM_TYPE_SHORTCUT -> {
-                // replace this with real shortcut handling
-                draggedItem = null
-                redrawGrid()
-            }
         }
     }
 
@@ -222,7 +217,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         resizedWidget = null
     }
 
-    private fun addAppIcon() {
+    private fun addAppIconOrShortcut() {
         val center = gridCenters.minBy {
             Math.abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(it.second - draggedItemCurrentCoords.second + sideMargins.top)
         }
@@ -283,11 +278,15 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         draggedItem!!.activityInfo
                     )
 
-                    ensureBackgroundThread {
-                        val newId = context.homeScreenGridItemsDB.insert(newHomeScreenGridItem)
-                        newHomeScreenGridItem.id = newId
-                        gridItems.add(newHomeScreenGridItem)
-                        redrawGrid()
+                    if (newHomeScreenGridItem.type == ITEM_TYPE_ICON) {
+                        ensureBackgroundThread {
+                            val newId = context.homeScreenGridItemsDB.insert(newHomeScreenGridItem)
+                            newHomeScreenGridItem.id = newId
+                            gridItems.add(newHomeScreenGridItem)
+                            redrawGrid()
+                        }
+                    } else if (newHomeScreenGridItem.type == ITEM_TYPE_SHORTCUT) {
+                        (context as? MainActivity)?.handleShorcutCreation(newHomeScreenGridItem.activityInfo!!)
                     }
                 }
             } else {
