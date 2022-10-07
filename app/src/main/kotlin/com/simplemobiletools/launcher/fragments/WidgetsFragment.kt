@@ -3,9 +3,7 @@ package com.simplemobiletools.launcher.fragments
 import android.annotation.SuppressLint
 import android.appwidget.AppWidgetManager
 import android.content.Context
-import android.content.Intent
 import android.content.pm.LauncherApps
-import android.content.pm.PackageManager
 import android.os.Process
 import android.util.AttributeSet
 import android.view.MotionEvent
@@ -16,11 +14,9 @@ import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.isRPlus
 import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.adapters.WidgetsAdapter
-import com.simplemobiletools.launcher.extensions.getTileCount
-import com.simplemobiletools.launcher.helpers.COLUMN_COUNT
+import com.simplemobiletools.launcher.extensions.getInitialCellSize
 import com.simplemobiletools.launcher.helpers.ITEM_TYPE_SHORTCUT
 import com.simplemobiletools.launcher.helpers.ITEM_TYPE_WIDGET
-import com.simplemobiletools.launcher.helpers.ROW_COUNT
 import com.simplemobiletools.launcher.interfaces.WidgetsFragmentListener
 import com.simplemobiletools.launcher.models.*
 import kotlinx.android.synthetic.main.widgets_fragment.view.*
@@ -98,8 +94,9 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
                 val appIcon = appMetadata.appIcon
                 val widgetTitle = info.loadLabel(packageManager)
                 val widgetPreviewImage = info.loadPreviewImage(context, resources.displayMetrics.densityDpi) ?: appIcon
-                val widthCells = Math.min(COLUMN_COUNT, context.getTileCount(info.minWidth))
-                val heightCells = Math.min(ROW_COUNT, context.getTileCount(info.minHeight))
+                val cellSize = context.getInitialCellSize(info, info.minWidth, info.minHeight)
+                val widthCells = cellSize.width
+                val heightCells = cellSize.height
                 val className = info.provider.className
                 val widget = AppWidget(appPackageName, appTitle, appIcon, widgetTitle, widgetPreviewImage, widthCells, heightCells, false, className, info)
                 appWidgets.add(widget)

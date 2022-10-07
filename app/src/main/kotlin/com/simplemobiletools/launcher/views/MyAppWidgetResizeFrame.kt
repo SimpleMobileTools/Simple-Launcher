@@ -9,7 +9,7 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.widget.RelativeLayout
 import com.simplemobiletools.launcher.R
-import com.simplemobiletools.launcher.extensions.getTileCount
+import com.simplemobiletools.launcher.extensions.getCellCount
 import com.simplemobiletools.launcher.helpers.COLUMN_COUNT
 import com.simplemobiletools.launcher.helpers.MAX_CLICK_DURATION
 import com.simplemobiletools.launcher.helpers.ROW_COUNT
@@ -76,8 +76,8 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
             it.provider.className == gridItem.className
         } ?: return
 
-        minResizeWidthCells = Math.min(COLUMN_COUNT, context.getTileCount(providerInfo.minResizeWidth))
-        minResizeHeightCells = Math.min(ROW_COUNT, context.getTileCount(providerInfo.minResizeHeight))
+        minResizeWidthCells = Math.min(COLUMN_COUNT, context.getCellCount(providerInfo.minResizeWidth))
+        minResizeHeightCells = Math.min(ROW_COUNT, context.getCellCount(providerInfo.minResizeHeight))
         redrawFrame()
 
         occupiedCells.clear()

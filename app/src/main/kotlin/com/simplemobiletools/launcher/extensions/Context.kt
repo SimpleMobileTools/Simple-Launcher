@@ -1,10 +1,13 @@
 package com.simplemobiletools.launcher.extensions
 
+import android.appwidget.AppWidgetProviderInfo
 import android.content.Context
 import android.content.pm.LauncherApps
 import android.graphics.drawable.Drawable
 import android.os.Process
+import android.util.Size
 import com.simplemobiletools.commons.extensions.portrait
+import com.simplemobiletools.commons.helpers.isSPlus
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.databases.AppsDatabase
 import com.simplemobiletools.launcher.helpers.Config
@@ -47,7 +50,17 @@ fun Context.getDrawableForPackageName(packageName: String): Drawable? {
     return drawable
 }
 
-fun Context.getTileCount(size: Int): Int {
+fun Context.getInitialCellSize(info: AppWidgetProviderInfo, fallbackWidth: Int, fallbackHeight: Int): Size {
+    return if (isSPlus() && info.targetCellWidth != 0 && info.targetCellHeight != 0) {
+        Size(info.targetCellWidth, info.targetCellHeight)
+    } else {
+        val widthCells = getCellCount(fallbackWidth)
+        val heightCells = getCellCount(fallbackHeight)
+        Size(widthCells, heightCells)
+    }
+}
+
+fun Context.getCellCount(size: Int): Int {
     val tiles = Math.ceil(((size / resources.displayMetrics.density) - 30) / 70.0).toInt()
     return Math.max(tiles, 1)
 }
