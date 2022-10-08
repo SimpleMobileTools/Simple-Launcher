@@ -58,6 +58,7 @@ class MainActivity : SimpleActivity(), FlingListener {
     private var mLastTouchCoords = Pair(-1f, -1f)
     private var mActionOnCanBindWidget: ((granted: Boolean) -> Unit)? = null
     private var mActionOnWidgetConfiguredWidget: ((granted: Boolean) -> Unit)? = null
+    private var mActionOnAddShortcut: ((label: String, icon: Bitmap?, intent: String) -> Unit)? = null
 
     private lateinit var mDetector: GestureDetectorCompat
 
@@ -138,8 +139,9 @@ class MainActivity : SimpleActivity(), FlingListener {
             REQUEST_CREATE_SHORTCUT -> {
                 if (resultCode == Activity.RESULT_OK && resultData != null) {
                     val launchIntent = resultData.getParcelableExtra(Intent.EXTRA_SHORTCUT_INTENT) as? Intent
-                    val label = resultData.getStringExtra(Intent.EXTRA_SHORTCUT_NAME)
+                    val label = resultData.getStringExtra(Intent.EXTRA_SHORTCUT_NAME) ?: ""
                     val icon = resultData.getParcelableExtra(Intent.EXTRA_SHORTCUT_ICON) as? Bitmap
+                    mActionOnAddShortcut?.invoke(label, icon, launchIntent?.toUri(0).toString())
                 }
             }
         }
@@ -308,7 +310,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         mIgnoreMoveEvents = true
         val clickedGridItem = home_screen_grid.isClickingGridItem(x.toInt(), y.toInt())
         if (clickedGridItem != null) {
-            if (clickedGridItem.type == ITEM_TYPE_ICON) {
+            if (clickedGridItem.type == ITEM_TYPE_ICON || clickedGridItem.type == ITEM_TYPE_SHORTCUT) {
                 main_holder.performHapticFeedback()
             }
 
@@ -325,7 +327,11 @@ class MainActivity : SimpleActivity(), FlingListener {
         home_screen_grid.hideResizeLines()
         val clickedGridItem = home_screen_grid.isClickingGridItem(x.toInt(), y.toInt())
         if (clickedGridItem != null) {
-            launchApp(clickedGridItem.packageName)
+            if (clickedGridItem.type == ITEM_TYPE_ICON) {
+                launchApp(clickedGridItem.packageName)
+            } else if (clickedGridItem.type == ITEM_TYPE_SHORTCUT) {
+                launchShortcutIntent(clickedGridItem)
+            }
         }
     }
 
@@ -601,10 +607,11 @@ class MainActivity : SimpleActivity(), FlingListener {
         )
     }
 
-    fun handleShorcutCreation(activityInfo: ActivityInfo) {
+    fun handleShorcutCreation(activityInfo: ActivityInfo, callback: (label: String, icon: Bitmap?, intent: String) -> Unit) {
+        mActionOnAddShortcut = callback
         val componentName = ComponentName(activityInfo.packageName, activityInfo.name)
         Intent(Intent.ACTION_CREATE_SHORTCUT).apply {
-            setComponent(componentName)
+            component = componentName
             startActivityForResult(this, REQUEST_CREATE_SHORTCUT)
         }
     }

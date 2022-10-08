@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProviderInfo
 import android.content.Context
 import android.graphics.*
+import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.text.Layout
 import android.text.StaticLayout
@@ -88,6 +89,14 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             gridItems.forEach { item ->
                 if (item.type == ITEM_TYPE_ICON) {
                     item.drawable = context.getDrawableForPackageName(item.packageName)
+                } else if (item.type == ITEM_TYPE_SHORTCUT) {
+                    if (item.icon != null) {
+                        item.drawable = BitmapDrawable(item.icon)
+                    } else {
+                        ensureBackgroundThread {
+                            context.homeScreenGridItemsDB.deleteById(item.id!!)
+                        }
+                    }
                 }
 
                 item.providerInfo = providers.firstOrNull { it.provider.className == item.className }
@@ -282,13 +291,18 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
                     if (newHomeScreenGridItem.type == ITEM_TYPE_ICON) {
                         ensureBackgroundThread {
-                            val newId = context.homeScreenGridItemsDB.insert(newHomeScreenGridItem)
-                            newHomeScreenGridItem.id = newId
-                            gridItems.add(newHomeScreenGridItem)
-                            redrawGrid()
+                            storeAndShowGridItem(newHomeScreenGridItem)
                         }
                     } else if (newHomeScreenGridItem.type == ITEM_TYPE_SHORTCUT) {
-                        (context as? MainActivity)?.handleShorcutCreation(newHomeScreenGridItem.activityInfo!!)
+                        (context as? MainActivity)?.handleShorcutCreation(newHomeScreenGridItem.activityInfo!!) { label, icon, intent ->
+                            ensureBackgroundThread {
+                                newHomeScreenGridItem.title = label
+                                newHomeScreenGridItem.icon = icon
+                                newHomeScreenGridItem.intent = intent
+                                newHomeScreenGridItem.drawable = BitmapDrawable(newHomeScreenGridItem.icon)
+                                storeAndShowGridItem(newHomeScreenGridItem)
+                            }
+                        }
                     }
                 }
             } else {
@@ -302,6 +316,13 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         if (redrawIcons) {
             redrawGrid()
         }
+    }
+
+    private fun storeAndShowGridItem(item: HomeScreenGridItem) {
+        val newId = context.homeScreenGridItemsDB.insert(item)
+        item.id = newId
+        gridItems.add(item)
+        redrawGrid()
     }
 
     private fun addWidget() {
@@ -504,7 +525,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             }
         }
 
-        gridItems.filter { it.drawable != null && it.type == ITEM_TYPE_ICON }.forEach { item ->
+        gridItems.filter { it.drawable != null && it.type == ITEM_TYPE_ICON || it.type == ITEM_TYPE_SHORTCUT }.forEach { item ->
             if (item.id != draggedItem?.id) {
                 val drawableX = cellXCoords[item.left] + iconMargin + sideMargins.left
 
@@ -648,7 +669,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     fun isClickingGridItem(x: Int, y: Int): HomeScreenGridItem? {
         for (gridItem in gridItems) {
-            if (gridItem.type == ITEM_TYPE_ICON) {
+            if (gridItem.type == ITEM_TYPE_ICON || gridItem.type == ITEM_TYPE_SHORTCUT) {
                 val rect = getClickableRect(gridItem)
                 if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
                     return gridItem
