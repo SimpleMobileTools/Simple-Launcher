@@ -3,6 +3,7 @@ package com.simplemobiletools.launcher.models
 import android.appwidget.AppWidgetProviderInfo
 import android.content.ComponentName
 import android.content.pm.ActivityInfo
+import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import androidx.room.*
 import com.simplemobiletools.launcher.helpers.ITEM_TYPE_ICON
@@ -20,6 +21,8 @@ data class HomeScreenGridItem(
     @ColumnInfo(name = "type") var type: Int,
     @ColumnInfo(name = "class_name") var className: String,
     @ColumnInfo(name = "widget_id") var widgetId: Int,
+    @ColumnInfo(name = "intent") var intent: String,    // used at shortcuts on click
+    @ColumnInfo(name = "icon") var icon: Bitmap?,       // store only images of shortcuts, those cannot be retrieved anytime
 
     @Ignore var drawable: Drawable? = null,
     @Ignore var providerInfo: AppWidgetProviderInfo? = null,    // used at widgets
@@ -27,7 +30,7 @@ data class HomeScreenGridItem(
     @Ignore var widthCells: Int = 1,
     @Ignore var heightCells: Int = 1
 ) {
-    constructor() : this(null, -1, -1, -1, -1, "", "", ITEM_TYPE_ICON, "", -1, null, null, null, 1, 1)
+    constructor() : this(null, -1, -1, -1, -1, "", "", ITEM_TYPE_ICON, "", -1, "", null, null, null, null, 1, 1)
 
     fun getWidthInCells() = if (right == -1 || left == -1) {
         widthCells

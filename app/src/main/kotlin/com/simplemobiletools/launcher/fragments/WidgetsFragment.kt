@@ -240,6 +240,8 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             type,
             appWidget.className,
             -1,
+            "",
+            null,
             appWidget.widgetPreviewImage,
             appWidget.providerInfo,
             appWidget.activityInfo,

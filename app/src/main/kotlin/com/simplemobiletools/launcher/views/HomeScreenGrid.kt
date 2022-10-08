@@ -273,6 +273,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         draggedItem!!.type,
                         "",
                         -1,
+                        "",
+                        draggedItem!!.icon,
                         draggedItem!!.drawable,
                         draggedItem!!.providerInfo,
                         draggedItem!!.activityInfo
