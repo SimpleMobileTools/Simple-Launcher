@@ -22,7 +22,7 @@ data class HomeScreenGridItem(
     @ColumnInfo(name = "class_name") var className: String,
     @ColumnInfo(name = "widget_id") var widgetId: Int,
     @ColumnInfo(name = "intent") var intent: String,    // used at shortcuts on click
-    @ColumnInfo(name = "icon") var icon: Bitmap?,       // store only images of shortcuts, those cannot be retrieved anytime
+    @ColumnInfo(name = "icon") var icon: Bitmap? = null,       // store only images of shortcuts, those cannot be retrieved anytime
 
     @Ignore var drawable: Drawable? = null,
     @Ignore var providerInfo: AppWidgetProviderInfo? = null,    // used at widgets

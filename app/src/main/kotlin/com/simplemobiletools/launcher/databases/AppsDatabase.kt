@@ -4,12 +4,17 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
+import com.simplemobiletools.launcher.helpers.Converters
 import com.simplemobiletools.launcher.interfaces.AppLaunchersDao
 import com.simplemobiletools.launcher.interfaces.HomeScreenGridItemsDao
 import com.simplemobiletools.launcher.models.AppLauncher
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
 
-@Database(entities = [AppLauncher::class, HomeScreenGridItem::class], version = 1)
+@Database(entities = [AppLauncher::class, HomeScreenGridItem::class], version = 2)
+@TypeConverters(Converters::class)
 abstract class AppsDatabase : RoomDatabase() {
 
     abstract fun AppLaunchersDao(): AppLaunchersDao
@@ -24,11 +29,19 @@ abstract class AppsDatabase : RoomDatabase() {
                 synchronized(AppsDatabase::class) {
                     if (db == null) {
                         db = Room.databaseBuilder(context.applicationContext, AppsDatabase::class.java, "apps.db")
+                            .addMigrations(MIGRATION_1_2)
                             .build()
                     }
                 }
             }
             return db!!
+        }
+
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE home_screen_grid_items ADD COLUMN intent TEXT default '' NOT NULL")
+                database.execSQL("ALTER TABLE home_screen_grid_items ADD COLUMN icon BLOB")
+            }
         }
     }
 }
