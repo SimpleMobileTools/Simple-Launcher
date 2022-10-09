@@ -11,10 +11,12 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.Rect
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -85,6 +87,65 @@ class MainActivity : SimpleActivity(), FlingListener {
             fragment.y = mScreenHeight.toFloat()
             fragment.beVisible()
         }
+
+        if (intent.action == LauncherApps.ACTION_CONFIRM_PIN_SHORTCUT) {
+            val launcherApps = applicationContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+            val item = launcherApps.getPinItemRequest(intent)
+            if (item.shortcutInfo == null) {
+                return
+            }
+
+            ensureBackgroundThread {
+                val shortcutId = item.shortcutInfo?.id!!
+                val label = item.shortcutInfo?.shortLabel?.toString() ?: item.shortcutInfo?.longLabel?.toString() ?: ""
+                val icon = launcherApps.getShortcutIconDrawable(item.shortcutInfo!!, resources.displayMetrics.densityDpi)
+                val rect = findFirstEmptyCell() ?: return@ensureBackgroundThread
+                val gridItem = HomeScreenGridItem(
+                    null,
+                    rect.left,
+                    rect.top,
+                    rect.right,
+                    rect.bottom,
+                    item.shortcutInfo!!.`package`,
+                    label,
+                    ITEM_TYPE_SHORTCUT,
+                    "",
+                    -1,
+                    "",
+                    shortcutId,
+                    icon.toBitmap(),
+                    icon
+                )
+
+                // delay showing the shortcut both to let the user see adding it in realtime and hackily avoid concurrent modification exception at HomeScreenGrid
+                Thread.sleep(2000)
+                item.accept()
+                home_screen_grid.storeAndShowGridItem(gridItem)
+            }
+        }
+    }
+
+    private fun findFirstEmptyCell(): Rect? {
+        val gridItems = homeScreenGridItemsDB.getAllItems() as ArrayList<HomeScreenGridItem>
+        val occupiedCells = ArrayList<Pair<Int, Int>>()
+        gridItems.forEach { item ->
+            for (xCell in item.left..item.right) {
+                for (yCell in item.top..item.bottom) {
+                    occupiedCells.add(Pair(xCell, yCell))
+                }
+            }
+        }
+
+        for (checkedYCell in 0 until COLUMN_COUNT) {
+            for (checkedXCell in 0 until ROW_COUNT - 1) {
+                val wantedCell = Pair(checkedXCell, checkedYCell)
+                if (!occupiedCells.contains(wantedCell)) {
+                    return Rect(wantedCell.first, wantedCell.second, wantedCell.first, wantedCell.second)
+                }
+            }
+        }
+
+        return null
     }
 
     override fun onResume() {
@@ -330,7 +391,12 @@ class MainActivity : SimpleActivity(), FlingListener {
             if (clickedGridItem.type == ITEM_TYPE_ICON) {
                 launchApp(clickedGridItem.packageName)
             } else if (clickedGridItem.type == ITEM_TYPE_SHORTCUT) {
-                launchShortcutIntent(clickedGridItem)
+                val id = clickedGridItem.shortcutId
+                val packageName = clickedGridItem.packageName
+                val userHandle = android.os.Process.myUserHandle()
+                val shortcutBounds = home_screen_grid.getClickableRect(clickedGridItem)
+                val launcherApps = applicationContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+                launcherApps.startShortcut(packageName, id, shortcutBounds, null, userHandle)
             }
         }
     }
@@ -527,7 +593,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         try {
             val defaultDialerPackage = (getSystemService(Context.TELECOM_SERVICE) as TelecomManager).defaultDialerPackage
             appLaunchers.firstOrNull { it.packageName == defaultDialerPackage }?.apply {
-                val dialerIcon = HomeScreenGridItem(null, 0, ROW_COUNT - 1, 0, ROW_COUNT - 1, defaultDialerPackage, title, ITEM_TYPE_ICON, "", -1, "", null)
+                val dialerIcon = HomeScreenGridItem(null, 0, ROW_COUNT - 1, 0, ROW_COUNT - 1, defaultDialerPackage, title, ITEM_TYPE_ICON, "", -1, "", "", null)
                 homeScreenGridItems.add(dialerIcon)
             }
         } catch (e: Exception) {
@@ -537,7 +603,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             val defaultSMSMessengerPackage = Telephony.Sms.getDefaultSmsPackage(this)
             appLaunchers.firstOrNull { it.packageName == defaultSMSMessengerPackage }?.apply {
                 val SMSMessengerIcon =
-                    HomeScreenGridItem(null, 1, ROW_COUNT - 1, 1, ROW_COUNT - 1, defaultSMSMessengerPackage, title, ITEM_TYPE_ICON, "", -1, "", null)
+                    HomeScreenGridItem(null, 1, ROW_COUNT - 1, 1, ROW_COUNT - 1, defaultSMSMessengerPackage, title, ITEM_TYPE_ICON, "", -1, "", "", null)
                 homeScreenGridItems.add(SMSMessengerIcon)
             }
         } catch (e: Exception) {
@@ -549,7 +615,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             val defaultBrowserPackage = resolveInfo!!.activityInfo.packageName
             appLaunchers.firstOrNull { it.packageName == defaultBrowserPackage }?.apply {
                 val browserIcon =
-                    HomeScreenGridItem(null, 2, ROW_COUNT - 1, 2, ROW_COUNT - 1, defaultBrowserPackage, title, ITEM_TYPE_ICON, "", -1, "", null)
+                    HomeScreenGridItem(null, 2, ROW_COUNT - 1, 2, ROW_COUNT - 1, defaultBrowserPackage, title, ITEM_TYPE_ICON, "", -1, "", "", null)
                 homeScreenGridItems.add(browserIcon)
             }
         } catch (e: Exception) {
@@ -560,7 +626,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             val storePackage = potentialStores.firstOrNull { isPackageInstalled(it) && appLaunchers.map { it.packageName }.contains(it) }
             if (storePackage != null) {
                 appLaunchers.firstOrNull { it.packageName == storePackage }?.apply {
-                    val storeIcon = HomeScreenGridItem(null, 3, ROW_COUNT - 1, 3, ROW_COUNT - 1, storePackage, title, ITEM_TYPE_ICON, "", -1, "", null)
+                    val storeIcon = HomeScreenGridItem(null, 3, ROW_COUNT - 1, 3, ROW_COUNT - 1, storePackage, title, ITEM_TYPE_ICON, "", -1, "", "", null)
                     homeScreenGridItems.add(storeIcon)
                 }
             }
@@ -572,7 +638,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             val resolveInfo = packageManager.resolveActivity(cameraIntent, PackageManager.MATCH_DEFAULT_ONLY)
             val defaultCameraPackage = resolveInfo!!.activityInfo.packageName
             appLaunchers.firstOrNull { it.packageName == defaultCameraPackage }?.apply {
-                val cameraIcon = HomeScreenGridItem(null, 4, ROW_COUNT - 1, 4, ROW_COUNT - 1, defaultCameraPackage, title, ITEM_TYPE_ICON, "", -1, "", null)
+                val cameraIcon = HomeScreenGridItem(null, 4, ROW_COUNT - 1, 4, ROW_COUNT - 1, defaultCameraPackage, title, ITEM_TYPE_ICON, "", -1, "", "", null)
                 homeScreenGridItems.add(cameraIcon)
             }
         } catch (e: Exception) {
@@ -581,7 +647,12 @@ class MainActivity : SimpleActivity(), FlingListener {
         homeScreenGridItemsDB.insertAll(homeScreenGridItems)
     }
 
-    fun handleWidgetBinding(appWidgetManager: AppWidgetManager, appWidgetId: Int, appWidgetInfo: AppWidgetProviderInfo, callback: (canBind: Boolean) -> Unit) {
+    fun handleWidgetBinding(
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        appWidgetInfo: AppWidgetProviderInfo,
+        callback: (canBind: Boolean) -> Unit
+    ) {
         mActionOnCanBindWidget = null
         val canCreateWidget = appWidgetManager.bindAppWidgetIdIfAllowed(appWidgetId, appWidgetInfo.provider)
         if (canCreateWidget) {

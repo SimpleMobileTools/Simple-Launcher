@@ -241,6 +241,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             appWidget.className,
             -1,
             "",
+            "",
             null,
             appWidget.widgetPreviewImage,
             appWidget.providerInfo,

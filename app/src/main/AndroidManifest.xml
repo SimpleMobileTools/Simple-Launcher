@@ -42,7 +42,12 @@
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:exported="true"
             android:screenOrientation="portrait"
-            android:theme="@style/LauncherTheme" />
+            android:theme="@style/LauncherTheme">
+
+            <intent-filter>
+                <action android:name="android.content.pm.action.CONFIRM_PIN_SHORTCUT" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".activities.SettingsActivity"

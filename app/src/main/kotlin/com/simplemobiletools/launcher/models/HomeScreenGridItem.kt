@@ -1,14 +1,13 @@
 package com.simplemobiletools.launcher.models
 
 import android.appwidget.AppWidgetProviderInfo
-import android.content.ComponentName
 import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import androidx.room.*
 import com.simplemobiletools.launcher.helpers.ITEM_TYPE_ICON
 
-// grid cells are from 0-5 by default. Icons occupy 1 slot only, widgets can be bigger
+// grid cells are from 0-5 by default. Icons and shortcuts occupy 1 slot only, widgets can be bigger
 @Entity(tableName = "home_screen_grid_items", indices = [(Index(value = ["id"], unique = true))])
 data class HomeScreenGridItem(
     @PrimaryKey(autoGenerate = true) var id: Long?,
@@ -21,8 +20,9 @@ data class HomeScreenGridItem(
     @ColumnInfo(name = "type") var type: Int,
     @ColumnInfo(name = "class_name") var className: String,
     @ColumnInfo(name = "widget_id") var widgetId: Int,
-    @ColumnInfo(name = "intent") var intent: String,    // used at shortcuts on click
-    @ColumnInfo(name = "icon") var icon: Bitmap? = null,       // store only images of shortcuts, those cannot be retrieved anytime
+    @ColumnInfo(name = "intent") var intent: String,            // used at static and dynamic shortcuts on click
+    @ColumnInfo(name = "shortcut_id") var shortcutId: String,   // used at pinned shortcuts at startLauncher call
+    @ColumnInfo(name = "icon") var icon: Bitmap? = null,        // store images of pinned shortcuts, those cannot be retrieved after creating
 
     @Ignore var drawable: Drawable? = null,
     @Ignore var providerInfo: AppWidgetProviderInfo? = null,    // used at widgets
@@ -30,7 +30,7 @@ data class HomeScreenGridItem(
     @Ignore var widthCells: Int = 1,
     @Ignore var heightCells: Int = 1
 ) {
-    constructor() : this(null, -1, -1, -1, -1, "", "", ITEM_TYPE_ICON, "", -1, "", null, null, null, null, 1, 1)
+    constructor() : this(null, -1, -1, -1, -1, "", "", ITEM_TYPE_ICON, "", -1, "", "", null, null, null, null, 1, 1)
 
     fun getWidthInCells() = if (right == -1 || left == -1) {
         widthCells
@@ -43,6 +43,4 @@ data class HomeScreenGridItem(
     } else {
         bottom - top + 1
     }
-
-    fun getComponentName() = ComponentName(activityInfo?.packageName ?: "", activityInfo?.name ?: "")
 }

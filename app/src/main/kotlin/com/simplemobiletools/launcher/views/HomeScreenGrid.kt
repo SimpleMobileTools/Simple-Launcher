@@ -283,6 +283,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         "",
                         -1,
                         "",
+                        "",
                         draggedItem!!.icon,
                         draggedItem!!.drawable,
                         draggedItem!!.providerInfo,
@@ -299,7 +300,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                                 newHomeScreenGridItem.title = label
                                 newHomeScreenGridItem.icon = icon
                                 newHomeScreenGridItem.intent = intent
-                                newHomeScreenGridItem.drawable = BitmapDrawable(newHomeScreenGridItem.icon)
+                                newHomeScreenGridItem.drawable = BitmapDrawable(icon)
                                 storeAndShowGridItem(newHomeScreenGridItem)
                             }
                         }
@@ -318,7 +319,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
     }
 
-    private fun storeAndShowGridItem(item: HomeScreenGridItem) {
+    fun storeAndShowGridItem(item: HomeScreenGridItem) {
         val newId = context.homeScreenGridItemsDB.insert(item)
         item.id = newId
         gridItems.add(item)
@@ -642,7 +643,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     }
 
     // get the clickable area around the icon, it includes text too
-    private fun getClickableRect(item: HomeScreenGridItem): Rect {
+    fun getClickableRect(item: HomeScreenGridItem): Rect {
         if (cellXCoords.isEmpty()) {
             fillCellSizes()
         }
