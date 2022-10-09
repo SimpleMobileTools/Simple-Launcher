@@ -507,22 +507,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         if (cellXCoords.isEmpty()) {
-            cellWidth = getFakeWidth() / COLUMN_COUNT
-            cellHeight = getFakeHeight() / ROW_COUNT
-            iconSize = cellWidth - 2 * iconMargin
-            for (i in 0 until COLUMN_COUNT) {
-                cellXCoords.add(i, i * cellWidth)
-            }
-
-            for (i in 0 until ROW_COUNT) {
-                cellYCoords.add(i, i * cellHeight)
-            }
-
-            cellXCoords.forEach { x ->
-                cellYCoords.forEach { y ->
-                    gridCenters.add(Pair(x + cellWidth / 2, y + cellHeight / 2))
-                }
-            }
+            fillCellSizes()
         }
 
         gridItems.filter { it.drawable != null && it.type == ITEM_TYPE_ICON || it.type == ITEM_TYPE_SHORTCUT }.forEach { item ->
@@ -625,6 +610,25 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         isFirstDraw = false
     }
 
+    private fun fillCellSizes() {
+        cellWidth = getFakeWidth() / COLUMN_COUNT
+        cellHeight = getFakeHeight() / ROW_COUNT
+        iconSize = cellWidth - 2 * iconMargin
+        for (i in 0 until COLUMN_COUNT) {
+            cellXCoords.add(i, i * cellWidth)
+        }
+
+        for (i in 0 until ROW_COUNT) {
+            cellYCoords.add(i, i * cellHeight)
+        }
+
+        cellXCoords.forEach { x ->
+            cellYCoords.forEach { y ->
+                gridCenters.add(Pair(x + cellWidth / 2, y + cellHeight / 2))
+            }
+        }
+    }
+
     fun fragmentExpanded() {
         widgetViews.forEach {
             it.ignoreTouches = true
@@ -639,6 +643,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     // get the clickable area around the icon, it includes text too
     private fun getClickableRect(item: HomeScreenGridItem): Rect {
+        if (cellXCoords.isEmpty()) {
+            fillCellSizes()
+        }
+
         val clickableLeft = item.left * cellWidth + sideMargins.left
         val clickableTop = cellYCoords[item.top] + iconSize / 3 + sideMargins.top
         return Rect(clickableLeft, clickableTop, clickableLeft + cellWidth, clickableTop + iconSize * 2)
