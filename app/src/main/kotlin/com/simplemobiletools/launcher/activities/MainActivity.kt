@@ -391,12 +391,17 @@ class MainActivity : SimpleActivity(), FlingListener {
             if (clickedGridItem.type == ITEM_TYPE_ICON) {
                 launchApp(clickedGridItem.packageName)
             } else if (clickedGridItem.type == ITEM_TYPE_SHORTCUT) {
-                val id = clickedGridItem.shortcutId
-                val packageName = clickedGridItem.packageName
-                val userHandle = android.os.Process.myUserHandle()
-                val shortcutBounds = home_screen_grid.getClickableRect(clickedGridItem)
-                val launcherApps = applicationContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
-                launcherApps.startShortcut(packageName, id, shortcutBounds, null, userHandle)
+                if (clickedGridItem.intent.isNotEmpty()) {
+                    launchShortcutIntent(clickedGridItem)
+                } else {
+                    // launch pinned shortcuts
+                    val id = clickedGridItem.shortcutId
+                    val packageName = clickedGridItem.packageName
+                    val userHandle = android.os.Process.myUserHandle()
+                    val shortcutBounds = home_screen_grid.getClickableRect(clickedGridItem)
+                    val launcherApps = applicationContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+                    launcherApps.startShortcut(packageName, id, shortcutBounds, null, userHandle)
+                }
             }
         }
     }

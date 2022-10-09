@@ -38,6 +38,7 @@ fun Activity.uninstallApp(packageName: String) {
     }
 }
 
+// launch static or dynamic shortcuts that have intents as string
 fun Activity.launchShortcutIntent(item: HomeScreenGridItem) {
     try {
         val intent = Intent.parseUri(item.intent, 0)
