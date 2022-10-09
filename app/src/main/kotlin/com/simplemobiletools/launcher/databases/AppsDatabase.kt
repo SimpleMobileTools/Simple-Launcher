@@ -40,6 +40,7 @@ abstract class AppsDatabase : RoomDatabase() {
         private val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE home_screen_grid_items ADD COLUMN intent TEXT default '' NOT NULL")
+                database.execSQL("ALTER TABLE home_screen_grid_items ADD COLUMN shortcut_id TEXT default '' NOT NULL")
                 database.execSQL("ALTER TABLE home_screen_grid_items ADD COLUMN icon BLOB")
             }
         }
