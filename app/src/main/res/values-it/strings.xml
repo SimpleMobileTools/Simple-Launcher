@@ -6,4 +6,9 @@
     <string name="app_info">Informazioni sull\'app</string>
     <string name="touch_hold_widget">Premi a lungo il widget e trascinalo sulla schermata iniziale</string>
     <string name="uninstall">Disinstalla</string>
+    <string name="hide_icon">Hide icon</string>
+    <string name="add_hidden_icons">Add hidden icons</string>
+    <string name="manage_hidden_icons">Manage hidden icons</string>
+    <string name="hidden_icons">Hidden icons</string>
+    <string name="hidden_icons_info">Some apps cannot be uninstalled due to system restrictions, but you can at least hide their icons to avoid seeing them.</string>
 </resources>
