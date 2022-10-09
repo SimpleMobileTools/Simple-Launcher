@@ -182,7 +182,8 @@ class MainActivity : SimpleActivity(), FlingListener {
         } else if (home_screen_grid.resize_frame.isVisible) {
             home_screen_grid.hideResizeLines()
         } else {
-            super.onBackPressed()
+            // this is a home launcher app, avoid glitching by pressing Back
+            //super.onBackPressed()
         }
     }
 

@@ -39,8 +39,12 @@
 
         <activity
             android:name=".activities.MainActivity"
+            android:clearTaskOnLaunch="true"
             android:configChanges="orientation|keyboardHidden|screenSize"
+            android:excludeFromRecents="true"
             android:exported="true"
+            android:launchMode="singleTop"
+            android:noHistory="true"
             android:screenOrientation="portrait"
             android:theme="@style/LauncherTheme">
 
