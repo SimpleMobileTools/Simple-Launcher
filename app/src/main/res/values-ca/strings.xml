@@ -6,9 +6,9 @@
     <string name="app_info">Informació de l\'aplicació</string>
     <string name="touch_hold_widget">Premeu llargament el giny i arrossegueu-lo a la pantalla d\'inici</string>
     <string name="uninstall">Desinstal·la</string>
-    <string name="hide_icon">Hide icon</string>
-    <string name="add_hidden_icons">Add hidden icons</string>
-    <string name="manage_hidden_icons">Manage hidden icons</string>
-    <string name="hidden_icons">Hidden icons</string>
-    <string name="hidden_icons_info">Some apps cannot be uninstalled due to system restrictions, but you can at least hide their icons to avoid seeing them.</string>
+    <string name="hide_icon">Oculta la icona</string>
+    <string name="add_hidden_icons">Afegeix icones ocultes</string>
+    <string name="manage_hidden_icons">Gestiona les icones ocultes</string>
+    <string name="hidden_icons">Icones ocultes</string>
+    <string name="hidden_icons_info">Algunes aplicacions no es poden desinstal·lar a causa de les restriccions del sistema, però almenys podeu ocultar les seves icones per evitar que es vegin.</string>
 </resources>
