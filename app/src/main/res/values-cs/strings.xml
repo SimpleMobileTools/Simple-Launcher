@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Jednoduchý spouštěč</string>
+    <string name="app_launcher_name">Spuštěč</string>
+    <string name="launcher_settings">Nastavení spouštěče</string>
+    <string name="app_info">O aplikaci</string>
+    <string name="touch_hold_widget">Widget dlouze stiskněte a přetáhněte jej na domovskou obrazovku</string>
+    <string name="uninstall">Odinstalovat</string>
+    <string name="hide_icon">Hide icon</string>
+    <string name="add_hidden_icons">Add hidden icons</string>
+    <string name="manage_hidden_icons">Manage hidden icons</string>
+    <string name="hidden_icons">Hidden icons</string>
+    <string name="hidden_icons_info">Some apps cannot be uninstalled due to system restrictions, but you can at least hide their icons to avoid seeing them.</string>
+</resources>
