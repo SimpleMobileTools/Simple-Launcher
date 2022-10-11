@@ -162,6 +162,11 @@ class MainActivity : SimpleActivity(), FlingListener {
 
             refetchLaunchers()
         }
+
+        // most devices have the top corners rounded, but in case someone has notch disabled, they might be in right angle
+        main_holder.onGlobalLayout {
+            setupFragmentBackgrounds()
+        }
     }
 
     override fun onStart() {
@@ -292,6 +297,20 @@ class MainActivity : SimpleActivity(), FlingListener {
     // some devices ACTION_MOVE keeps triggering for the whole long press duration, but we are interested in real moves only, when coords change
     private fun hasFingerMoved(event: MotionEvent) = mLastTouchCoords.first != -1f && mLastTouchCoords.second != -1f &&
         (mLastTouchCoords.first != event.x || mLastTouchCoords.second != event.y)
+
+    private fun setupFragmentBackgrounds() {
+        val removeRoundedCorners = shouldRemoveTopRoundedCorners(main_holder)
+        val backgroundId = if (removeRoundedCorners) {
+            R.drawable.fragment_background_flat_top
+        } else {
+            R.drawable.fragment_background_rounded_corners
+        }
+
+        val backgroundDrawable = resources.getDrawable(backgroundId)
+        backgroundDrawable.applyColorFilter(getProperBackgroundColor())
+        (all_apps_fragment as AllAppsFragment).setupBackground(backgroundDrawable, removeRoundedCorners)
+        (widgets_fragment as WidgetsFragment).setupBackground(backgroundDrawable, removeRoundedCorners)
+    }
 
     private fun refetchLaunchers() {
         val launchers = getAllAppLaunchers()

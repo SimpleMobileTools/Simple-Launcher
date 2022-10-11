@@ -2,6 +2,7 @@ package com.simplemobiletools.launcher.fragments
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.Surface
@@ -29,7 +30,6 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
     override fun setupFragment(activity: MainActivity) {
         this.activity = activity
         background.applyColorFilter(activity.getProperBackgroundColor())
-        setPadding(0, activity.statusBarHeight, 0, 0)
 
         all_apps_grid.setOnTouchListener { v, event ->
             if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
@@ -137,6 +137,12 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
 
         all_apps_grid.setPadding(0, 0, resources.getDimension(R.dimen.medium_margin).toInt(), bottomListPadding)
         all_apps_fastscroller.setPadding(leftListPadding, 0, rightListPadding, 0)
+    }
+
+    fun setupBackground(backgroundDrawable: Drawable, removeRoundedCorners: Boolean) {
+        val topPadding = if (removeRoundedCorners) 0 else activity!!.statusBarHeight
+        setPadding(0, topPadding, 0, 0)
+        setBackgroundDrawable(backgroundDrawable)
     }
 
     override fun onAppLauncherLongPressed(x: Float, y: Float, appLauncher: AppLauncher) {

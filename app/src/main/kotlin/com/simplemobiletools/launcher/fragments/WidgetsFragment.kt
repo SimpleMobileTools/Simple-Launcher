@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
+import android.graphics.drawable.Drawable
 import android.os.Process
 import android.util.AttributeSet
 import android.view.MotionEvent
@@ -28,10 +29,10 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
     var touchDownY = -1
     var ignoreTouches = false
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun setupFragment(activity: MainActivity) {
         this.activity = activity
         background.applyColorFilter(activity.getProperBackgroundColor())
-        setPadding(0, activity.statusBarHeight, 0, 0)
         getAppWidgets()
 
         widgets_list.setOnTouchListener { v, event ->
@@ -196,6 +197,12 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
 
         widgets_list.setPadding(0, 0, 0, bottomListPadding)
         widgets_fastscroller.setPadding(leftListPadding, 0, rightListPadding, 0)
+    }
+
+    fun setupBackground(backgroundDrawable: Drawable, removeRoundedCorners: Boolean) {
+        val topPadding = if (removeRoundedCorners) 0 else activity!!.statusBarHeight
+        setPadding(0, topPadding, 0, 0)
+        setBackgroundDrawable(backgroundDrawable)
     }
 
     private fun getAppMetadataFromPackage(packageName: String): WidgetsListSection? {
