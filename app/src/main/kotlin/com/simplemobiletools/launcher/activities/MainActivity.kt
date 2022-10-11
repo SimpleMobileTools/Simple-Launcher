@@ -358,8 +358,10 @@ class MainActivity : SimpleActivity(), FlingListener {
         Handler().postDelayed({
             if (fragment is AllAppsFragment) {
                 fragment.all_apps_grid.scrollToPosition(0)
+                fragment.touchDownY = -1
             } else if (fragment is WidgetsFragment) {
                 fragment.widgets_list.scrollToPosition(0)
+                fragment.touchDownY = -1
             }
         }, ANIMATION_DURATION)
     }

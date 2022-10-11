@@ -21,8 +21,8 @@ import com.simplemobiletools.launcher.models.HomeScreenGridItem
 import kotlinx.android.synthetic.main.all_apps_fragment.view.*
 
 class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment(context, attributeSet), AllAppsListener {
-    private var touchDownY = -1
     private var lastTouchCoords = Pair(0f, 0f)
+    var touchDownY = -1
     var ignoreTouches = false
 
     @SuppressLint("ClickableViewAccessibility")

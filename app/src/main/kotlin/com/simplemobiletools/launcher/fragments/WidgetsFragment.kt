@@ -23,10 +23,9 @@ import com.simplemobiletools.launcher.interfaces.WidgetsFragmentListener
 import com.simplemobiletools.launcher.models.*
 import kotlinx.android.synthetic.main.widgets_fragment.view.*
 
-
 class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment(context, attributeSet), WidgetsFragmentListener {
-    private var touchDownY = -1
     private var lastTouchCoords = Pair(0f, 0f)
+    var touchDownY = -1
     var ignoreTouches = false
 
     override fun setupFragment(activity: MainActivity) {
