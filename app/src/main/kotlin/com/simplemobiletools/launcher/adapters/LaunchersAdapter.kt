@@ -68,6 +68,13 @@ class LaunchersAdapter(
         }
     }
 
+    fun updateTextColor(newTextColor: Int) {
+        if (newTextColor != textColor) {
+            textColor = newTextColor
+            notifyDataSetChanged()
+        }
+    }
+
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         fun bindView(launcher: AppLauncher): View {
             itemView.apply {

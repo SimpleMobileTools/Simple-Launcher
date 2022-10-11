@@ -142,6 +142,7 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
         val topPadding = if (addTopPadding) activity!!.statusBarHeight else 0
         setPadding(0, topPadding, 0, 0)
         background = ColorDrawable(context.getProperBackgroundColor())
+        (all_apps_grid.adapter as? LaunchersAdapter)?.updateTextColor(context.getProperTextColor())
     }
 
     override fun onAppLauncherLongPressed(x: Float, y: Float, appLauncher: AppLauncher) {

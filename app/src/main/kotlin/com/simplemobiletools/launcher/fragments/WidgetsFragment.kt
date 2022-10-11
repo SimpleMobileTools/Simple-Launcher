@@ -202,6 +202,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
         val topPadding = if (addTopPadding) activity!!.statusBarHeight else 0
         setPadding(0, topPadding, 0, 0)
         background = ColorDrawable(context.getProperBackgroundColor())
+        (widgets_list.adapter as? WidgetsAdapter)?.updateTextColor(context.getProperTextColor())
     }
 
     private fun getAppMetadataFromPackage(packageName: String): WidgetsListSection? {
