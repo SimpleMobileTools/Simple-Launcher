@@ -6,7 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
-import android.graphics.drawable.Drawable
+import android.graphics.drawable.ColorDrawable
 import android.os.Process
 import android.util.AttributeSet
 import android.view.MotionEvent
@@ -28,11 +28,11 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
     private var lastTouchCoords = Pair(0f, 0f)
     var touchDownY = -1
     var ignoreTouches = false
+    var hasTopPadding = false
 
     @SuppressLint("ClickableViewAccessibility")
     override fun setupFragment(activity: MainActivity) {
         this.activity = activity
-        background.applyColorFilter(activity.getProperBackgroundColor())
         getAppWidgets()
 
         widgets_list.setOnTouchListener { v, event ->
@@ -164,7 +164,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
         }
     }
 
-    fun setupViews() {
+    fun setupViews(addTopPadding: Boolean = hasTopPadding) {
         if (activity == null) {
             return
         }
@@ -197,12 +197,11 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
 
         widgets_list.setPadding(0, 0, 0, bottomListPadding)
         widgets_fastscroller.setPadding(leftListPadding, 0, rightListPadding, 0)
-    }
 
-    fun setupBackground(backgroundDrawable: Drawable, removeRoundedCorners: Boolean) {
-        val topPadding = if (removeRoundedCorners) 0 else activity!!.statusBarHeight
+        hasTopPadding = addTopPadding
+        val topPadding = if (addTopPadding) activity!!.statusBarHeight else 0
         setPadding(0, topPadding, 0, 0)
-        setBackgroundDrawable(backgroundDrawable)
+        background = ColorDrawable(context.getProperBackgroundColor())
     }
 
     private fun getAppMetadataFromPackage(packageName: String): WidgetsListSection? {

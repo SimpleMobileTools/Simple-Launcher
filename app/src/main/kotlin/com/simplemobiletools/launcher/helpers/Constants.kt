@@ -1,8 +1,5 @@
 package com.simplemobiletools.launcher.helpers
 
-import android.view.View
-import com.simplemobiletools.commons.helpers.isSPlus
-
 const val WIDGET_LIST_SECTION = 0
 const val WIDGET_LIST_ITEMS_HOLDER = 1
 
@@ -25,8 +22,3 @@ const val ITEM_TYPE_SHORTCUT = 2
 const val WIDGET_HOST_ID = 12345
 const val MAX_ALLOWED_MOVE_PX = 10
 const val MAX_CLICK_DURATION = 150
-
-// remove rounded corners if the display isnt using them
-fun shouldRemoveTopRoundedCorners(mainView: View): Boolean {
-    return isSPlus() && mainView.rootWindowInsets.displayCutout == null
-}

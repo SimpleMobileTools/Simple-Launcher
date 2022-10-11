@@ -151,8 +151,12 @@ class MainActivity : SimpleActivity(), FlingListener {
     override fun onResume() {
         super.onResume()
         updateStatusbarColor(Color.TRANSPARENT)
-        (all_apps_fragment as AllAppsFragment).setupViews()
-        (widgets_fragment as WidgetsFragment).setupViews()
+
+        main_holder.onGlobalLayout {
+            val addTopPadding = main_holder.rootWindowInsets.displayCutout != null
+            (all_apps_fragment as AllAppsFragment).setupViews(addTopPadding)
+            (widgets_fragment as WidgetsFragment).setupViews(addTopPadding)
+        }
 
         ensureBackgroundThread {
             if (mCachedLaunchers.isEmpty()) {
@@ -161,11 +165,6 @@ class MainActivity : SimpleActivity(), FlingListener {
             }
 
             refetchLaunchers()
-        }
-
-        // most devices have the top corners rounded, but in case someone has notch disabled, they might be in right angle
-        main_holder.onGlobalLayout {
-            setupFragmentBackgrounds()
         }
     }
 
@@ -297,20 +296,6 @@ class MainActivity : SimpleActivity(), FlingListener {
     // some devices ACTION_MOVE keeps triggering for the whole long press duration, but we are interested in real moves only, when coords change
     private fun hasFingerMoved(event: MotionEvent) = mLastTouchCoords.first != -1f && mLastTouchCoords.second != -1f &&
         (mLastTouchCoords.first != event.x || mLastTouchCoords.second != event.y)
-
-    private fun setupFragmentBackgrounds() {
-        val removeRoundedCorners = shouldRemoveTopRoundedCorners(main_holder)
-        val backgroundId = if (removeRoundedCorners) {
-            R.drawable.fragment_background_flat_top
-        } else {
-            R.drawable.fragment_background_rounded_corners
-        }
-
-        val backgroundDrawable = resources.getDrawable(backgroundId)
-        backgroundDrawable.applyColorFilter(getProperBackgroundColor())
-        (all_apps_fragment as AllAppsFragment).setupBackground(backgroundDrawable, removeRoundedCorners)
-        (widgets_fragment as WidgetsFragment).setupBackground(backgroundDrawable, removeRoundedCorners)
-    }
 
     private fun refetchLaunchers() {
         val launchers = getAllAppLaunchers()
