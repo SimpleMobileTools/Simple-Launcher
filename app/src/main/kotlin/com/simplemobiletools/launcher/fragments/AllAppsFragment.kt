@@ -41,6 +41,10 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
     }
 
     fun onConfigurationChanged() {
+        if (all_apps_grid == null) {
+            return
+        }
+
         all_apps_grid.scrollToPosition(0)
         all_apps_fastscroller.resetManualScrolling()
         setupViews()

@@ -45,6 +45,10 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
     }
 
     fun onConfigurationChanged() {
+        if (widgets_list == null) {
+            return
+        }
+
         widgets_list.scrollToPosition(0)
         setupViews()
 
