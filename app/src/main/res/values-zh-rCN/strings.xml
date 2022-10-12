@@ -6,9 +6,9 @@
     <string name="app_info">应用信息</string>
     <string name="touch_hold_widget">长按小部件并将其拖动到主屏幕</string>
     <string name="uninstall">卸载</string>
-    <string name="hide_icon">Hide icon</string>
-    <string name="add_hidden_icons">Add hidden icons</string>
-    <string name="manage_hidden_icons">Manage hidden icons</string>
-    <string name="hidden_icons">Hidden icons</string>
-    <string name="hidden_icons_info">Some apps cannot be uninstalled due to system restrictions, but you can at least hide their icons to avoid seeing them.</string>
+    <string name="hide_icon">隐藏图标</string>
+    <string name="add_hidden_icons">添加隐藏的图标</string>
+    <string name="manage_hidden_icons">管理隐藏的图标</string>
+    <string name="hidden_icons">隐藏的图标</string>
+    <string name="hidden_icons_info">某些应用因系统限制而无法卸载， 但你至少可以隐藏它们的图标避免看见它们。</string>
 </resources>
