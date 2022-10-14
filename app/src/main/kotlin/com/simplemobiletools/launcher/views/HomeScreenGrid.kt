@@ -278,6 +278,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         xIndex,
                         yIndex,
                         draggedItem!!.packageName,
+                        draggedItem!!.activityName,
                         draggedItem!!.title,
                         draggedItem!!.type,
                         "",

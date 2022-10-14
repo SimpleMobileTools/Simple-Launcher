@@ -1,6 +1,8 @@
 package com.simplemobiletools.launcher.extensions
 
 import android.app.Activity
+import android.content.ActivityNotFoundException
+import android.content.ComponentName
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
@@ -9,16 +11,22 @@ import com.simplemobiletools.launcher.activities.SettingsActivity
 import com.simplemobiletools.launcher.helpers.UNINSTALL_APP_REQUEST_CODE
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
 
-fun Activity.launchApp(packageName: String) {
+fun Activity.launchApp(packageName: String, activityName: String) {
     // if this is true, launch the app settings
     if (packageName == this.packageName) {
         startActivity(Intent(applicationContext, SettingsActivity::class.java))
         return
     }
 
-    val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
     try {
-        startActivity(launchIntent)
+        Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_LAUNCHER)
+            `package` = packageName
+            component = ComponentName.unflattenFromString("$packageName/$activityName")
+            startActivity(this)
+        }
+    } catch (e: ActivityNotFoundException) {
+        showErrorToast(e)
     } catch (e: Exception) {
         showErrorToast(e)
     }

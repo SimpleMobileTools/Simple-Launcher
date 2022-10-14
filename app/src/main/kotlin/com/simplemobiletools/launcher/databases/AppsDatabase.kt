@@ -13,7 +13,7 @@ import com.simplemobiletools.launcher.interfaces.HomeScreenGridItemsDao
 import com.simplemobiletools.launcher.models.AppLauncher
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
 
-@Database(entities = [AppLauncher::class, HomeScreenGridItem::class], version = 2)
+@Database(entities = [AppLauncher::class, HomeScreenGridItem::class], version = 3)
 @TypeConverters(Converters::class)
 abstract class AppsDatabase : RoomDatabase() {
 
@@ -30,6 +30,7 @@ abstract class AppsDatabase : RoomDatabase() {
                     if (db == null) {
                         db = Room.databaseBuilder(context.applicationContext, AppsDatabase::class.java, "apps.db")
                             .addMigrations(MIGRATION_1_2)
+                            .addMigrations(MIGRATION_2_3)
                             .build()
                     }
                 }
@@ -42,6 +43,13 @@ abstract class AppsDatabase : RoomDatabase() {
                 database.execSQL("ALTER TABLE home_screen_grid_items ADD COLUMN intent TEXT default '' NOT NULL")
                 database.execSQL("ALTER TABLE home_screen_grid_items ADD COLUMN shortcut_id TEXT default '' NOT NULL")
                 database.execSQL("ALTER TABLE home_screen_grid_items ADD COLUMN icon BLOB")
+            }
+        }
+
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE apps ADD COLUMN activity_name TEXT default '' NOT NULL")
+                database.execSQL("ALTER TABLE home_screen_grid_items ADD COLUMN activity_name TEXT default '' NOT NULL")
             }
         }
     }
