@@ -7,7 +7,6 @@ import android.widget.RelativeLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.simplemobiletools.commons.extensions.getProperTextColor
-import com.simplemobiletools.commons.extensions.toast
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.SimpleActivity
 import com.simplemobiletools.launcher.helpers.WIDGET_LIST_ITEMS_HOLDER
@@ -23,7 +22,8 @@ import kotlinx.android.synthetic.main.item_widget_preview.view.*
 class WidgetsAdapter(
     val activity: SimpleActivity,
     var widgetListItems: ArrayList<WidgetsListItem>,
-    val widgetsFragmentListener: WidgetsFragmentListener
+    val widgetsFragmentListener: WidgetsFragmentListener,
+    val itemClick: () -> Unit
 ) : RecyclerView.Adapter<WidgetsAdapter.ViewHolder>() {
 
     private var textColor = activity.getProperTextColor()
@@ -102,9 +102,7 @@ class WidgetsAdapter(
                 .load(widget.widgetPreviewImage)
                 .into(widgetPreview.widget_image)
 
-            widgetPreview.setOnClickListener {
-                activity.toast(R.string.touch_hold_widget)
-            }
+            widgetPreview.setOnClickListener { itemClick() }
 
             widgetPreview.setOnLongClickListener { view ->
                 widgetsFragmentListener.onWidgetLongPressed(widget)

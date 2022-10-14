@@ -99,6 +99,8 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             if (currAdapter == null) {
                 LaunchersAdapter(activity!!, launchers, this) {
                     activity?.launchApp((it as AppLauncher).packageName, it.activityName)
+                    ignoreTouches = false
+                    touchDownY = -1
                 }.apply {
                     all_apps_grid.adapter = this
                 }
@@ -150,24 +152,24 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
     }
 
     override fun onAppLauncherLongPressed(x: Float, y: Float, appLauncher: AppLauncher) {
-        val gridItem =
-            HomeScreenGridItem(
-                null,
-                -1,
-                -1,
-                -1,
-                -1,
-                appLauncher.packageName,
-                appLauncher.activityName,
-                appLauncher.title,
-                ITEM_TYPE_ICON,
-                "",
-                -1,
-                "",
-                "",
-                null,
-                appLauncher.drawable
-            )
+        val gridItem = HomeScreenGridItem(
+            null,
+            -1,
+            -1,
+            -1,
+            -1,
+            appLauncher.packageName,
+            appLauncher.activityName,
+            appLauncher.title,
+            ITEM_TYPE_ICON,
+            "",
+            -1,
+            "",
+            "",
+            null,
+            appLauncher.drawable
+        )
+
         activity?.showHomeIconMenu(x, y, gridItem, true)
         ignoreTouches = true
     }

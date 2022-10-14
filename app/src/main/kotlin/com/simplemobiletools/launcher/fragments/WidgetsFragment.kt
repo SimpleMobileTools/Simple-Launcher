@@ -15,6 +15,7 @@ import android.view.WindowManager
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.isRPlus
+import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.adapters.WidgetsAdapter
 import com.simplemobiletools.launcher.extensions.getInitialCellSize
@@ -159,7 +160,11 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
         activity?.runOnUiThread {
             val currAdapter = widgets_list.adapter
             if (currAdapter == null) {
-                WidgetsAdapter(activity!!, widgetsListItems, this).apply {
+                WidgetsAdapter(activity!!, widgetsListItems, this) {
+                    context.toast(R.string.touch_hold_widget)
+                    ignoreTouches = false
+                    touchDownY = -1
+                }.apply {
                     widgets_list.adapter = this
                 }
             } else {
