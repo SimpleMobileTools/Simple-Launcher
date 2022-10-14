@@ -1,6 +1,12 @@
 Changelog
 ==========
 
+Version 5.0.3 *(2022-10-14)*
+----------------------------
+
+ * Lowered the required OS version to 8, Oreo
+ * Add some move threshold to make long pressing easier
+
 Version 5.0.2 *(2022-10-14)*
 ----------------------------
 
