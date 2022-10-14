@@ -23,6 +23,7 @@ fun Activity.launchApp(packageName: String, activityName: String) {
             addCategory(Intent.CATEGORY_LAUNCHER)
             `package` = packageName
             component = ComponentName.unflattenFromString("$packageName/$activityName")
+            addFlags(Intent.FLAG_RECEIVER_FOREGROUND)
             startActivity(this)
         }
     } catch (e: ActivityNotFoundException) {

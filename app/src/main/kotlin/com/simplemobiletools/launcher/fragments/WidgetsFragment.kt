@@ -247,6 +247,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             -1,
             appWidget.appPackageName,
             "",
+            "",
             type,
             appWidget.className,
             -1,
