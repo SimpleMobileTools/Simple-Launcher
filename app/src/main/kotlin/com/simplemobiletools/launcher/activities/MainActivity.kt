@@ -30,6 +30,9 @@ import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.isVisible
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
+import com.simplemobiletools.commons.helpers.isPiePlus
+import com.simplemobiletools.commons.helpers.isQPlus
+import com.simplemobiletools.commons.helpers.isRPlus
 import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.extensions.*
@@ -77,7 +80,11 @@ class MainActivity : SimpleActivity(), FlingListener {
         appLaunched(BuildConfig.APPLICATION_ID)
 
         mDetector = GestureDetectorCompat(this, MyGestureListener(this))
-        window.setDecorFitsSystemWindows(false)
+
+        if (isRPlus()) {
+            window.setDecorFitsSystemWindows(false)
+        }
+
         mScreenHeight = realScreenSize.y
         mAllAppsFragmentY = mScreenHeight
         mWidgetsFragmentY = mScreenHeight
@@ -154,9 +161,11 @@ class MainActivity : SimpleActivity(), FlingListener {
         updateStatusbarColor(Color.TRANSPARENT)
 
         main_holder.onGlobalLayout {
-            val addTopPadding = main_holder.rootWindowInsets.displayCutout != null
-            (all_apps_fragment as AllAppsFragment).setupViews(addTopPadding)
-            (widgets_fragment as WidgetsFragment).setupViews(addTopPadding)
+            if (isPiePlus()) {
+                val addTopPadding = main_holder.rootWindowInsets.displayCutout != null
+                (all_apps_fragment as AllAppsFragment).setupViews(addTopPadding)
+                (widgets_fragment as WidgetsFragment).setupViews(addTopPadding)
+            }
         }
 
         ensureBackgroundThread {
@@ -475,7 +484,10 @@ class MainActivity : SimpleActivity(), FlingListener {
 
         val contextTheme = ContextThemeWrapper(this, getPopupMenuTheme())
         return PopupMenu(contextTheme, anchorView, Gravity.TOP or Gravity.END).apply {
-            setForceShowIcon(true)
+            if (isQPlus()) {
+                setForceShowIcon(true)
+            }
+
             inflate(R.menu.menu_app_icon)
             menu.findItem(R.id.resize).isVisible = gridItem.type == ITEM_TYPE_WIDGET
             menu.findItem(R.id.app_info).isVisible = gridItem.type == ITEM_TYPE_ICON

@@ -14,7 +14,7 @@ android {
 
     defaultConfig {
         applicationId "com.simplemobiletools.launcher"
-        minSdkVersion 30
+        minSdkVersion 26
         targetSdkVersion 33
         versionCode 4
         versionName "5.0.2"
