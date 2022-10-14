@@ -51,6 +51,7 @@ import kotlinx.android.synthetic.main.widgets_fragment.view.*
 class MainActivity : SimpleActivity(), FlingListener {
     private val ANIMATION_DURATION = 150L
 
+    private var mTouchDownX = -1
     private var mTouchDownY = -1
     private var mAllAppsFragmentY = 0
     private var mWidgetsFragmentY = 0
@@ -241,6 +242,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         mDetector.onTouchEvent(event)
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
+                mTouchDownX = event.x.toInt()
                 mTouchDownY = event.y.toInt()
                 mAllAppsFragmentY = all_apps_fragment.y.toInt()
                 mWidgetsFragmentY = widgets_fragment.y.toInt()
@@ -248,14 +250,15 @@ class MainActivity : SimpleActivity(), FlingListener {
             }
 
             MotionEvent.ACTION_MOVE -> {
-                if (mLongPressedIcon != null && mOpenPopupMenu != null && hasFingerMoved(event)) {
+                val hasFingerMoved = hasFingerMoved(event)
+                if (mLongPressedIcon != null && mOpenPopupMenu != null && hasFingerMoved) {
                     mOpenPopupMenu?.dismiss()
                     mOpenPopupMenu = null
                     home_screen_grid.itemDraggingStarted(mLongPressedIcon!!)
                     hideFragment(all_apps_fragment)
                 }
 
-                if (mLongPressedIcon != null && hasFingerMoved(event)) {
+                if (mLongPressedIcon != null && hasFingerMoved) {
                     home_screen_grid.draggedItemMoved(event.x.toInt(), event.y.toInt())
                 }
 
@@ -276,6 +279,7 @@ class MainActivity : SimpleActivity(), FlingListener {
 
             MotionEvent.ACTION_CANCEL,
             MotionEvent.ACTION_UP -> {
+                mTouchDownX = -1
                 mTouchDownY = -1
                 mIgnoreMoveEvents = false
                 mLongPressedIcon = null
@@ -303,8 +307,8 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     // some devices ACTION_MOVE keeps triggering for the whole long press duration, but we are interested in real moves only, when coords change
-    private fun hasFingerMoved(event: MotionEvent) = mLastTouchCoords.first != -1f && mLastTouchCoords.second != -1f &&
-        (mLastTouchCoords.first != event.x || mLastTouchCoords.second != event.y)
+    private fun hasFingerMoved(event: MotionEvent) = mTouchDownX != -1 && mTouchDownY != -1 &&
+        (Math.abs(mTouchDownX - event.x) > MAX_ALLOWED_MOVE_PX) || (Math.abs(mTouchDownY - event.y) > MAX_ALLOWED_MOVE_PX)
 
     private fun refetchLaunchers() {
         val launchers = getAllAppLaunchers()
