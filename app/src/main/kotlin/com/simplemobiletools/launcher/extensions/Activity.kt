@@ -1,7 +1,6 @@
 package com.simplemobiletools.launcher.extensions
 
 import android.app.Activity
-import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Intent
 import android.net.Uri
@@ -26,10 +25,13 @@ fun Activity.launchApp(packageName: String, activityName: String) {
             addFlags(Intent.FLAG_RECEIVER_FOREGROUND)
             startActivity(this)
         }
-    } catch (e: ActivityNotFoundException) {
-        showErrorToast(e)
     } catch (e: Exception) {
-        showErrorToast(e)
+        try {
+            val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
+            startActivity(launchIntent)
+        } catch (e: Exception) {
+            showErrorToast(e)
+        }
     }
 }
 
