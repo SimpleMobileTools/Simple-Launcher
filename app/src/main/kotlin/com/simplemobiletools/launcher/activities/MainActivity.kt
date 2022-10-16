@@ -56,6 +56,7 @@ class MainActivity : SimpleActivity(), FlingListener {
     private var mAllAppsFragmentY = 0
     private var mWidgetsFragmentY = 0
     private var mScreenHeight = 0
+    private var mMoveGestureThreshold = 0
     private var mIgnoreUpEvent = false
     private var mIgnoreMoveEvents = false
     private var mLongPressedIcon: HomeScreenGridItem? = null
@@ -89,6 +90,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         mScreenHeight = realScreenSize.y
         mAllAppsFragmentY = mScreenHeight
         mWidgetsFragmentY = mScreenHeight
+        mMoveGestureThreshold = resources.getDimension(R.dimen.move_gesture_threshold).toInt()
 
         arrayOf(all_apps_fragment as MyFragment, widgets_fragment as MyFragment).forEach { fragment ->
             fragment.setupFragment(this)
@@ -239,7 +241,11 @@ class MainActivity : SimpleActivity(), FlingListener {
             mLastUpEvent = System.currentTimeMillis()
         }
 
-        mDetector.onTouchEvent(event)
+        try {
+            mDetector.onTouchEvent(event)
+        } catch (ignored: Exception) {
+        }
+
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 mTouchDownX = event.x.toInt()
@@ -250,7 +256,15 @@ class MainActivity : SimpleActivity(), FlingListener {
             }
 
             MotionEvent.ACTION_MOVE -> {
-                val hasFingerMoved = hasFingerMoved(event)
+                // if the initial gesture was handled by some other view, fix the Down values
+                val hasFingerMoved = if (mTouchDownX == -1 || mTouchDownY == -1) {
+                    mTouchDownX = event.x.toInt()
+                    mTouchDownY = event.y.toInt()
+                    false
+                } else {
+                    hasFingerMoved(event)
+                }
+
                 if (mLongPressedIcon != null && mOpenPopupMenu != null && hasFingerMoved) {
                     mOpenPopupMenu?.dismiss()
                     mOpenPopupMenu = null
@@ -308,7 +322,7 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     // some devices ACTION_MOVE keeps triggering for the whole long press duration, but we are interested in real moves only, when coords change
     private fun hasFingerMoved(event: MotionEvent) = mTouchDownX != -1 && mTouchDownY != -1 &&
-        (Math.abs(mTouchDownX - event.x) > MAX_ALLOWED_MOVE_PX) || (Math.abs(mTouchDownY - event.y) > MAX_ALLOWED_MOVE_PX)
+        (Math.abs(mTouchDownX - event.x) > mMoveGestureThreshold) || (Math.abs(mTouchDownY - event.y) > mMoveGestureThreshold)
 
     private fun refetchLaunchers() {
         val launchers = getAllAppLaunchers()

@@ -6,14 +6,14 @@ import android.graphics.PointF
 import android.os.Handler
 import android.view.MotionEvent
 import android.view.ViewConfiguration
-import com.simplemobiletools.commons.extensions.performHapticFeedback
-import com.simplemobiletools.launcher.helpers.MAX_ALLOWED_MOVE_PX
+import com.simplemobiletools.launcher.R
 
 class MyAppWidgetHostView(context: Context) : AppWidgetHostView(context) {
     private var longPressHandler = Handler()
     private var actionDownCoords = PointF()
     private var currentCoords = PointF()
     private var actionDownMS = 0L
+    private val moveGestureThreshold = resources.getDimension(R.dimen.move_gesture_threshold).toInt()
     var hasLongPressed = false
     var ignoreTouches = false
     var longPressListener: ((x: Float, y: Float) -> Unit)? = null
@@ -60,7 +60,7 @@ class MyAppWidgetHostView(context: Context) : AppWidgetHostView(context) {
     }
 
     private val longPressRunnable = Runnable {
-        if (Math.abs(actionDownCoords.x - currentCoords.x) < MAX_ALLOWED_MOVE_PX && Math.abs(actionDownCoords.y - currentCoords.y) < MAX_ALLOWED_MOVE_PX) {
+        if (Math.abs(actionDownCoords.x - currentCoords.x) < moveGestureThreshold && Math.abs(actionDownCoords.y - currentCoords.y) < moveGestureThreshold) {
             longPressHandler.removeCallbacksAndMessages(null)
             hasLongPressed = true
             longPressListener?.invoke(actionDownCoords.x, actionDownCoords.y)
