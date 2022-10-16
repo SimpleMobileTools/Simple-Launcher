@@ -6,9 +6,9 @@
     <string name="app_info">Appinformation</string>
     <string name="touch_hold_widget">Tryck länge på widgeten och dra den på startskärmen</string>
     <string name="uninstall">Avinstallera</string>
-    <string name="hide_icon">Hide icon</string>
-    <string name="add_hidden_icons">Add hidden icons</string>
-    <string name="manage_hidden_icons">Manage hidden icons</string>
-    <string name="hidden_icons">Hidden icons</string>
-    <string name="hidden_icons_info">Some apps cannot be uninstalled due to system restrictions, but you can at least hide their icons to avoid seeing them.</string>
+    <string name="hide_icon">Dölj ikon</string>
+    <string name="add_hidden_icons">Lägg till dolda ikoner</string>
+    <string name="manage_hidden_icons">Hantera dolda ikoner</string>
+    <string name="hidden_icons">Dolda ikoner</string>
+    <string name="hidden_icons_info">Vissa appar kan inte avinstalleras på grund av systembegränsningar, men du kan åtminstone dölja deras ikoner för att slippa se dem.</string>
 </resources>
