@@ -186,7 +186,7 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     override fun onStop() {
         super.onStop()
-        home_screen_grid.appWidgetHost.stopListening()
+        home_screen_grid?.appWidgetHost?.stopListening()
     }
 
     override fun onBackPressed() {
