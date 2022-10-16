@@ -486,10 +486,10 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     private fun handleGridItemPopupMenu(anchorView: View, gridItem: HomeScreenGridItem, isOnAllAppsFragment: Boolean): PopupMenu {
         var visibleMenuButtons = 5
-        if (gridItem.type == ITEM_TYPE_ICON) {
-            visibleMenuButtons -= 1
-        } else {
-            visibleMenuButtons -= 2
+        visibleMenuButtons -= when (gridItem.type) {
+            ITEM_TYPE_ICON -> 1
+            ITEM_TYPE_WIDGET -> 3
+            else -> 4
         }
 
         if (isOnAllAppsFragment) {
