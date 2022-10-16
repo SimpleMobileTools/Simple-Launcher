@@ -12,6 +12,11 @@
         android:title="@string/resize"
         app:showAsAction="always" />
     <item
+        android:id="@+id/rename"
+        android:icon="@drawable/ic_rename_vector"
+        android:title="@string/rename"
+        app:showAsAction="always" />
+    <item
         android:id="@+id/remove"
         android:icon="@drawable/ic_cross_vector"
         android:title="@string/remove"

@@ -35,6 +35,7 @@ import com.simplemobiletools.commons.helpers.isQPlus
 import com.simplemobiletools.commons.helpers.isRPlus
 import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
+import com.simplemobiletools.launcher.dialogs.RenameItemDialog
 import com.simplemobiletools.launcher.extensions.*
 import com.simplemobiletools.launcher.fragments.AllAppsFragment
 import com.simplemobiletools.launcher.fragments.MyFragment
@@ -484,8 +485,10 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     private fun handleGridItemPopupMenu(anchorView: View, gridItem: HomeScreenGridItem, isOnAllAppsFragment: Boolean): PopupMenu {
-        var visibleMenuButtons = 4
-        if (gridItem.type != ITEM_TYPE_ICON) {
+        var visibleMenuButtons = 5
+        if (gridItem.type == ITEM_TYPE_ICON) {
+            visibleMenuButtons -= 1
+        } else {
             visibleMenuButtons -= 2
         }
 
@@ -507,6 +510,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             }
 
             inflate(R.menu.menu_app_icon)
+            menu.findItem(R.id.rename).isVisible = gridItem.type == ITEM_TYPE_ICON && !isOnAllAppsFragment
             menu.findItem(R.id.resize).isVisible = gridItem.type == ITEM_TYPE_WIDGET
             menu.findItem(R.id.app_info).isVisible = gridItem.type == ITEM_TYPE_ICON
             menu.findItem(R.id.uninstall).isVisible = gridItem.type == ITEM_TYPE_ICON
@@ -514,6 +518,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             setOnMenuItemClickListener { item ->
                 resetFragmentTouches()
                 when (item.itemId) {
+                    R.id.rename -> renameItem(gridItem)
                     R.id.resize -> home_screen_grid.widgetLongPressed(gridItem)
                     R.id.app_info -> launchAppInfo(gridItem.packageName)
                     R.id.remove -> home_screen_grid.removeAppIcon(gridItem)
@@ -545,6 +550,12 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     private fun showWidgetsFragment() {
         showFragment(widgets_fragment)
+    }
+
+    private fun renameItem(homeScreenGridItem: HomeScreenGridItem) {
+        RenameItemDialog(this, homeScreenGridItem) {
+            home_screen_grid.fetchGridItems()
+        }
     }
 
     private fun launchWallpapersIntent() {

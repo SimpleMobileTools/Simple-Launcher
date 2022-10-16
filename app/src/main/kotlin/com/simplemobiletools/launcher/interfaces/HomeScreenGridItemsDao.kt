@@ -20,6 +20,9 @@ interface HomeScreenGridItemsDao {
     @Query("UPDATE home_screen_grid_items SET title = :title WHERE package_name = :packageName")
     fun updateAppTitle(title: String, packageName: String)
 
+    @Query("UPDATE home_screen_grid_items SET title = :title WHERE id = :id")
+    fun updateItemTitle(title: String, id: Long): Int
+
     @Query("UPDATE home_screen_grid_items SET `left` = :left, `top` = :top, `right` = :right, `bottom` = :bottom WHERE id = :id")
     fun updateItemPosition(left: Int, top: Int, right: Int, bottom: Int, id: Long)
 
