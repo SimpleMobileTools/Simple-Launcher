@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Simple Launcher</string>
+    <string name="app_launcher_name">Peluncur</string>
+    <string name="launcher_settings">Pengaturan Peluncur</string>
+    <string name="app_info">Info aplikasi</string>
+    <string name="touch_hold_widget">Tekan lama pada widget dan seret pada layar beranda Anda</string>
+    <string name="uninstall">Uninstal</string>
+    <string name="hide_icon">Sembunyikan ikon</string>
+    <string name="add_hidden_icons">Tambahkan ikon tersembunyi</string>
+    <string name="manage_hidden_icons">Kelola ikon tersembunyi</string>
+    <string name="hidden_icons">Ikon tersembunyi</string>
+    <string name="hidden_icons_info">Beberapa aplikasi tidak dapat di-uninstal karena keterbatasan sistem, tetapi Anda masih dapat menyembunyikan ikon mereka untuk menyembunyikannya.</string>
+</resources>
