@@ -465,11 +465,15 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         val widgetWidth = item.getWidthInCells() * cellWidth
         val widgetHeight = item.getHeightInCells() * cellHeight
 
+        val density = context.resources.displayMetrics.density
+        val widgetDpWidth = (widgetWidth / density).toInt()
+        val widgetDpHeight = (widgetHeight / density).toInt()
+
         if (isSPlus()) {
-            val sizes = listOf(SizeF(widgetWidth.toFloat(), widgetHeight.toFloat()))
+            val sizes = listOf(SizeF(widgetDpWidth.toFloat(), widgetDpHeight.toFloat()))
             widgetView.updateAppWidgetSize(Bundle(), sizes)
         } else {
-            widgetView.updateAppWidgetSize(Bundle(), widgetWidth, widgetHeight, widgetWidth, widgetHeight)
+            widgetView.updateAppWidgetSize(Bundle(), widgetDpWidth, widgetDpHeight, widgetDpWidth, widgetDpHeight)
         }
 
         widgetView.layoutParams?.width = widgetWidth
