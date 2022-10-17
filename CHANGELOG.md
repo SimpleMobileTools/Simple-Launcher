@@ -1,11 +1,19 @@
 Changelog
 ==========
 
+Version 5.0.4 *(2022-10-17)*
+----------------------------
+
+ * Allow renaming home screen icons
+ * Fixed widget sizing
+ * Added some UX, translation and stability improvements
+
 Version 5.0.3 *(2022-10-14)*
 ----------------------------
 
  * Lowered the required OS version to 8, Oreo
  * Add some move threshold to make long pressing easier
+ * Added some stability and translation improvements
 
 Version 5.0.2 *(2022-10-14)*
 ----------------------------
