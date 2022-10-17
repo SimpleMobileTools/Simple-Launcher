@@ -283,7 +283,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                     if (isWidgetsFragmentExpanded()) {
                         val newY = mWidgetsFragmentY - diffY
                         widgets_fragment.y = Math.min(Math.max(0f, newY), mScreenHeight.toFloat())
-                    } else {
+                    } else if (mLongPressedIcon == null) {
                         val newY = mAllAppsFragmentY - diffY
                         all_apps_fragment.y = Math.min(Math.max(0f, newY), mScreenHeight.toFloat())
                     }
