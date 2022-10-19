@@ -2,13 +2,13 @@
 <resources>
     <string name="app_name">Lihtne käivitaja</string>
     <string name="app_launcher_name">Käivitaja</string>
-    <string name="launcher_settings">Launcher Settings</string>
+    <string name="launcher_settings">Käivitaja seadistused</string>
     <string name="app_info">Rakenduse teave</string>
     <string name="touch_hold_widget">Vajutage pikalt vidinat ja lohistage see oma koduekraanile</string>
     <string name="uninstall">Desinstallige</string>
-    <string name="hide_icon">Hide icon</string>
-    <string name="add_hidden_icons">Add hidden icons</string>
-    <string name="manage_hidden_icons">Manage hidden icons</string>
-    <string name="hidden_icons">Hidden icons</string>
-    <string name="hidden_icons_info">Some apps cannot be uninstalled due to system restrictions, but you can at least hide their icons to avoid seeing them.</string>
+    <string name="hide_icon">Peida ikoon</string>
+    <string name="add_hidden_icons">Lisa peidetud ikoone</string>
+    <string name="manage_hidden_icons">Halda peidetud ikoone</string>
+    <string name="hidden_icons">Peidetud ikoonid</string>
+    <string name="hidden_icons_info">Mõnda rakendust ei saa süsteemipiirangute tõttu eemaldada. Selleks, et neid mitte näha, võid vähemalt nende ikoonid ära peita.</string>
 </resources>
