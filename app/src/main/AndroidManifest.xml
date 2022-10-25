@@ -76,6 +76,12 @@
             android:label="@string/customize_colors"
             android:parentActivityName=".activities.SettingsActivity" />
 
+        <activity
+            android:name=".activities.HiddenIconsActivity"
+            android:exported="false"
+            android:label="@string/hidden_icons"
+            android:parentActivityName=".activities.SettingsActivity" />
+
         <activity-alias
             android:name=".activities.SplashActivity.Red"
             android:clearTaskOnLaunch="true"
