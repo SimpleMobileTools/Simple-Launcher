@@ -628,7 +628,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         val list = packageManager.queryIntentActivities(intent, PackageManager.PERMISSION_GRANTED)
         for (info in list) {
             val componentInfo = info.activityInfo.applicationInfo
-            var packageName = componentInfo.packageName
+            val packageName = componentInfo.packageName
             if (packageName == simpleLauncher || packageName == microG) {
                 continue
             }

@@ -10,5 +10,5 @@
     <string name="add_hidden_icons">Engade iconas ocultas</string>
     <string name="manage_hidden_icons">Xestionar iconas ocultas</string>
     <string name="hidden_icons">Iconas ocultas</string>
-    <string name="hidden_icons_info">Algunhas aplicacións non se poden desinstalar debido ás restricións do sistema, pero polo menos podes ocultar as súas iconas para evitar velas.</string>
+    <string name="hidden_icons_placeholder">Algunhas aplicacións non se poden desinstalar debido ás restricións do sistema, pero polo menos podes ocultar as súas iconas para evitar velas.</string>
 </resources>

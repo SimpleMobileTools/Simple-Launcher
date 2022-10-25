@@ -10,5 +10,5 @@
     <string name="add_hidden_icons">Agregar iconos ocultos</string>
     <string name="manage_hidden_icons">Gestionar los iconos ocultos</string>
     <string name="hidden_icons">Iconos ocultos</string>
-    <string name="hidden_icons_info">Algunas aplicaciones no se pueden desinstalar debido a las restricciones del sistema, pero al menos puedes ocultar sus iconos para evitar verlas.</string>
+    <string name="hidden_icons_placeholder">Algunas aplicaciones no se pueden desinstalar debido a las restricciones del sistema, pero al menos puedes ocultar sus iconos para evitar verlas.</string>
 </resources>

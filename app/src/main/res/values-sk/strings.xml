@@ -10,7 +10,7 @@
     <string name="add_hidden_icons">Pridať skryté ikonky</string>
     <string name="manage_hidden_icons">Spravovať skryté ikonky</string>
     <string name="hidden_icons">Skryté ikonky</string>
-    <string name="hidden_icons_info">Niektoré apky nemôžu byť odinštalované kvôli systémovým obmedzeniam, viete ich ale aspoň skryť, aby ste ich nevideli.</string>
+    <string name="hidden_icons_placeholder">Niektoré apky nemôžu byť odinštalované kvôli systémovým obmedzeniam, viete ich ale aspoň skryť, aby ste ich nevideli.</string>
     <!--
         Haven't found some strings? There's more at
         https://github.com/SimpleMobileTools/Simple-Commons/tree/master/commons/src/main/res

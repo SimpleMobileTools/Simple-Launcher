@@ -10,5 +10,5 @@
     <string name="add_hidden_icons">Lisa peidetud ikoone</string>
     <string name="manage_hidden_icons">Halda peidetud ikoone</string>
     <string name="hidden_icons">Peidetud ikoonid</string>
-    <string name="hidden_icons_info">Mõnda rakendust ei saa süsteemipiirangute tõttu eemaldada. Selleks, et neid mitte näha, võid vähemalt nende ikoonid ära peita.</string>
+    <string name="hidden_icons_placeholder">Mõnda rakendust ei saa süsteemipiirangute tõttu eemaldada. Selleks, et neid mitte näha, võid vähemalt nende ikoonid ära peita.</string>
 </resources>

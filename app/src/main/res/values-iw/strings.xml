@@ -10,5 +10,5 @@
     <string name="add_hidden_icons">הוסף אייקונים נסתרים</string>
     <string name="manage_hidden_icons">ניהול אייקונים נסתרים</string>
     <string name="hidden_icons">אייקונים נסתרים</string>
-    <string name="hidden_icons_info">חלק מהאפליקציות לא ניתנות להסרה עקב הגבלות מערכת, לפחות אתה יכול להחביא את האייקונים כדי לא לראותם במסך הבית.</string>
+    <string name="hidden_icons_placeholder">חלק מהאפליקציות לא ניתנות להסרה עקב הגבלות מערכת, לפחות אתה יכול להחביא את האייקונים כדי לא לראותם במסך הבית.</string>
 </resources>
