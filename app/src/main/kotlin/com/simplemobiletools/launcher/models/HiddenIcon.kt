@@ -13,4 +13,6 @@ data class HiddenIcon(
     @Ignore var drawable: Drawable? = null,
 ) {
     constructor() : this(null, "", "", "", null)
+
+    fun getIconIdentifier() = "$packageName/$activityName"
 }

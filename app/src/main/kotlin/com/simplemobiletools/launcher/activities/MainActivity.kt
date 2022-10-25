@@ -43,6 +43,7 @@ import com.simplemobiletools.launcher.fragments.WidgetsFragment
 import com.simplemobiletools.launcher.helpers.*
 import com.simplemobiletools.launcher.interfaces.FlingListener
 import com.simplemobiletools.launcher.models.AppLauncher
+import com.simplemobiletools.launcher.models.HiddenIcon
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.view.*
@@ -326,7 +327,9 @@ class MainActivity : SimpleActivity(), FlingListener {
         (Math.abs(mTouchDownX - event.x) > mMoveGestureThreshold) || (Math.abs(mTouchDownY - event.y) > mMoveGestureThreshold)
 
     private fun refetchLaunchers() {
-        val launchers = getAllAppLaunchers()
+        val hiddenIcons = hiddenIconsDB.getHiddenIcons().map { it.getIconIdentifier() }
+        val launchers = getAllAppLaunchers().filter { !hiddenIcons.contains(it.getLauncherIdentifier()) }.toMutableList() as ArrayList<AppLauncher>
+
         (all_apps_fragment as AllAppsFragment).gotLaunchers(launchers)
         (widgets_fragment as WidgetsFragment).getAppWidgets()
 
@@ -485,7 +488,7 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     private fun handleGridItemPopupMenu(anchorView: View, gridItem: HomeScreenGridItem, isOnAllAppsFragment: Boolean): PopupMenu {
-        var visibleMenuButtons = 5
+        var visibleMenuButtons = 6
         visibleMenuButtons -= when (gridItem.type) {
             ITEM_TYPE_ICON -> 1
             ITEM_TYPE_WIDGET -> 3
@@ -511,6 +514,7 @@ class MainActivity : SimpleActivity(), FlingListener {
 
             inflate(R.menu.menu_app_icon)
             menu.findItem(R.id.rename).isVisible = gridItem.type == ITEM_TYPE_ICON && !isOnAllAppsFragment
+            menu.findItem(R.id.hide_icon).isVisible = gridItem.type == ITEM_TYPE_ICON && isOnAllAppsFragment
             menu.findItem(R.id.resize).isVisible = gridItem.type == ITEM_TYPE_WIDGET
             menu.findItem(R.id.app_info).isVisible = gridItem.type == ITEM_TYPE_ICON
             menu.findItem(R.id.uninstall).isVisible = gridItem.type == ITEM_TYPE_ICON
@@ -518,6 +522,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             setOnMenuItemClickListener { item ->
                 resetFragmentTouches()
                 when (item.itemId) {
+                    R.id.hide_icon -> hideIcon(gridItem)
                     R.id.rename -> renameItem(gridItem)
                     R.id.resize -> home_screen_grid.widgetLongPressed(gridItem)
                     R.id.app_info -> launchAppInfo(gridItem.packageName)
@@ -550,6 +555,14 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     private fun showWidgetsFragment() {
         showFragment(widgets_fragment)
+    }
+
+    private fun hideIcon(item: HomeScreenGridItem) {
+        ensureBackgroundThread {
+            val hiddenIcon = HiddenIcon(null, item.packageName, item.activityName, item.title, null)
+            hiddenIconsDB.insert(hiddenIcon)
+            refetchLaunchers()
+        }
     }
 
     private fun renameItem(homeScreenGridItem: HomeScreenGridItem) {

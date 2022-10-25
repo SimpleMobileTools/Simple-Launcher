@@ -7,6 +7,11 @@
         android:title="@string/app_info"
         app:showAsAction="always" />
     <item
+        android:id="@+id/hide_icon"
+        android:icon="@drawable/ic_hide_vector"
+        android:title="@string/hide"
+        app:showAsAction="always" />
+    <item
         android:id="@+id/resize"
         android:icon="@drawable/ic_resize_vector"
         android:title="@string/resize"
