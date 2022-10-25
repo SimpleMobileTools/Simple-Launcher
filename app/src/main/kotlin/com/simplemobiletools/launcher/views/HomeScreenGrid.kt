@@ -510,8 +510,12 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private fun getFakeHeight() = height - sideMargins.top - sideMargins.bottom
 
     @SuppressLint("DrawAllocation")
-    override fun onDraw(canvas: Canvas) {
+    override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
+        if (canvas == null) {
+            return
+        }
+
         if (cellXCoords.isEmpty()) {
             fillCellSizes()
         }
