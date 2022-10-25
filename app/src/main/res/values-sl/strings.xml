@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Enostaven zaganjalnik</string>
+    <string name="app_launcher_name">Zaganjalnik</string>
+    <string name="launcher_settings">Nastavitve zaganjalnika</string>
+    <string name="app_info">Podatki o aplikaciji</string>
+    <string name="touch_hold_widget">Dolgo pritisnite pripomoček in povlecite na domači zaslon</string>
+    <string name="uninstall">Deinstalacija</string>
+    <string name="hide_icon">Skrijte ikono</string>
+    <string name="add_hidden_icons">Dodajte skrite ikone</string>
+    <string name="manage_hidden_icons">Upravljajte s skritimi ikonami</string>
+    <string name="hidden_icons">Skrite ikone</string>
+    <string name="hidden_icons_info">Določenih aplikacij zaradi sistemskih omejitev ni mogoče odstraniti, njihove ikone pa skrijete, da jih ne vidite.</string>
+</resources>

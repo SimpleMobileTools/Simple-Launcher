@@ -6,9 +6,9 @@
     <string name="app_info">アプリ情報</string>
     <string name="touch_hold_widget">ウィジェットを長押しして、ホーム画面にドラッグします</string>
     <string name="uninstall">アンインストール</string>
-    <string name="hide_icon">Hide icon</string>
-    <string name="add_hidden_icons">Add hidden icons</string>
-    <string name="manage_hidden_icons">Manage hidden icons</string>
-    <string name="hidden_icons">Hidden icons</string>
-    <string name="hidden_icons_info">Some apps cannot be uninstalled due to system restrictions, but you can at least hide their icons to avoid seeing them.</string>
+    <string name="hide_icon">アイコンを非表示</string>
+    <string name="add_hidden_icons">非表示のアイコンを追加</string>
+    <string name="manage_hidden_icons">非表示アイコンの管理</string>
+    <string name="hidden_icons">非表示のアイコン</string>
+    <string name="hidden_icons_info">一部のアプリはシステムの制限によりアンインストールできませんが、非表示によって表示されないようにすることはできます。</string>
 </resources>

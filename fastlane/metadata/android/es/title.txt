@@ -1,1 +1,1 @@
-Sencillo Lanzador
+Lanzador Sencillo
