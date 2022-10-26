@@ -9,7 +9,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.simplemobiletools.launcher.helpers.Converters
 import com.simplemobiletools.launcher.interfaces.AppLaunchersDao
-import com.simplemobiletools.launcher.interfaces.HiddenIconDao
+import com.simplemobiletools.launcher.interfaces.HiddenIconsDao
 import com.simplemobiletools.launcher.interfaces.HomeScreenGridItemsDao
 import com.simplemobiletools.launcher.models.AppLauncher
 import com.simplemobiletools.launcher.models.HiddenIcon
@@ -23,7 +23,7 @@ abstract class AppsDatabase : RoomDatabase() {
 
     abstract fun HomeScreenGridItemsDao(): HomeScreenGridItemsDao
 
-    abstract fun HiddenIconsDao(): HiddenIconDao
+    abstract fun HiddenIconsDao(): HiddenIconsDao
 
     companion object {
         private var db: AppsDatabase? = null

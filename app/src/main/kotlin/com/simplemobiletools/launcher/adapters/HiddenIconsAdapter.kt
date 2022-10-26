@@ -11,8 +11,10 @@ import com.simplemobiletools.commons.activities.BaseSimpleActivity
 import com.simplemobiletools.commons.adapters.MyRecyclerViewAdapter
 import com.simplemobiletools.commons.extensions.portrait
 import com.simplemobiletools.commons.extensions.realScreenSize
+import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.views.MyRecyclerView
 import com.simplemobiletools.launcher.R
+import com.simplemobiletools.launcher.extensions.hiddenIconsDB
 import com.simplemobiletools.launcher.models.HiddenIcon
 import kotlinx.android.synthetic.main.item_hidden_icon.view.*
 
@@ -63,7 +65,21 @@ class HiddenIconsAdapter(
 
     override fun getItemCount() = hiddenIcons.size
 
-    private fun unHideSelection() {}
+    private fun getSelectedItems() = hiddenIcons.filter { selectedKeys.contains(it.hashCode()) } as ArrayList<HiddenIcon>
+
+    private fun unHideSelection() {
+        val positions = getSelectedItemPositions()
+
+        ensureBackgroundThread {
+            val selectedItems = getSelectedItems()
+            activity.hiddenIconsDB.removeHiddenIcons(selectedItems)
+            hiddenIcons.removeAll(selectedItems)
+
+            activity.runOnUiThread {
+                removeSelectedItems(positions)
+            }
+        }
+    }
 
     private fun calculateIconWidth() {
         val currentColumnCount = activity.resources.getInteger(

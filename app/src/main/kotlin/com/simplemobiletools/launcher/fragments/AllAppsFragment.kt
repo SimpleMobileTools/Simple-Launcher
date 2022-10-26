@@ -86,7 +86,14 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
     }
 
     fun gotLaunchers(appLaunchers: ArrayList<AppLauncher>) {
-        val sorted = appLaunchers.sortedBy { it.title.normalizeString().lowercase() }.toMutableList() as ArrayList<AppLauncher>
+        val sorted = appLaunchers.sortedWith(
+            compareBy({
+                it.title.normalizeString().lowercase()
+            }, {
+                it.packageName
+            })
+        ).toMutableList() as ArrayList<AppLauncher>
+
         setupAdapter(sorted)
     }
 

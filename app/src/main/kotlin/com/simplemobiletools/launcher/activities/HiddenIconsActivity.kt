@@ -3,6 +3,7 @@ package com.simplemobiletools.launcher.activities
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import com.simplemobiletools.commons.extensions.normalizeString
 import com.simplemobiletools.commons.helpers.NavigationIcon
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.views.MyGridLayoutManager
@@ -31,7 +32,14 @@ class HiddenIconsActivity : SimpleActivity() {
 
     private fun updateIcons() {
         ensureBackgroundThread {
-            val hiddenIcons = hiddenIconsDB.getHiddenIcons().toMutableList() as ArrayList<HiddenIcon>
+            val hiddenIcons = hiddenIconsDB.getHiddenIcons().sortedWith(
+                compareBy({
+                    it.title.normalizeString().lowercase()
+                }, {
+                    it.packageName
+                })
+            ).toMutableList() as ArrayList<HiddenIcon>
+
             val intent = Intent(Intent.ACTION_MAIN, null)
             intent.addCategory(Intent.CATEGORY_LAUNCHER)
 
