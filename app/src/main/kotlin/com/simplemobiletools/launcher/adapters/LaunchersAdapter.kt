@@ -62,8 +62,8 @@ class LaunchersAdapter(
     fun hideIcon(item: HomeScreenGridItem) {
         val itemToRemove = launchers.firstOrNull { it.getLauncherIdentifier() == item.getItemIdentifier() }
         if (itemToRemove != null) {
-            val position = launchers.indexOf(itemToRemove)
-            launchers.remove(itemToRemove)
+            val position = launchers.indexOfFirst { it.getLauncherIdentifier() == item.getItemIdentifier() }
+            launchers.removeAt(position)
             notifyItemRemoved(position)
         }
     }
