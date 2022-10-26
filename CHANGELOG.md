@@ -1,6 +1,12 @@
 Changelog
 ==========
 
+Version 5.0.5 *(2022-10-26)*
+----------------------------
+
+ * Allow hiding unwanted icons
+ * Added some translation and UX improvements
+
 Version 5.0.4 *(2022-10-17)*
 ----------------------------
 
