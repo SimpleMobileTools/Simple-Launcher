@@ -1,5 +1,7 @@
 package com.simplemobiletools.launcher.activities
 
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import com.simplemobiletools.commons.helpers.NavigationIcon
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
@@ -7,6 +9,7 @@ import com.simplemobiletools.commons.views.MyGridLayoutManager
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.adapters.HiddenIconsAdapter
 import com.simplemobiletools.launcher.extensions.getColumnCount
+import com.simplemobiletools.launcher.extensions.getDrawableForPackageName
 import com.simplemobiletools.launcher.extensions.hiddenIconsDB
 import com.simplemobiletools.launcher.models.HiddenIcon
 import kotlinx.android.synthetic.main.activity_hidden_icons.*
@@ -29,10 +32,25 @@ class HiddenIconsActivity : SimpleActivity() {
     private fun updateIcons() {
         ensureBackgroundThread {
             val hiddenIcons = hiddenIconsDB.getHiddenIcons().toMutableList() as ArrayList<HiddenIcon>
-            HiddenIconsAdapter(this, hiddenIcons) {
+            val intent = Intent(Intent.ACTION_MAIN, null)
+            intent.addCategory(Intent.CATEGORY_LAUNCHER)
 
-            }.apply {
-                manage_hidden_icons_list.adapter = this
+            val list = packageManager.queryIntentActivities(intent, PackageManager.PERMISSION_GRANTED)
+            for (info in list) {
+                val componentInfo = info.activityInfo.applicationInfo
+                val packageName = componentInfo.packageName
+                val activityName = info.activityInfo.name
+                hiddenIcons.firstOrNull { it.getIconIdentifier() == "$packageName/$activityName" }?.apply {
+                    drawable = info.loadIcon(packageManager) ?: getDrawableForPackageName(packageName)
+                }
+            }
+
+            runOnUiThread {
+                HiddenIconsAdapter(this, hiddenIcons) {
+
+                }.apply {
+                    manage_hidden_icons_list.adapter = this
+                }
             }
         }
     }

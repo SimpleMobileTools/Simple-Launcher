@@ -11,7 +11,6 @@ import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.simplemobiletools.commons.extensions.getProperTextColor
 import com.simplemobiletools.commons.extensions.portrait
 import com.simplemobiletools.commons.extensions.realScreenSize
-import com.simplemobiletools.commons.helpers.mydebug
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.SimpleActivity
 import com.simplemobiletools.launcher.models.HiddenIcon
@@ -50,7 +49,6 @@ class HiddenIconsAdapter(
             }
         )
 
-        mydebug("size ${activity.realScreenSize.x}")
         val iconWidth = activity.realScreenSize.x / currentColumnCount
         iconPadding = (iconWidth * 0.1f).toInt()
     }
