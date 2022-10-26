@@ -175,7 +175,21 @@ class MainActivity : SimpleActivity(), FlingListener {
 
         ensureBackgroundThread {
             if (mCachedLaunchers.isEmpty()) {
-                mCachedLaunchers = launchersDB.getAppLaunchers() as ArrayList<AppLauncher>
+                val hiddenIcons = hiddenIconsDB.getHiddenIcons().map {
+                    it.getIconIdentifier()
+                }
+
+                mCachedLaunchers = launchersDB.getAppLaunchers().filter {
+                    val showIcon = !hiddenIcons.contains(it.getLauncherIdentifier())
+                    if (!showIcon) {
+                        try {
+                            launchersDB.deleteById(it.id!!)
+                        } catch (ignored: Exception) {
+                        }
+                    }
+                    showIcon
+                }.toMutableList() as ArrayList<AppLauncher>
+
                 (all_apps_fragment as AllAppsFragment).gotLaunchers(mCachedLaunchers)
             }
 
@@ -327,9 +341,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         (Math.abs(mTouchDownX - event.x) > mMoveGestureThreshold) || (Math.abs(mTouchDownY - event.y) > mMoveGestureThreshold)
 
     private fun refetchLaunchers() {
-        val hiddenIcons = hiddenIconsDB.getHiddenIcons().map { it.getIconIdentifier() }
-        val launchers = getAllAppLaunchers().filter { !hiddenIcons.contains(it.getLauncherIdentifier()) }.toMutableList() as ArrayList<AppLauncher>
-
+        val launchers = getAllAppLaunchers()
         (all_apps_fragment as AllAppsFragment).gotLaunchers(launchers)
         (widgets_fragment as WidgetsFragment).getAppWidgets()
 
@@ -632,6 +644,7 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     @SuppressLint("WrongConstant")
     fun getAllAppLaunchers(): ArrayList<AppLauncher> {
+        val hiddenIcons = hiddenIconsDB.getHiddenIcons().map { it.getIconIdentifier() }
         val allApps = ArrayList<AppLauncher>()
         val intent = Intent(Intent.ACTION_MAIN, null)
         intent.addCategory(Intent.CATEGORY_LAUNCHER)
@@ -646,10 +659,14 @@ class MainActivity : SimpleActivity(), FlingListener {
                 continue
             }
 
+            val activityName = info.activityInfo.name
+            if (hiddenIcons.contains("$packageName/$activityName")) {
+                continue
+            }
+
             val label = info.loadLabel(packageManager).toString()
             val drawable = info.loadIcon(packageManager) ?: getDrawableForPackageName(packageName) ?: continue
             val placeholderColor = calculateAverageColor(drawable.toBitmap())
-            val activityName = info.activityInfo.name
             allApps.add(AppLauncher(null, label, packageName, activityName, 0, placeholderColor, drawable))
         }
 
