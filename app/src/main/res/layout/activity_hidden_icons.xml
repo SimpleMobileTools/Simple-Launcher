@@ -32,7 +32,7 @@
             android:layout_height="match_parent"
             android:clipToPadding="false"
             android:scrollbars="vertical"
-            app:layoutManager="com.simplemobiletools.commons.views.MyLinearLayoutManager" />
+            app:layoutManager="com.simplemobiletools.commons.views.MyGridLayoutManager" />
 
         <com.simplemobiletools.commons.views.MyTextView
             android:id="@+id/manage_hidden_icons_placeholder"

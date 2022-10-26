@@ -16,4 +16,7 @@ interface AppLaunchersDao {
 
     @Query("DELETE FROM apps WHERE package_name = :packageName")
     fun deleteApp(packageName: String)
+
+    @Query("DELETE FROM apps WHERE id = :id")
+    fun deleteById(id: Long)
 }
