@@ -15,7 +15,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="@color/color_primary"
-            app:title="@string/manage_hidden_icons"
+            app:title="@string/hidden_icons"
             app:titleTextAppearance="@style/AppTheme.ActionBar.TitleTextStyle" />
 
     </com.google.android.material.appbar.AppBarLayout>

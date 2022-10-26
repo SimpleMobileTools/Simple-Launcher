@@ -6,6 +6,7 @@
     android:background="?attr/selectableItemBackground"
     android:clickable="true"
     android:focusable="true"
+    android:foreground="@drawable/selector"
     android:paddingStart="@dimen/small_margin"
     android:paddingTop="@dimen/medium_margin"
     android:paddingEnd="@dimen/small_margin"

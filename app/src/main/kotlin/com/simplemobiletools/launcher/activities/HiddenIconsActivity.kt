@@ -46,8 +46,7 @@ class HiddenIconsActivity : SimpleActivity() {
             }
 
             runOnUiThread {
-                HiddenIconsAdapter(this, hiddenIcons) {
-
+                HiddenIconsAdapter(this, hiddenIcons, manage_hidden_icons_list) {
                 }.apply {
                     manage_hidden_icons_list.adapter = this
                 }
