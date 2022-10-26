@@ -44,4 +44,6 @@ data class HomeScreenGridItem(
     } else {
         bottom - top + 1
     }
+
+    fun getItemIdentifier() = "$packageName/$activityName"
 }

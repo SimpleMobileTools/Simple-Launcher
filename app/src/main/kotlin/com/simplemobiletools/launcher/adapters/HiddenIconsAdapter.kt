@@ -31,6 +31,7 @@ class HiddenIconsAdapter(
 
     init {
         calculateIconWidth()
+        setupDragListener(true)
     }
 
     override fun getActionMenuId() = R.menu.cab_hidden_icons

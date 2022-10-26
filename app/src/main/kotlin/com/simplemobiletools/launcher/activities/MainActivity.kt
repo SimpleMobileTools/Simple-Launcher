@@ -573,7 +573,10 @@ class MainActivity : SimpleActivity(), FlingListener {
         ensureBackgroundThread {
             val hiddenIcon = HiddenIcon(null, item.packageName, item.activityName, item.title, null)
             hiddenIconsDB.insert(hiddenIcon)
-            refetchLaunchers()
+
+            runOnUiThread {
+                (all_apps_fragment as AllAppsFragment).hideIcon(item)
+            }
         }
     }
 

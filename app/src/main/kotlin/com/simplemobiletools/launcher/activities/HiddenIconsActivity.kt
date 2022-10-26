@@ -56,6 +56,10 @@ class HiddenIconsActivity : SimpleActivity(), RefreshRecyclerViewListener {
                         drawable = info.loadIcon(packageManager) ?: getDrawableForPackageName(packageName)
                     }
                 }
+
+                hiddenIcons.firstOrNull { it.packageName == applicationContext.packageName }?.apply {
+                    drawable = getDrawableForPackageName(packageName)
+                }
             }
 
             runOnUiThread {

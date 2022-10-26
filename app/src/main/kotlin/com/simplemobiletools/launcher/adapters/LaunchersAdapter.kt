@@ -17,6 +17,7 @@ import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.SimpleActivity
 import com.simplemobiletools.launcher.interfaces.AllAppsListener
 import com.simplemobiletools.launcher.models.AppLauncher
+import com.simplemobiletools.launcher.models.HomeScreenGridItem
 import kotlinx.android.synthetic.main.item_launcher_label.view.*
 
 class LaunchersAdapter(
@@ -56,6 +57,15 @@ class LaunchersAdapter(
 
         val iconWidth = activity.realScreenSize.x / currentColumnCount
         iconPadding = (iconWidth * 0.1f).toInt()
+    }
+
+    fun hideIcon(item: HomeScreenGridItem) {
+        val itemToRemove = launchers.firstOrNull { it.getLauncherIdentifier() == item.getItemIdentifier() }
+        if (itemToRemove != null) {
+            val position = launchers.indexOf(itemToRemove)
+            launchers.remove(itemToRemove)
+            notifyItemRemoved(position)
+        }
     }
 
     fun updateItems(newItems: ArrayList<AppLauncher>) {

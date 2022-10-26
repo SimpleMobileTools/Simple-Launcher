@@ -117,6 +117,10 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
         }
     }
 
+    fun hideIcon(item: HomeScreenGridItem) {
+        (all_apps_grid.adapter as? LaunchersAdapter)?.hideIcon(item)
+    }
+
     fun setupViews(addTopPadding: Boolean = hasTopPadding) {
         if (activity == null) {
             return
