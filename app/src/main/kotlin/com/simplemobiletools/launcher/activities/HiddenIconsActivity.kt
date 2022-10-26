@@ -3,9 +3,11 @@ package com.simplemobiletools.launcher.activities
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import com.simplemobiletools.commons.extensions.beVisibleIf
 import com.simplemobiletools.commons.extensions.normalizeString
 import com.simplemobiletools.commons.helpers.NavigationIcon
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
+import com.simplemobiletools.commons.interfaces.RefreshRecyclerViewListener
 import com.simplemobiletools.commons.views.MyGridLayoutManager
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.adapters.HiddenIconsAdapter
@@ -15,7 +17,7 @@ import com.simplemobiletools.launcher.extensions.hiddenIconsDB
 import com.simplemobiletools.launcher.models.HiddenIcon
 import kotlinx.android.synthetic.main.activity_hidden_icons.*
 
-class HiddenIconsActivity : SimpleActivity() {
+class HiddenIconsActivity : SimpleActivity(), RefreshRecyclerViewListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_hidden_icons)
@@ -40,25 +42,32 @@ class HiddenIconsActivity : SimpleActivity() {
                 })
             ).toMutableList() as ArrayList<HiddenIcon>
 
-            val intent = Intent(Intent.ACTION_MAIN, null)
-            intent.addCategory(Intent.CATEGORY_LAUNCHER)
+            manage_hidden_icons_placeholder.beVisibleIf(hiddenIcons.isEmpty())
+            if (hiddenIcons.isNotEmpty()) {
+                val intent = Intent(Intent.ACTION_MAIN, null)
+                intent.addCategory(Intent.CATEGORY_LAUNCHER)
 
-            val list = packageManager.queryIntentActivities(intent, PackageManager.PERMISSION_GRANTED)
-            for (info in list) {
-                val componentInfo = info.activityInfo.applicationInfo
-                val packageName = componentInfo.packageName
-                val activityName = info.activityInfo.name
-                hiddenIcons.firstOrNull { it.getIconIdentifier() == "$packageName/$activityName" }?.apply {
-                    drawable = info.loadIcon(packageManager) ?: getDrawableForPackageName(packageName)
+                val list = packageManager.queryIntentActivities(intent, PackageManager.PERMISSION_GRANTED)
+                for (info in list) {
+                    val componentInfo = info.activityInfo.applicationInfo
+                    val packageName = componentInfo.packageName
+                    val activityName = info.activityInfo.name
+                    hiddenIcons.firstOrNull { it.getIconIdentifier() == "$packageName/$activityName" }?.apply {
+                        drawable = info.loadIcon(packageManager) ?: getDrawableForPackageName(packageName)
+                    }
                 }
             }
 
             runOnUiThread {
-                HiddenIconsAdapter(this, hiddenIcons, manage_hidden_icons_list) {
+                HiddenIconsAdapter(this, hiddenIcons, this, manage_hidden_icons_list) {
                 }.apply {
                     manage_hidden_icons_list.adapter = this
                 }
             }
         }
+    }
+
+    override fun refreshItems() {
+        updateIcons()
     }
 }

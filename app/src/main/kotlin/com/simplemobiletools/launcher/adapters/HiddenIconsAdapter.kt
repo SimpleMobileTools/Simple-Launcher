@@ -12,6 +12,7 @@ import com.simplemobiletools.commons.adapters.MyRecyclerViewAdapter
 import com.simplemobiletools.commons.extensions.portrait
 import com.simplemobiletools.commons.extensions.realScreenSize
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
+import com.simplemobiletools.commons.interfaces.RefreshRecyclerViewListener
 import com.simplemobiletools.commons.views.MyRecyclerView
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.extensions.hiddenIconsDB
@@ -21,6 +22,7 @@ import kotlinx.android.synthetic.main.item_hidden_icon.view.*
 class HiddenIconsAdapter(
     activity: BaseSimpleActivity,
     var hiddenIcons: ArrayList<HiddenIcon>,
+    val listener: RefreshRecyclerViewListener,
     recyclerView: MyRecyclerView,
     itemClick: (Any) -> Unit
 ) : MyRecyclerViewAdapter(activity, recyclerView, itemClick) {
@@ -77,6 +79,9 @@ class HiddenIconsAdapter(
 
             activity.runOnUiThread {
                 removeSelectedItems(positions)
+                if (hiddenIcons.isEmpty()) {
+                    listener.refreshItems()
+                }
             }
         }
     }
