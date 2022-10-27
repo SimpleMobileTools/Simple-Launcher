@@ -1,2 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="hidden_icons">لُکاۓ آئیکون</string>
+    <string name="touch_hold_widget">ایہہ وِجٹ نوں دیر تک دباؤ تے تہاڈے گھر دی سکرن تے پایو</string>
+    <string name="app_name">سادہ شروع</string>
+    <string name="app_launcher_name">شروع</string>
+    <string name="launcher_settings">شروع سیٹنگاں</string>
+    <string name="app_info">اَیپ دی جاݨکاری</string>
+    <string name="uninstall">اݨ‌ایسٹال کرو</string>
+    <string name="hide_icon">آئیکون لُکاؤ</string>
+    <string name="hidden_icons_placeholder">سِسٹم پابندیاں کرکے کجھ اَیپاں اݨ‌اینسٹال کر نہیں سکیاں، پر تسیں آئیکون لُکا سکدے او۔</string>
+    <string name="add_hidden_icons">لُکاۓ آئیکون پایو</string>
+    <string name="manage_hidden_icons">لُکاۓ آئیکون دیاں سیٹنگاں</string>
+</resources>
