@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Απλός Εκκινητής</string>
+    <string name="app_launcher_name">Εκκινητής</string>
+    <string name="launcher_settings">Ρυθμίσεις Εκκινητή</string>
+    <string name="app_info">Πληροφορίες εφαρμογής</string>
+    <string name="touch_hold_widget">Παρατεταμένο άγγιγμα στο Γραφικό και σύρετέ το στην αρχική σας οθόνη.</string>
+    <string name="uninstall">Απεγκατάσταση</string>
+    <string name="hide_icon">Απόκρυψη εικονιδίου</string>
+    <string name="add_hidden_icons">Προσθήκη κρυφών εικονιδίων</string>
+    <string name="manage_hidden_icons">Διαχείριση κρυφών εικονιδίων</string>
+    <string name="hidden_icons">Κρυφά εικονίδια</string>
+    <string name="hidden_icons_placeholder">Ορισμένες εφαρμογές δεν μπορούν να απεγκατασταθούν λόγω περιορισμών του συστήματος, αλλά μπορείτε να αποκρύψετε τα εικονίδια τους για να μην τις βλέπετε.</string>
+    <!--
+        Haven't found some strings? There's more at
+        https://github.com/SimpleMobileTools/Simple-Commons/tree/master/commons/src/main/res
+    -->
+</resources>
