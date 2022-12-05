@@ -6,9 +6,9 @@
     <string name="app_info">O aplikaci</string>
     <string name="touch_hold_widget">Widget dlouze stiskněte a přetáhněte jej na domovskou obrazovku</string>
     <string name="uninstall">Odinstalovat</string>
-    <string name="hide_icon">Hide icon</string>
-    <string name="add_hidden_icons">Add hidden icons</string>
-    <string name="manage_hidden_icons">Manage hidden icons</string>
-    <string name="hidden_icons">Hidden icons</string>
-    <string name="hidden_icons_placeholder">Some apps cannot be uninstalled due to system restrictions, but you can at least hide their icons to avoid seeing them.</string>
+    <string name="hide_icon">Skrýt ikonu</string>
+    <string name="add_hidden_icons">Přidat skryté ikony</string>
+    <string name="manage_hidden_icons">Spravovat skryté ikony</string>
+    <string name="hidden_icons">Skryté ikony</string>
+    <string name="hidden_icons_placeholder">Některé aplikace nelze kvůli systémovým omezením odinstalovat. Ale můžete alespoň skrýt jejich ikony, abyste je neviděli.</string>
 </resources>
