@@ -7,7 +7,7 @@
     <string name="touch_hold_widget">Натисніть і утримуйте віджет і перетягніть його на головний екран</string>
     <string name="uninstall">Видалити</string>
     <string name="hide_icon">Приховати піктограму</string>
-    <string name="add_hidden_icons">Додати приховані піктограми</string>
+    <string name="add_hidden_icons">Додати приховані значки</string>
     <string name="manage_hidden_icons">Керування прихованими піктограмами</string>
     <string name="hidden_icons">Приховані піктограми</string>
     <string name="hidden_icons_placeholder">Деякі застосунки не можна видалити через системні обмеження, але ви можете принаймні приховати їх піктограми, щоб уникнути їх перегляду.</string>
