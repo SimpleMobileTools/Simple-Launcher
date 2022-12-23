@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Simple Launcher</string>
-    <string name="app_launcher_name">Стільниця</string>
+    <string name="app_launcher_name">Launcher</string>
     <string name="launcher_settings">Налаштування</string>
     <string name="app_info">Про застосунок</string>
     <string name="touch_hold_widget">Натисніть і утримуйте віджет і перетягніть його на головний екран</string>
