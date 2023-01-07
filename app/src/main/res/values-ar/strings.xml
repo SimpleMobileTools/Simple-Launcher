@@ -1,2 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="app_info">معلومات التطبيق</string>
+    <string name="launcher_settings">إعدادات المشغل</string>
+    <string name="touch_hold_widget">اضغط مطولاً على الويدجت واسحبها إلى شاشتك الرئيسية</string>
+    <string name="hide_icon">إخفاء اﻷيقونة</string>
+    <string name="add_hidden_icons">إضافة اﻷيقونات المخفية</string>
+    <string name="manage_hidden_icons">إدارة اﻷيقونات المخفية</string>
+    <string name="hidden_icons">اﻷيقونات المخفية</string>
+    <string name="uninstall">إلغاء التثبيت</string>
+    <string name="hidden_icons_placeholder">لا يمكن إلغاء تثبيت بعض التطبيقات بسبب قيود النظام، ولكن يمكن إخفاء أيقوناتها لتجنب ظهورها.</string>
+</resources>
