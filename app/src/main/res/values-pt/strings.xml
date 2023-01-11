@@ -1,2 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="app_name">Simple Launcher</string>
+    <string name="app_launcher_name">Lançador</string>
+    <string name="launcher_settings">Definições</string>
+    <string name="app_info">Info da aplicação</string>
+    <string name="touch_hold_widget">Toque longo no widget e arraste-o para o ecrã</string>
+    <string name="uninstall">Desinstalar</string>
+    <string name="hidden_icons">Ícones ocultos</string>
+    <string name="hide_icon">Ocultar ícone</string>
+    <string name="hidden_icons_placeholder">Algumas aplicações não podem ser desinstaladas mas pode ocultar os seus ícones.</string>
+    <string name="add_hidden_icons">Adicionar ícones ocultos</string>
+    <string name="manage_hidden_icons">Gerir ícones ocultos</string>
+</resources>
