@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_info">معلومات التطبيق</string>
+    <string name="app_name">Simple Launcher</string>
+    <string name="app_launcher_name">Launcher</string>
     <string name="launcher_settings">إعدادات المشغل</string>
+    <string name="app_info">معلومات التطبيق</string>
     <string name="touch_hold_widget">اضغط مطولاً على الويدجت واسحبها إلى شاشتك الرئيسية</string>
+    <string name="uninstall">إلغاء التثبيت</string>
     <string name="hide_icon">إخفاء اﻷيقونة</string>
     <string name="add_hidden_icons">إضافة اﻷيقونات المخفية</string>
     <string name="manage_hidden_icons">إدارة اﻷيقونات المخفية</string>
     <string name="hidden_icons">اﻷيقونات المخفية</string>
-    <string name="uninstall">إلغاء التثبيت</string>
     <string name="hidden_icons_placeholder">لا يمكن إلغاء تثبيت بعض التطبيقات بسبب قيود النظام، ولكن يمكن إخفاء أيقوناتها لتجنب ظهورها.</string>
+    <!--
+        Haven't found some strings? There's more at
+        https://github.com/SimpleMobileTools/Simple-Commons/tree/master/commons/src/main/res
+    -->
 </resources>
