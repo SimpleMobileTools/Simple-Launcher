@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Simple Launcher</string>
+    <string name="app_launcher_name">Launcher</string>
+    <string name="launcher_settings">Launcher Settings</string>
+    <string name="app_info">Informações do aplicativo</string>
+    <string name="touch_hold_widget">Toque e segure o widget e arraste-o para sua tela inicial</string>
+    <string name="uninstall">Desinstalar</string>
+    <string name="hide_icon">Ocultar ícone</string>
+    <string name="add_hidden_icons">Adicionar ícones ocultos</string>
+    <string name="manage_hidden_icons">Gerenciar ícones ocultos</string>
+    <string name="hidden_icons">Ícones ocultos</string>
+    <string name="hidden_icons_placeholder">Alguns aplicativos não podem ser desinstalados devido a restrições do sistema, mas você pode ao menos ocultar seus ícones para evitar vê-los.</string>
+    <!--
+        Haven't found some strings? There's more at
+        https://github.com/SimpleMobileTools/Simple-Commons/tree/master/commons/src/main/res
+    -->
+</resources>
