@@ -6,9 +6,9 @@
     <string name="app_info">Alkalmazásinformációk</string>
     <string name="touch_hold_widget">Nyomja meg hosszan a modult és húzza a kezdőképernyőre</string>
     <string name="uninstall">Eltávolítás</string>
-    <string name="hide_icon">Hide icon</string>
-    <string name="add_hidden_icons">Add hidden icons</string>
-    <string name="manage_hidden_icons">Manage hidden icons</string>
-    <string name="hidden_icons">Hidden icons</string>
-    <string name="hidden_icons_placeholder">Some apps cannot be uninstalled due to system restrictions, but you can at least hide their icons to avoid seeing them.</string>
+    <string name="hide_icon">Ikon elrejtése</string>
+    <string name="add_hidden_icons">Rejtett ikonok hozzáadása</string>
+    <string name="manage_hidden_icons">Rejtett ikonok kezelése</string>
+    <string name="hidden_icons">Rejtett ikonok</string>
+    <string name="hidden_icons_placeholder">Egyes alkalmazások rendszerkorlátozások miatt nem távolíthatók el, de legalább elrejtheti az ikonjaikat, hogy ne lássa őket.</string>
 </resources>
