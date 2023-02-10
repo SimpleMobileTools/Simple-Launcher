@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Simple Launcher</string>
+    <string name="app_launcher_name">ⵜⴰⵎⵣⵡⴰⵔⵓⵜ</string>
+    <string name="launcher_settings">ⵜⵉⵙⵖⴰⵍ ⵏ ⵜⵎⵣⵡⴰⵔⵓⵜ</string>
+    <string name="app_info">ⵉⵏⵖⵎⵉⵙⵏ ⵅⴼ ⵜⵙⵏⵙⵉ</string>
+    <string name="touch_hold_widget">ⴰⴷⵔ ⵎⵍⵉⵃ ⵅⴼ widget ⵜⴰⵡⵉ ⵜⵜ ⵖⵔ ⵓⵎⵉⵥⴰⵕ ⵏⵏⴽ ⴰⵎⵇⵇⵔⴰⵏ</string>
+    <string name="uninstall">ⵜⵓⵙⵙⵔⴰ ⵏ ⵡⴰⴳⴰⵎ</string>
+    <string name="hide_icon">ⴼⴼⵔ ⵜⴰⵙⴰⵔⵓⵜ</string>
+    <string name="add_hidden_icons">ⵔⵏⵓ ⵜⵉⵙⵓⵔⴰ ⵉⴼⴼⵔⵏ</string>
+    <string name="manage_hidden_icons">ⴰⵙⵡⵓⴷⴷⵓ ⵏ ⵜⵙⵓⵔⴰ ⵉⴼⴼⵔⵏ</string>
+    <string name="hidden_icons">ⵜⵉⵙⵓⵔⴰ ⵉⴼⴼⵔⵏ</string>
+    <string name="hidden_icons_placeholder">ⵓⵔ ⵜⵣⵔⵉⵏ ⵜⵓⵙⵙⵔⴰ ⵏ ⴽⵔⴰ ⵏ ⵜⵙⵏⵙⵉⵡⵉⵏ ⵙ ⵜⵎⵏⵜⵉⵍⵜ ⵏ ⵉⵙⵍⴳⵏⵏ ⵏ ⵓⵏⴳⵔⴰⵡ, ⵎⴰⵛⴰ ⵜⵣⵔⵉ ⵜⵓⴼⴼⵔⴰ ⵏ ⵜⵙⵓⵔⴰ ⵏⵏⵙⵏⵜ ⵃⵎⴰ ⵓⵔ ⴷ ⵜⵜⴹⵀⴰⵕⵏⵜ.</string>
+</resources>

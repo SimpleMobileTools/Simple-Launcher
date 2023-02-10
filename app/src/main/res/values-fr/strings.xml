@@ -2,13 +2,13 @@
 <resources>
     <string name="app_name">Lanceur simple</string>
     <string name="app_launcher_name">Lanceur</string>
-    <string name="launcher_settings">Launcher Settings</string>
+    <string name="launcher_settings">Paramètres du lanceur</string>
     <string name="app_info">Infos sur l\'appli</string>
     <string name="touch_hold_widget">Appuyez longuement sur le widget et faites-le glisser sur votre écran d\'accueil</string>
     <string name="uninstall">Désinstaller</string>
-    <string name="hide_icon">Hide icon</string>
-    <string name="add_hidden_icons">Add hidden icons</string>
-    <string name="manage_hidden_icons">Manage hidden icons</string>
-    <string name="hidden_icons">Hidden icons</string>
-    <string name="hidden_icons_placeholder">Some apps cannot be uninstalled due to system restrictions, but you can at least hide their icons to avoid seeing them.</string>
+    <string name="hide_icon">Masquer l\'icône</string>
+    <string name="add_hidden_icons">Ajouter des icônes cachées</string>
+    <string name="manage_hidden_icons">Gérer les icônes cachées</string>
+    <string name="hidden_icons">Icônes cachées</string>
+    <string name="hidden_icons_placeholder">Certaines applications ne peuvent pas être désinstallées en raison de restrictions du système, mais vous pouvez au moins masquer leurs icônes pour éviter de les voir.</string>
 </resources>

@@ -2,13 +2,13 @@
 <resources>
     <string name="app_name">Einfacher Launcher</string>
     <string name="app_launcher_name">Launcher</string>
-    <string name="launcher_settings">Launcher Settings</string>
+    <string name="launcher_settings">Launcher-Einstellungen</string>
     <string name="app_info">App-Infos</string>
     <string name="touch_hold_widget">Drücken Sie lange auf das Widget und ziehen Sie es auf Ihren Startbildschirm</string>
     <string name="uninstall">Deinstallieren</string>
-    <string name="hide_icon">Hide icon</string>
-    <string name="add_hidden_icons">Add hidden icons</string>
-    <string name="manage_hidden_icons">Manage hidden icons</string>
-    <string name="hidden_icons">Hidden icons</string>
-    <string name="hidden_icons_placeholder">Some apps cannot be uninstalled due to system restrictions, but you can at least hide their icons to avoid seeing them.</string>
+    <string name="hide_icon">Symbol ausblenden</string>
+    <string name="add_hidden_icons">Ausgeblendete Symbole hinzufügen</string>
+    <string name="manage_hidden_icons">Ausgeblendete Symbole verwalten</string>
+    <string name="hidden_icons">Ausgeblendete Symbole</string>
+    <string name="hidden_icons_placeholder">Einige Apps können aufgrund von Systemeinschränkungen nicht deinstalliert werden, aber du kannst zumindest ihre Symbole ausblenden, um sie nicht zu sehen.</string>
 </resources>
