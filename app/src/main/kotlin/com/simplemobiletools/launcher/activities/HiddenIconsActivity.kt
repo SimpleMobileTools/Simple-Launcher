@@ -19,9 +19,13 @@ import kotlinx.android.synthetic.main.activity_hidden_icons.*
 
 class HiddenIconsActivity : SimpleActivity(), RefreshRecyclerViewListener {
     override fun onCreate(savedInstanceState: Bundle?) {
+        isMaterialActivity = true
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_hidden_icons)
         updateIcons()
+
+        updateMaterialActivityViews(manage_hidden_icons_coordinator, manage_hidden_icons_list, useTransparentNavigation = true, useTopSearchMenu = false)
+        setupMaterialScrollListener(manage_hidden_icons_list, manage_hidden_icons_toolbar)
 
         val layoutManager = manage_hidden_icons_list.layoutManager as MyGridLayoutManager
         layoutManager.spanCount = getColumnCount()
