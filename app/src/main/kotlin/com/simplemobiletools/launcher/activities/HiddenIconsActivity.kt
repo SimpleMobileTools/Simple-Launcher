@@ -66,6 +66,12 @@ class HiddenIconsActivity : SimpleActivity(), RefreshRecyclerViewListener {
                 }
             }
 
+            val iconsToRemove = hiddenIcons.filter { it.drawable == null }
+            if (iconsToRemove.isNotEmpty()) {
+                hiddenIconsDB.removeHiddenIcons(iconsToRemove)
+                hiddenIcons.removeAll(iconsToRemove)
+            }
+
             runOnUiThread {
                 HiddenIconsAdapter(this, hiddenIcons, this, manage_hidden_icons_list) {
                 }.apply {
