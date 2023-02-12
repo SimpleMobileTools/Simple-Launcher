@@ -160,6 +160,11 @@ class MainActivity : SimpleActivity(), FlingListener {
         return null
     }
 
+    override fun onStart() {
+        super.onStart()
+        home_screen_grid.appWidgetHost.startListening()
+    }
+
     override fun onResume() {
         super.onResume()
         updateStatusbarColor(Color.TRANSPARENT)
@@ -194,11 +199,11 @@ class MainActivity : SimpleActivity(), FlingListener {
 
             refetchLaunchers()
         }
-    }
 
-    override fun onStart() {
-        super.onStart()
-        home_screen_grid.appWidgetHost.startListening()
+        // avoid showing fully colored navigation bars
+        if (window.navigationBarColor != resources.getColor(R.color.semitransparent_navigation)) {
+            window.navigationBarColor = Color.TRANSPARENT
+        }
     }
 
     override fun onStop() {
