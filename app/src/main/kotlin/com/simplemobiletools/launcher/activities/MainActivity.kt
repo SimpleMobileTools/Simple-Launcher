@@ -131,8 +131,12 @@ class MainActivity : SimpleActivity(), FlingListener {
 
                 // delay showing the shortcut both to let the user see adding it in realtime and hackily avoid concurrent modification exception at HomeScreenGrid
                 Thread.sleep(2000)
-                item.accept()
-                home_screen_grid.storeAndShowGridItem(gridItem)
+
+                try {
+                    item.accept()
+                    home_screen_grid.storeAndShowGridItem(gridItem)
+                } catch (ignored: IllegalStateException) {
+                }
             }
         }
     }
@@ -171,7 +175,7 @@ class MainActivity : SimpleActivity(), FlingListener {
 
         main_holder.onGlobalLayout {
             if (isPiePlus()) {
-                val addTopPadding = main_holder.rootWindowInsets.displayCutout != null
+                val addTopPadding = main_holder.rootWindowInsets?.displayCutout != null
                 (all_apps_fragment as AllAppsFragment).setupViews(addTopPadding)
                 (widgets_fragment as WidgetsFragment).setupViews(addTopPadding)
             }
@@ -248,8 +252,8 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        (all_apps_fragment as AllAppsFragment).onConfigurationChanged()
-        (widgets_fragment as WidgetsFragment).onConfigurationChanged()
+        (all_apps_fragment as? AllAppsFragment)?.onConfigurationChanged()
+        (widgets_fragment as? WidgetsFragment)?.onConfigurationChanged()
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
@@ -651,7 +655,10 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     @SuppressLint("WrongConstant")
     fun getAllAppLaunchers(): ArrayList<AppLauncher> {
-        val hiddenIcons = hiddenIconsDB.getHiddenIcons().map { it.getIconIdentifier() }
+        val hiddenIcons = hiddenIconsDB.getHiddenIcons().map {
+            it.getIconIdentifier()
+        }
+
         val allApps = ArrayList<AppLauncher>()
         val intent = Intent(Intent.ACTION_MAIN, null)
         intent.addCategory(Intent.CATEGORY_LAUNCHER)

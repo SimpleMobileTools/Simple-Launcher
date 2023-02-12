@@ -511,11 +511,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas?) {
-        super.onDraw(canvas)
         if (canvas == null) {
             return
         }
 
+        super.onDraw(canvas)
         if (cellXCoords.isEmpty()) {
             fillCellSizes()
         }
