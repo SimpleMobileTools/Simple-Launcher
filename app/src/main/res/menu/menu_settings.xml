@@ -2,10 +2,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:ignore="AppCompatResource">
+    tools:ignore="AppCompatResource,AlwaysShowAction">
     <item
         android:id="@+id/about"
         android:icon="@drawable/ic_info_vector"
         android:title="@string/about"
         app:showAsAction="always" />
+    <item
+        android:id="@+id/more_apps_from_us"
+        android:title="@string/more_apps_from_us"
+        app:showAsAction="never" />
 </menu>

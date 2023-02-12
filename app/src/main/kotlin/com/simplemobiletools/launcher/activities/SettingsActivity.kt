@@ -15,14 +15,19 @@ import kotlin.system.exitProcess
 
 class SettingsActivity : SimpleActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        isMaterialActivity = true
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
+
+        updateMaterialActivityViews(settings_coordinator, settings_holder, useTransparentNavigation = true, useTopSearchMenu = false)
+        setupMaterialScrollListener(settings_nested_scrollview, settings_toolbar)
         setupOptionsMenu()
     }
 
     override fun onResume() {
         super.onResume()
         setupToolbar(settings_toolbar, NavigationIcon.Arrow)
+        refreshMenuItems()
 
         setupPurchaseThankYou()
         setupCustomizeColors()
@@ -31,15 +36,8 @@ class SettingsActivity : SimpleActivity() {
         setupManageHiddenIcons()
         updateTextColors(settings_holder)
 
-        arrayOf(settings_color_customization_label, settings_general_settings_label).forEach {
+        arrayOf(settings_color_customization_section_label, settings_general_settings_label).forEach {
             it.setTextColor(getProperPrimaryColor())
-        }
-
-        arrayOf(
-            settings_color_customization_holder,
-            settings_general_settings_holder
-        ).forEach {
-            it.background.applyColorFilter(getProperBackgroundColor().getContrastColor())
         }
     }
 
@@ -47,28 +45,29 @@ class SettingsActivity : SimpleActivity() {
         settings_toolbar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.about -> launchAbout()
+                R.id.more_apps_from_us -> launchMoreAppsFromUsIntent()
                 else -> return@setOnMenuItemClickListener false
             }
             return@setOnMenuItemClickListener true
         }
     }
 
+    private fun refreshMenuItems() {
+        settings_toolbar.menu.apply {
+            findItem(R.id.more_apps_from_us).isVisible = !resources.getBoolean(R.bool.hide_google_relations)
+        }
+    }
+
     private fun setupPurchaseThankYou() {
         settings_purchase_thank_you_holder.beGoneIf(isOrWasThankYouInstalled())
-
-        // make sure the corners at ripple fit the stroke rounded corners
-        if (settings_purchase_thank_you_holder.isGone()) {
-            settings_use_english_holder.background = resources.getDrawable(R.drawable.ripple_top_corners, theme)
-            settings_language_holder.background = resources.getDrawable(R.drawable.ripple_top_corners, theme)
-        }
-
         settings_purchase_thank_you_holder.setOnClickListener {
             launchPurchaseThankYouIntent()
         }
     }
 
     private fun setupCustomizeColors() {
-        settings_customize_colors_holder.setOnClickListener {
+        settings_color_customization_label.text = getCustomizeColorsString()
+        settings_color_customization_holder.setOnClickListener {
             startCustomizationActivity()
         }
     }
@@ -92,12 +91,6 @@ class SettingsActivity : SimpleActivity() {
     }
 
     private fun setupManageHiddenIcons() {
-        if (settings_purchase_thank_you_holder.isGone() && settings_use_english_holder.isGone() && settings_language_holder.isGone()) {
-            settings_manage_hidden_icons_holder.background = resources.getDrawable(R.drawable.ripple_all_corners, theme)
-        } else {
-            settings_manage_hidden_icons_holder.background = resources.getDrawable(R.drawable.ripple_bottom_corners, theme)
-        }
-
         settings_manage_hidden_icons_holder.setOnClickListener {
             startActivity(Intent(this, HiddenIconsActivity::class.java))
         }

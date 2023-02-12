@@ -77,7 +77,6 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         useDynamicTheme = false
-        showTransparentNavigation = true
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
