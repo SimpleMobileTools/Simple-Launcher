@@ -62,7 +62,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
             textSize = context.resources.getDimension(R.dimen.smaller_text_size)
-            setShadowLayer(.5f, 0f, 0f, Color.BLACK)
+            setShadowLayer(2f, 0f, 0f, Color.BLACK)
         }
 
         dragShadowCirclePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
