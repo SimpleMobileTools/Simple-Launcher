@@ -1,28 +1,28 @@
-Launch your favorite apps quickly. This app gives you the possibility to customize your home screen as you wish for the best user experience.
+Starta dina favoritappar snabbt. Denna app ger dig möjligheten att anpassa din hemskärm så som du själv önskar.
 
-You can customize the colors in different styles. This launcher also comes with dark theme to give you a more smooth feel while using your device.
+Du kan anpassa färgerna i flera olika stilar. Appen kommer även med ett mörkt tema som är vänlig mot ögonen.
 
-Uninstall any unwanted app easily, so you won't have to keep ignoring it.
+Avinstallera oönskade appar enkelt, så slipper du igonera dem.
 
-It fully supports widgets that can be both resized and customized, so feel free using your favorite widgets here.
+Appen stödjer widgets som kan både ändra storlek och anpassas
 
-It comes with material design and dark theme by default, provides great user experience for easy usage. The lack of internet access gives you more privacy, security and stability than other apps. With this launcher, you don't have to connect your device with any network. Simply install it and use it.
+Kommer med Material Desing och mörk tema som standard för en användarvänlig upplevelse.  Ökad integrigtet, säkerhet och stabilitet genom att appen saknar behörighet till internet. Kräver ingen internetåtkomst för att användas, bara att installera och använd.
 
-Contains no ads or unnecessary permissions. It is fully opensource, provides customizable colors and dark theme to make your home screen look more stunning. 
+Innehåller inga annonser eller onödiga behörigheter. Öppen källkod, anpassningsbar och mörk tema för att göra din hemskärm stilig och snygg.
 
-Features:
+Egenskaper:
 
-- Dark theme to give you a more smoother feel of your device.
-- Easy navigation through the launcher so you can choose the best one for yourself.
-- Exquisite color themes.
-- No annoying advertisements.
-- Enjoy!
+- Mörkt tema ger dig en behaglig upplevelse
+- Enkel navigering genom appen så du kan välja den som passar dig bäst
+- Läckra färgteman
+- Inga störande annonser
+- Varsågod
 
-Check out the full suite of Simple Tools here:
+Kolla in hela sviten av Simple Tools här:
 https://www.simplemobiletools.com
 
 Facebook:
-https://www.facebook.com/simplemobiletools
+https://www.facebook.com/SimpleMobileTools
 
 Reddit:
 https://www.reddit.com/r/SimpleMobileTools
