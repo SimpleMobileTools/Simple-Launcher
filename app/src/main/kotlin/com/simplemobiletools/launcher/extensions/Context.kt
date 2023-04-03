@@ -14,12 +14,14 @@ import com.simplemobiletools.launcher.helpers.Config
 import com.simplemobiletools.launcher.interfaces.AppLaunchersDao
 import com.simplemobiletools.launcher.interfaces.HiddenIconsDao
 import com.simplemobiletools.launcher.interfaces.HomeScreenGridItemsDao
+import com.simplemobiletools.launcher.interfaces.HomeScreenPagesDao
 
 val Context.config: Config get() = Config.newInstance(applicationContext)
 
 val Context.launchersDB: AppLaunchersDao get() = AppsDatabase.getInstance(applicationContext).AppLaunchersDao()
 
 val Context.homeScreenGridItemsDB: HomeScreenGridItemsDao get() = AppsDatabase.getInstance(applicationContext).HomeScreenGridItemsDao()
+val Context.homeScreenPagesDB: HomeScreenPagesDao get() = AppsDatabase.getInstance(applicationContext).HomeScreenPagesDao()
 
 val Context.hiddenIconsDB: HiddenIconsDao get() = AppsDatabase.getInstance(applicationContext).HiddenIconsDao()
 

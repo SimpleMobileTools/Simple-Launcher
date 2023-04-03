@@ -22,12 +22,14 @@ import android.os.Bundle
 import android.os.Handler
 import android.provider.Telephony
 import android.telecom.TelecomManager
+import android.util.Log
 import android.view.*
 import android.view.animation.DecelerateInterpolator
 import android.widget.PopupMenu
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.isPiePlus
@@ -35,6 +37,7 @@ import com.simplemobiletools.commons.helpers.isQPlus
 import com.simplemobiletools.commons.helpers.isRPlus
 import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
+import com.simplemobiletools.launcher.adapters.HomeScreenPagerAdapter
 import com.simplemobiletools.launcher.dialogs.RenameItemDialog
 import com.simplemobiletools.launcher.extensions.*
 import com.simplemobiletools.launcher.fragments.AllAppsFragment
@@ -42,13 +45,15 @@ import com.simplemobiletools.launcher.fragments.MyFragment
 import com.simplemobiletools.launcher.fragments.WidgetsFragment
 import com.simplemobiletools.launcher.helpers.*
 import com.simplemobiletools.launcher.interfaces.FlingListener
-import com.simplemobiletools.launcher.models.AppLauncher
-import com.simplemobiletools.launcher.models.HiddenIcon
-import com.simplemobiletools.launcher.models.HomeScreenGridItem
+import com.simplemobiletools.launcher.models.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.view.*
 import kotlinx.android.synthetic.main.all_apps_fragment.view.*
 import kotlinx.android.synthetic.main.widgets_fragment.view.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : SimpleActivity(), FlingListener {
     private val ANIMATION_DURATION = 150L
@@ -113,6 +118,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                 val rect = findFirstEmptyCell() ?: return@ensureBackgroundThread
                 val gridItem = HomeScreenGridItem(
                     null,
+                    0,
                     rect.left,
                     rect.top,
                     rect.right,
@@ -139,6 +145,9 @@ class MainActivity : SimpleActivity(), FlingListener {
                 }
             }
         }
+       lifecycleScope.launch {
+           setupHomeScreenViewPager()
+       }
     }
 
     private fun findFirstEmptyCell(): Rect? {
@@ -224,7 +233,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             home_screen_grid.hideResizeLines()
         } else {
             // this is a home launcher app, avoid glitching by pressing Back
-            //super.onBackPressed()
+            // super.onBackPressed()
         }
     }
 
@@ -237,6 +246,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                     refetchLaunchers()
                 }
             }
+
             REQUEST_ALLOW_BINDING_WIDGET -> mActionOnCanBindWidget?.invoke(resultCode == Activity.RESULT_OK)
             REQUEST_CONFIGURE_WIDGET -> mActionOnWidgetConfiguredWidget?.invoke(resultCode == Activity.RESULT_OK)
             REQUEST_CREATE_SHORTCUT -> {
@@ -363,20 +373,48 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
 
         if (hasDeletedAnything) {
-            home_screen_grid.fetchGridItems()
+            lifecycleScope.launch {
+                setupHomeScreenViewPager()
+            }
         }
 
         mCachedLaunchers = launchers
 
         if (!config.wasHomeScreenInit) {
             ensureBackgroundThread {
-                getDefaultAppPackages(launchers)
+                val defaultPage = HomeScreenPage(id = 0, position = 0)
+                lifecycleScope.launch(Dispatchers.IO) { homeScreenPagesDB.insert(defaultPage) }
+                getDefaultAppPackages(launchers, defaultPage.id ?: 0)
                 config.wasHomeScreenInit = true
-                home_screen_grid.fetchGridItems()
+               lifecycleScope.launch {
+                   setupHomeScreenViewPager()
+               }
             }
         }
     }
+    private var homeScreenPagerAdapter: HomeScreenPagerAdapter? = null
 
+    private suspend fun setupHomeScreenViewPager() {
+        val pages = withContext(Dispatchers.IO) { homeScreenPagesDB.getPagesWithGridItems() } as ArrayList
+        homeScreenPagerAdapter = createHomeScreenPagerAdapter(pages)
+        home_screen_view_pager.adapter = homeScreenPagerAdapter
+        Log.d("SM-LAUNCHER", "adapter page count: ${homeScreenPagerAdapter?.count}")
+    }
+
+    private fun createHomeScreenPagerAdapter(pages: ArrayList<PageWithGridItems>): HomeScreenPagerAdapter {
+        return HomeScreenPagerAdapter(this@MainActivity) { position ->
+            lifecycleScope.launch(Dispatchers.IO) {
+                val id = homeScreenPagesDB.insert(HomeScreenPage(position = position))
+                getDefaultAppPackages(mCachedLaunchers, id)
+
+                val savedPages = homeScreenPagesDB.getPagesWithGridItems() as ArrayList
+                withContext(Dispatchers.Main) {
+                    homeScreenPagerAdapter?.setPages(savedPages)
+                }
+            }
+            Log.d("SM-LAUNCHER", "Add new page, position: $position")
+        }.apply { setPages(pages) }
+    }
     fun isAllAppsFragmentExpanded() = all_apps_fragment.y != mScreenHeight.toFloat()
 
     private fun isWidgetsFragmentExpanded() = widgets_fragment.y != mScreenHeight.toFloat()
@@ -693,13 +731,13 @@ class MainActivity : SimpleActivity(), FlingListener {
         return allApps
     }
 
-    private fun getDefaultAppPackages(appLaunchers: ArrayList<AppLauncher>) {
+    private fun getDefaultAppPackages(appLaunchers: ArrayList<AppLauncher>, pageId: Long = 0) {
         val homeScreenGridItems = ArrayList<HomeScreenGridItem>()
         try {
             val defaultDialerPackage = (getSystemService(Context.TELECOM_SERVICE) as TelecomManager).defaultDialerPackage
             appLaunchers.firstOrNull { it.packageName == defaultDialerPackage }?.apply {
                 val dialerIcon =
-                    HomeScreenGridItem(null, 0, ROW_COUNT - 1, 0, ROW_COUNT - 1, defaultDialerPackage, "", title, ITEM_TYPE_ICON, "", -1, "", "", null)
+                    HomeScreenGridItem(null, pageId, 0, ROW_COUNT - 1, 0, ROW_COUNT - 1, defaultDialerPackage, "", title, ITEM_TYPE_ICON, "", -1, "", "", null)
                 homeScreenGridItems.add(dialerIcon)
             }
         } catch (e: Exception) {
@@ -709,7 +747,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             val defaultSMSMessengerPackage = Telephony.Sms.getDefaultSmsPackage(this)
             appLaunchers.firstOrNull { it.packageName == defaultSMSMessengerPackage }?.apply {
                 val SMSMessengerIcon =
-                    HomeScreenGridItem(null, 1, ROW_COUNT - 1, 1, ROW_COUNT - 1, defaultSMSMessengerPackage, "", title, ITEM_TYPE_ICON, "", -1, "", "", null)
+                    HomeScreenGridItem(null, pageId, 1, ROW_COUNT - 1, 1, ROW_COUNT - 1, defaultSMSMessengerPackage, "", title, ITEM_TYPE_ICON, "", -1, "", "", null)
                 homeScreenGridItems.add(SMSMessengerIcon)
             }
         } catch (e: Exception) {
@@ -721,18 +759,17 @@ class MainActivity : SimpleActivity(), FlingListener {
             val defaultBrowserPackage = resolveInfo!!.activityInfo.packageName
             appLaunchers.firstOrNull { it.packageName == defaultBrowserPackage }?.apply {
                 val browserIcon =
-                    HomeScreenGridItem(null, 2, ROW_COUNT - 1, 2, ROW_COUNT - 1, defaultBrowserPackage, "", title, ITEM_TYPE_ICON, "", -1, "", "", null)
+                    HomeScreenGridItem(null, pageId, 2, ROW_COUNT - 1, 2, ROW_COUNT - 1, defaultBrowserPackage, "", title, ITEM_TYPE_ICON, "", -1, "", "", null)
                 homeScreenGridItems.add(browserIcon)
             }
-        } catch (e: Exception) {
-        }
+        } catch (e: Exception) {}
 
         try {
             val potentialStores = arrayListOf("com.android.vending", "org.fdroid.fdroid", "com.aurora.store")
             val storePackage = potentialStores.firstOrNull { isPackageInstalled(it) && appLaunchers.map { it.packageName }.contains(it) }
             if (storePackage != null) {
                 appLaunchers.firstOrNull { it.packageName == storePackage }?.apply {
-                    val storeIcon = HomeScreenGridItem(null, 3, ROW_COUNT - 1, 3, ROW_COUNT - 1, storePackage, "", title, ITEM_TYPE_ICON, "", -1, "", "", null)
+                    val storeIcon = HomeScreenGridItem(null, pageId, 3, ROW_COUNT - 1, 3, ROW_COUNT - 1, storePackage, "", title, ITEM_TYPE_ICON, "", -1, "", "", null)
                     homeScreenGridItems.add(storeIcon)
                 }
             }
@@ -745,7 +782,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             val defaultCameraPackage = resolveInfo!!.activityInfo.packageName
             appLaunchers.firstOrNull { it.packageName == defaultCameraPackage }?.apply {
                 val cameraIcon =
-                    HomeScreenGridItem(null, 4, ROW_COUNT - 1, 4, ROW_COUNT - 1, defaultCameraPackage, "", title, ITEM_TYPE_ICON, "", -1, "", "", null)
+                    HomeScreenGridItem(null, pageId, 4, ROW_COUNT - 1, 4, ROW_COUNT - 1, defaultCameraPackage, "", title, ITEM_TYPE_ICON, "", -1, "", "", null)
                 homeScreenGridItems.add(cameraIcon)
             }
         } catch (e: Exception) {

@@ -31,4 +31,10 @@ interface HomeScreenGridItemsDao {
 
     @Query("DELETE FROM home_screen_grid_items WHERE package_name = :packageName")
     fun deleteByPackageName(packageName: String)
+
+    @Query("SELECT * FROM home_screen_grid_items WHERE page_id = :pageId")
+    fun getItemsForPage(pageId: Long): List<HomeScreenGridItem>
+
+    @Query("UPDATE home_screen_grid_items SET page_id = :pageId WHERE id = :id")
+    fun updateItemPage(pageId: Long, id: Long)
 }

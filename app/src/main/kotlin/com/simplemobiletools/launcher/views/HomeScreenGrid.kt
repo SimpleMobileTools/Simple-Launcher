@@ -13,6 +13,7 @@ import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.TextUtils
 import android.util.AttributeSet
+import android.util.Log
 import android.util.Size
 import android.util.SizeF
 import android.widget.RelativeLayout
@@ -26,11 +27,14 @@ import com.simplemobiletools.launcher.extensions.getDrawableForPackageName
 import com.simplemobiletools.launcher.extensions.homeScreenGridItemsDB
 import com.simplemobiletools.launcher.helpers.*
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
+import com.simplemobiletools.launcher.models.PageWithGridItems
 import kotlinx.android.synthetic.main.activity_main.view.*
 
-class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : RelativeLayout(context, attrs, defStyle) {
+class HomeScreenGrid(context: Context, attrs: AttributeSet?, defStyle: Int) : RelativeLayout(context, attrs, defStyle) {
+    constructor(context: Context) : this(context, null, 0)
     constructor(context: Context, attrs: AttributeSet) : this(context, attrs, 0)
 
+    private var homeScreenPage: PageWithGridItems? = null
     private var iconMargin = context.resources.getDimension(R.dimen.icon_side_margin).toInt()
     private var labelSideMargin = context.resources.getDimension(R.dimen.small_margin).toInt()
     private var roundedCornerRadius = context.resources.getDimension(R.dimen.activity_margin)
@@ -50,7 +54,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     // apply fake margins at the home screen. Real ones would cause the icons be cut at dragging at screen sides
     var sideMargins = Rect()
 
-    private var gridItems = ArrayList<HomeScreenGridItem>()
+    var gridItems = ArrayList<HomeScreenGridItem>()
     private var gridCenters = ArrayList<Pair<Int, Int>>()
     private var draggedItemCurrentCoords = Pair(-1, -1)
     private var widgetViews = ArrayList<MyAppWidgetHostView>()
@@ -79,13 +83,16 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             right = sideMargin
         }
 
-        fetchGridItems()
+//        fetchGridItems()
     }
-
+    fun setHomeScreenPage(page: PageWithGridItems) {
+        homeScreenPage = page
+    }
     fun fetchGridItems() {
+        Log.d("SM-LAUNCHER", "fetchGridItems, Page: $homeScreenPage")
         ensureBackgroundThread {
             val providers = appWidgetManager.installedProviders
-            gridItems = context.homeScreenGridItemsDB.getAllItems() as ArrayList<HomeScreenGridItem>
+            gridItems = ((homeScreenPage?.gridItems ?: arrayListOf()) as ArrayList<HomeScreenGridItem>)
             gridItems.forEach { item ->
                 if (item.type == ITEM_TYPE_ICON) {
                     item.drawable = context.getDrawableForPackageName(item.packageName)
@@ -189,7 +196,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             val otherGridItems = gridItems.filter { it.widgetId != item.widgetId }.toMutableList() as ArrayList<HomeScreenGridItem>
             resize_frame.updateFrameCoords(frameRect, cellWidth, cellHeight, sideMargins, item, otherGridItems)
             resize_frame.beVisible()
-            resize_frame.z = 1f     // make sure the frame isnt behind the widget itself
+            resize_frame.z = 1f // make sure the frame isnt behind the widget itself
             resize_frame.onClickListener = {
                 hideResizeLines()
             }
@@ -273,6 +280,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                     // we are dragging a new item at the home screen from the All Apps fragment
                     val newHomeScreenGridItem = HomeScreenGridItem(
                         null,
+                        1, // change to Dynamic ID
                         xIndex,
                         yIndex,
                         xIndex,
@@ -563,7 +571,9 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             if (draggedItem!!.type == ITEM_TYPE_ICON || draggedItem!!.type == ITEM_TYPE_SHORTCUT) {
                 // draw a circle under the current cell
                 val center = gridCenters.minBy {
-                    Math.abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(it.second - draggedItemCurrentCoords.second + sideMargins.top)
+                    Math.abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(
+                        it.second - draggedItemCurrentCoords.second + sideMargins.top
+                    )
                 }
 
                 val gridCells = getClosestGridCells(center)
@@ -587,7 +597,9 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 // at first draw we are loading the widget from the database at some exact spot, not dragging it
                 if (!isFirstDraw) {
                     val center = gridCenters.minBy {
-                        Math.abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(it.second - draggedItemCurrentCoords.second + sideMargins.top)
+                        Math.abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(
+                            it.second - draggedItemCurrentCoords.second + sideMargins.top
+                        )
                     }
 
                     val gridCells = getClosestGridCells(center)
