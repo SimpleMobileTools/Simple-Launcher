@@ -30,6 +30,9 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.isPiePlus
@@ -37,25 +40,27 @@ import com.simplemobiletools.commons.helpers.isQPlus
 import com.simplemobiletools.commons.helpers.isRPlus
 import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
+import com.simplemobiletools.launcher.adapters.DockAdapter
 import com.simplemobiletools.launcher.adapters.HomeScreenPagerAdapter
 import com.simplemobiletools.launcher.dialogs.RenameItemDialog
 import com.simplemobiletools.launcher.extensions.*
 import com.simplemobiletools.launcher.fragments.AllAppsFragment
+import com.simplemobiletools.launcher.fragments.HomeScreenFragment
 import com.simplemobiletools.launcher.fragments.MyFragment
 import com.simplemobiletools.launcher.fragments.WidgetsFragment
 import com.simplemobiletools.launcher.helpers.*
 import com.simplemobiletools.launcher.interfaces.FlingListener
 import com.simplemobiletools.launcher.models.*
+import com.simplemobiletools.launcher.views.MyAppWidgetResizeFrame
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.view.*
 import kotlinx.android.synthetic.main.all_apps_fragment.view.*
 import kotlinx.android.synthetic.main.widgets_fragment.view.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class MainActivity : SimpleActivity(), FlingListener {
+class MainActivity : SimpleActivity(), FlingListener, HomeScreenFragment.OnUpdateAdapterListener {
     private val ANIMATION_DURATION = 150L
 
     private var mTouchDownX = -1
@@ -63,18 +68,24 @@ class MainActivity : SimpleActivity(), FlingListener {
     private var mAllAppsFragmentY = 0
     private var mWidgetsFragmentY = 0
     private var mScreenHeight = 0
+
     private var mMoveGestureThreshold = 0
     private var mIgnoreUpEvent = false
     private var mIgnoreMoveEvents = false
     private var mLongPressedIcon: HomeScreenGridItem? = null
     private var mOpenPopupMenu: PopupMenu? = null
     private var mCachedLaunchers = ArrayList<AppLauncher>()
+
     private var mLastTouchCoords = Pair(-1f, -1f)
     private var mActionOnCanBindWidget: ((granted: Boolean) -> Unit)? = null
     private var mActionOnWidgetConfiguredWidget: ((granted: Boolean) -> Unit)? = null
     private var mActionOnAddShortcut: ((label: String, icon: Bitmap?, intent: String) -> Unit)? = null
 
     private lateinit var mDetector: GestureDetectorCompat
+    private var homeScreenPagerAdapter: HomeScreenPagerAdapter? = null
+
+    private lateinit var dockRecyclerView: RecyclerView
+    private lateinit var dockAdapter: DockAdapter
 
     companion object {
         private var mLastUpEvent = 0L
@@ -118,7 +129,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                 val rect = findFirstEmptyCell() ?: return@ensureBackgroundThread
                 val gridItem = HomeScreenGridItem(
                     null,
-                    0,
+                    0, // Use Id of current page or first page with enough space
                     rect.left,
                     rect.top,
                     rect.right,
@@ -140,16 +151,20 @@ class MainActivity : SimpleActivity(), FlingListener {
 
                 try {
                     item.accept()
-                    home_screen_grid.storeAndShowGridItem(gridItem)
+                    getHomeFragment()?.storeAndShowGridItem(gridItem)
                 } catch (ignored: IllegalStateException) {
                 }
             }
         }
-       lifecycleScope.launch {
-           setupHomeScreenViewPager()
-       }
+        lifecycleScope.launch {
+            setupHomeScreenViewPager()
+            val initialDockItems = withContext(Dispatchers.IO) {
+                getDefaultAppPackages(getAllAppLaunchers(), -1)
+            }
+            setupDock(initialDockItems)
+        }
     }
-
+    private fun getHomeFragment() = homeScreenPagerAdapter?.getFragmentAt(home_screen_view_pager.currentItem)
     private fun findFirstEmptyCell(): Rect? {
         val gridItems = homeScreenGridItemsDB.getAllItems() as ArrayList<HomeScreenGridItem>
         val occupiedCells = ArrayList<Pair<Int, Int>>()
@@ -175,7 +190,7 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     override fun onStart() {
         super.onStart()
-        home_screen_grid.appWidgetHost.startListening()
+//        home_screen_grid.appWidgetHost.startListening()
     }
 
     override fun onResume() {
@@ -221,7 +236,7 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     override fun onStop() {
         super.onStop()
-        home_screen_grid?.appWidgetHost?.stopListening()
+//        home_screen_grid?.appWidgetHost?.stopListening()
     }
 
     override fun onBackPressed() {
@@ -229,8 +244,8 @@ class MainActivity : SimpleActivity(), FlingListener {
             hideFragment(all_apps_fragment)
         } else if (isWidgetsFragmentExpanded()) {
             hideFragment(widgets_fragment)
-        } else if (home_screen_grid.resize_frame.isVisible) {
-            home_screen_grid.hideResizeLines()
+        } else if (getHomeFragment()?.homeScreenGrid?.findViewById<MyAppWidgetResizeFrame>(R.id.resize_frame)?.isVisible == true) {
+            getHomeFragment()?.homeScreenGrid?.hideResizeLines()
         } else {
             // this is a home launcher app, avoid glitching by pressing Back
             // super.onBackPressed()
@@ -302,12 +317,12 @@ class MainActivity : SimpleActivity(), FlingListener {
                 if (mLongPressedIcon != null && mOpenPopupMenu != null && hasFingerMoved) {
                     mOpenPopupMenu?.dismiss()
                     mOpenPopupMenu = null
-                    home_screen_grid.itemDraggingStarted(mLongPressedIcon!!)
+                    homeScreenPagerAdapter?.getFragmentAt(home_screen_view_pager.currentItem)?.itemDraggingStarted(mLongPressedIcon!!)
                     hideFragment(all_apps_fragment)
                 }
 
                 if (mLongPressedIcon != null && hasFingerMoved) {
-                    home_screen_grid.draggedItemMoved(event.x.toInt(), event.y.toInt())
+                    homeScreenPagerAdapter?.getFragmentAt(home_screen_view_pager.currentItem)?.draggedItemMoved(event.x.toInt(), event.y.toInt())
                 }
 
                 if (mTouchDownY != -1 && !mIgnoreMoveEvents) {
@@ -333,7 +348,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                 mLongPressedIcon = null
                 mLastTouchCoords = Pair(-1f, -1f)
                 resetFragmentTouches()
-                home_screen_grid.itemDraggingStopped()
+                getHomeFragment()?.itemDraggingStopped()
 
                 if (!mIgnoreUpEvent) {
                     if (all_apps_fragment.y < mScreenHeight * 0.5) {
@@ -354,7 +369,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         return true
     }
 
-    // some devices ACTION_MOVE keeps triggering for the whole long press duration, but we are interested in real moves only, when coords change
+//     some devices ACTION_MOVE keeps triggering for the whole long press duration, but we are interested in real moves only, when coords change
     private fun hasFingerMoved(event: MotionEvent) = mTouchDownX != -1 && mTouchDownY != -1 &&
         (Math.abs(mTouchDownX - event.x) > mMoveGestureThreshold) || (Math.abs(mTouchDownY - event.y) > mMoveGestureThreshold)
 
@@ -374,7 +389,7 @@ class MainActivity : SimpleActivity(), FlingListener {
 
         if (hasDeletedAnything) {
             lifecycleScope.launch {
-                setupHomeScreenViewPager()
+                onUpdateAdapter()
             }
         }
 
@@ -383,37 +398,45 @@ class MainActivity : SimpleActivity(), FlingListener {
         if (!config.wasHomeScreenInit) {
             ensureBackgroundThread {
                 val defaultPage = HomeScreenPage(id = 0, position = 0)
-                lifecycleScope.launch(Dispatchers.IO) { homeScreenPagesDB.insert(defaultPage) }
-                getDefaultAppPackages(launchers, defaultPage.id ?: 0)
+                lifecycleScope.launch(Dispatchers.IO) {
+                    homeScreenPagesDB.insert(defaultPage)
+
+//                   // Insert Dock Items
+//                   val defaultGridItems = getDefaultAppPackages(launchers, defaultPage.id ?: 0)
+//                   homeScreenGridItemsDB.insertAll(defaultGridItems)
+                }
                 config.wasHomeScreenInit = true
-               lifecycleScope.launch {
-                   setupHomeScreenViewPager()
-               }
+                lifecycleScope.launch {
+                    setupHomeScreenViewPager()
+                }
             }
         }
     }
-    private var homeScreenPagerAdapter: HomeScreenPagerAdapter? = null
 
+    @SuppressLint("ClickableViewAccessibility")
     private suspend fun setupHomeScreenViewPager() {
         val pages = withContext(Dispatchers.IO) { homeScreenPagesDB.getPagesWithGridItems() } as ArrayList
+        pages.add(PageWithGridItems(page = HomeScreenPage(id = -1L, pages.size), gridItems = emptyList(), isAddNewPageIndicator = true))
+        Log.i("HOMEVP", "Pages:$pages")
         homeScreenPagerAdapter = createHomeScreenPagerAdapter(pages)
+//        home_screen_view_pager.isUserInputEnabled = false
         home_screen_view_pager.adapter = homeScreenPagerAdapter
-        Log.d("SM-LAUNCHER", "adapter page count: ${homeScreenPagerAdapter?.count}")
+        Log.d("SM-LAUNCHER", "adapter page count: ${homeScreenPagerAdapter?.itemCount}")
     }
 
     private fun createHomeScreenPagerAdapter(pages: ArrayList<PageWithGridItems>): HomeScreenPagerAdapter {
-        return HomeScreenPagerAdapter(this@MainActivity) { position ->
-            lifecycleScope.launch(Dispatchers.IO) {
-                val id = homeScreenPagesDB.insert(HomeScreenPage(position = position))
-                getDefaultAppPackages(mCachedLaunchers, id)
+        return HomeScreenPagerAdapter(this@MainActivity, pages)
+    }
+    override fun onUpdateAdapter() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val pages = homeScreenPagesDB.getPagesWithGridItems() as ArrayList
+            pages.add(PageWithGridItems(page = HomeScreenPage(id = -1L, position = pages.size), gridItems = emptyList(), isAddNewPageIndicator = true))
+            launch(Dispatchers.Main) { homeScreenPagerAdapter?.updateItems(pages) }
+        }
+    }
 
-                val savedPages = homeScreenPagesDB.getPagesWithGridItems() as ArrayList
-                withContext(Dispatchers.Main) {
-                    homeScreenPagerAdapter?.setPages(savedPages)
-                }
-            }
-            Log.d("SM-LAUNCHER", "Add new page, position: $position")
-        }.apply { setPages(pages) }
+    override fun onFragmentTouchEvent(event: MotionEvent?) {
+        onTouchEvent(event)
     }
     fun isAllAppsFragmentExpanded() = all_apps_fragment.y != mScreenHeight.toFloat()
 
@@ -435,8 +458,8 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
 
         window.navigationBarColor = resources.getColor(R.color.semitransparent_navigation)
-        home_screen_grid.fragmentExpanded()
-        home_screen_grid.hideResizeLines()
+        getHomeFragment()?.homeScreenGrid?.fragmentExpanded()
+        getHomeFragment()?.homeScreenGrid?.hideResizeLines()
     }
 
     private fun hideFragment(fragment: View) {
@@ -447,7 +470,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
 
         window.navigationBarColor = Color.TRANSPARENT
-        home_screen_grid.fragmentCollapsed()
+        getHomeFragment()?.homeScreenGrid?.fragmentCollapsed()
         Handler().postDelayed({
             if (fragment is AllAppsFragment) {
                 fragment.all_apps_grid.scrollToPosition(0)
@@ -465,13 +488,13 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
 
         mIgnoreMoveEvents = true
-        val clickedGridItem = home_screen_grid.isClickingGridItem(x.toInt(), y.toInt())
+        val clickedGridItem = getHomeFragment()?.homeScreenGrid?.isClickingGridItem(x.toInt(), y.toInt())
         if (clickedGridItem != null) {
             if (clickedGridItem.type == ITEM_TYPE_ICON || clickedGridItem.type == ITEM_TYPE_SHORTCUT) {
                 main_holder.performHapticFeedback()
             }
 
-            val anchorY = home_screen_grid.sideMargins.top + (clickedGridItem.top * home_screen_grid.cellHeight.toFloat())
+            val anchorY = getHomeFragment()?.homeScreenGrid!!.sideMargins.top + (clickedGridItem.top * getHomeFragment()?.homeScreenGrid!!.cellHeight.toFloat())
             showHomeIconMenu(x, anchorY, clickedGridItem, false)
             return
         }
@@ -481,8 +504,8 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     fun homeScreenClicked(x: Float, y: Float) {
-        home_screen_grid.hideResizeLines()
-        val clickedGridItem = home_screen_grid.isClickingGridItem(x.toInt(), y.toInt())
+        getHomeFragment()?.homeScreenGrid?.hideResizeLines()
+        val clickedGridItem = getHomeFragment()?.homeScreenGrid?.isClickingGridItem(x.toInt(), y.toInt())
         if (clickedGridItem != null) {
             if (clickedGridItem.type == ITEM_TYPE_ICON) {
                 launchApp(clickedGridItem.packageName, clickedGridItem.activityName)
@@ -494,7 +517,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                     val id = clickedGridItem.shortcutId
                     val packageName = clickedGridItem.packageName
                     val userHandle = android.os.Process.myUserHandle()
-                    val shortcutBounds = home_screen_grid.getClickableRect(clickedGridItem)
+                    val shortcutBounds = getHomeFragment()?.homeScreenGrid?.getClickableRect(clickedGridItem)
                     val launcherApps = applicationContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
                     launcherApps.startShortcut(packageName, id, shortcutBounds, null, userHandle)
                 }
@@ -503,14 +526,14 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     fun showHomeIconMenu(x: Float, y: Float, gridItem: HomeScreenGridItem, isOnAllAppsFragment: Boolean) {
-        home_screen_grid.hideResizeLines()
+        getHomeFragment()?.homeScreenGrid?.hideResizeLines()
         mLongPressedIcon = gridItem
         val anchorY = if (isOnAllAppsFragment || gridItem.type == ITEM_TYPE_WIDGET) {
             y
         } else if (gridItem.top == ROW_COUNT - 1) {
-            home_screen_grid.sideMargins.top + (gridItem.top * home_screen_grid.cellHeight.toFloat())
+            getHomeFragment()?.homeScreenGrid!!.sideMargins.top + (gridItem.top * getHomeFragment()?.homeScreenGrid!!.cellHeight.toFloat())
         } else {
-            (gridItem.top * home_screen_grid.cellHeight.toFloat())
+            (gridItem.top * getHomeFragment()?.homeScreenGrid!!.cellHeight.toFloat())
         }
 
         home_screen_popup_menu_anchor.x = x
@@ -524,11 +547,11 @@ class MainActivity : SimpleActivity(), FlingListener {
     fun widgetLongPressedOnList(gridItem: HomeScreenGridItem) {
         mLongPressedIcon = gridItem
         hideFragment(widgets_fragment)
-        home_screen_grid.itemDraggingStarted(mLongPressedIcon!!)
+        getHomeFragment()?.homeScreenGrid?.itemDraggingStarted(mLongPressedIcon!!)
     }
 
     private fun showMainLongPressMenu(x: Float, y: Float) {
-        home_screen_grid.hideResizeLines()
+        getHomeFragment()?.homeScreenGrid?.hideResizeLines()
         home_screen_popup_menu_anchor.x = x
         home_screen_popup_menu_anchor.y = y - resources.getDimension(R.dimen.long_press_anchor_button_offset_y) * 2
         val contextTheme = ContextThemeWrapper(this, getPopupMenuTheme())
@@ -582,9 +605,9 @@ class MainActivity : SimpleActivity(), FlingListener {
                 when (item.itemId) {
                     R.id.hide_icon -> hideIcon(gridItem)
                     R.id.rename -> renameItem(gridItem)
-                    R.id.resize -> home_screen_grid.widgetLongPressed(gridItem)
+                    R.id.resize -> getHomeFragment()?.homeScreenGrid?.widgetLongPressed(gridItem)
                     R.id.app_info -> launchAppInfo(gridItem.packageName)
-                    R.id.remove -> home_screen_grid.removeAppIcon(gridItem)
+                    R.id.remove -> getHomeFragment()?.homeScreenGrid?.removeAppIcon(gridItem)
                     R.id.uninstall -> uninstallApp(gridItem.packageName)
                 }
                 true
@@ -628,7 +651,7 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     private fun renameItem(homeScreenGridItem: HomeScreenGridItem) {
         RenameItemDialog(this, homeScreenGridItem) {
-            home_screen_grid.fetchGridItems()
+            getHomeFragment()?.homeScreenGrid?.fetchGridItems()
         }
     }
 
@@ -731,7 +754,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         return allApps
     }
 
-    private fun getDefaultAppPackages(appLaunchers: ArrayList<AppLauncher>, pageId: Long = 0) {
+    private fun getDefaultAppPackages(appLaunchers: ArrayList<AppLauncher>, pageId: Long = 0): ArrayList<HomeScreenGridItem> {
         val homeScreenGridItems = ArrayList<HomeScreenGridItem>()
         try {
             val defaultDialerPackage = (getSystemService(Context.TELECOM_SERVICE) as TelecomManager).defaultDialerPackage
@@ -788,7 +811,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         } catch (e: Exception) {
         }
 
-        homeScreenGridItemsDB.insertAll(homeScreenGridItems)
+        return homeScreenGridItems
     }
 
     fun handleWidgetBinding(
@@ -852,5 +875,23 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
 
         return Color.rgb(red / n, green / n, blue / n)
+    }
+
+    private fun setupDock(initialDockItems: List<HomeScreenGridItem>) {
+        dockRecyclerView = findViewById(R.id.dock_recycler_view)
+        dockRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+
+        dockAdapter = DockAdapter(this) { clickedGridItem ->
+            // Handle app click
+            launchApp(clickedGridItem.packageName, clickedGridItem.activityName)
+        }
+        dockRecyclerView.adapter = dockAdapter
+
+        // Load and set the initial dock items
+        dockAdapter.setItems(initialDockItems)
+
+        // Set up drag and drop for the dock items
+        val dockItemTouchHelper = ItemTouchHelper(DockItemTouchHelperCallback(dockAdapter))
+        dockItemTouchHelper.attachToRecyclerView(dockRecyclerView)
     }
 }

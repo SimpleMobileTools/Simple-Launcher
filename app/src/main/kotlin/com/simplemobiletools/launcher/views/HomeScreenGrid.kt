@@ -16,6 +16,7 @@ import android.util.AttributeSet
 import android.util.Log
 import android.util.Size
 import android.util.SizeF
+import android.view.MotionEvent
 import android.widget.RelativeLayout
 import androidx.core.graphics.drawable.toDrawable
 import com.simplemobiletools.commons.extensions.*
@@ -29,9 +30,10 @@ import com.simplemobiletools.launcher.helpers.*
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
 import com.simplemobiletools.launcher.models.PageWithGridItems
 import kotlinx.android.synthetic.main.activity_main.view.*
+import kotlinx.android.synthetic.main.item_homepage.view.resize_frame
+import kotlin.math.abs
 
-class HomeScreenGrid(context: Context, attrs: AttributeSet?, defStyle: Int) : RelativeLayout(context, attrs, defStyle) {
-    constructor(context: Context) : this(context, null, 0)
+class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : RelativeLayout(context, attrs, defStyle) {
     constructor(context: Context, attrs: AttributeSet) : this(context, attrs, 0)
 
     private var homeScreenPage: PageWithGridItems? = null
@@ -54,7 +56,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet?, defStyle: Int) : Re
     // apply fake margins at the home screen. Real ones would cause the icons be cut at dragging at screen sides
     var sideMargins = Rect()
 
-    var gridItems = ArrayList<HomeScreenGridItem>()
+    private var gridItems = ArrayList<HomeScreenGridItem>()
     private var gridCenters = ArrayList<Pair<Int, Int>>()
     private var draggedItemCurrentCoords = Pair(-1, -1)
     private var widgetViews = ArrayList<MyAppWidgetHostView>()
@@ -82,14 +84,13 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet?, defStyle: Int) : Re
             left = sideMargin
             right = sideMargin
         }
-
-//        fetchGridItems()
+        fetchGridItems()
     }
     fun setHomeScreenPage(page: PageWithGridItems) {
         homeScreenPage = page
     }
     fun fetchGridItems() {
-        Log.d("SM-LAUNCHER", "fetchGridItems, Page: $homeScreenPage")
+        Log.d("HSG", "fetchGridItems, Page: $homeScreenPage")
         ensureBackgroundThread {
             val providers = appWidgetManager.installedProviders
             gridItems = ((homeScreenPage?.gridItems ?: arrayListOf()) as ArrayList<HomeScreenGridItem>)
@@ -234,6 +235,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet?, defStyle: Int) : Re
     }
 
     private fun addAppIconOrShortcut() {
+        Log.d("HSG", "GRID-CENTERS: $gridCenters")
+        Log.d(
+            "HSG",
+            "COLUMN_COUNT:$COLUMN_COUNT | ROW_COUNT: $ROW_COUNT\ncellWidth: $cellWidth | cellHeight: $cellHeight\ncellXCoords: $cellXCoords | cellYCoords: $cellYCoords"
+        )
         val center = gridCenters.minBy {
             Math.abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(it.second - draggedItemCurrentCoords.second + sideMargins.top)
         }
@@ -280,7 +286,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet?, defStyle: Int) : Re
                     // we are dragging a new item at the home screen from the All Apps fragment
                     val newHomeScreenGridItem = HomeScreenGridItem(
                         null,
-                        1, // change to Dynamic ID
+                        homeScreenPage?.page?.id ?: -1, // change to Dynamic ID
                         xIndex,
                         yIndex,
                         xIndex,
@@ -533,28 +539,27 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet?, defStyle: Int) : Re
                 val drawableX = cellXCoords[item.left] + iconMargin + sideMargins.left
 
                 // icons at the bottom are drawn at the bottom of the grid and they have no label
-                if (item.top == ROW_COUNT - 1) {
-                    val drawableY = cellYCoords[item.top] + cellHeight - iconSize - iconMargin * 2 + sideMargins.top
-                    item.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
-                } else {
-                    val drawableY = cellYCoords[item.top] + iconSize / 2 + sideMargins.top
-                    item.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
+//                if (item.top == ROW_COUNT - 1) {
+//                    val drawableY = cellYCoords[item.top] + cellHeight - iconSize - iconMargin * 2 + sideMargins.top
+//                    item.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
+//                } else {
+                val drawableY = cellYCoords[item.top] + iconSize / 2 + sideMargins.top
+                item.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
 
-                    if (item.id != draggedItem?.id && item.title.isNotEmpty()) {
-                        val textX = cellXCoords[item.left].toFloat() + labelSideMargin + sideMargins.left
-                        val textY = cellYCoords[item.top] + iconSize * 1.5f + labelSideMargin + sideMargins.top
-                        val staticLayout = StaticLayout.Builder
-                            .obtain(item.title, 0, item.title.length, textPaint, cellWidth - 2 * labelSideMargin)
-                            .setMaxLines(2)
-                            .setEllipsize(TextUtils.TruncateAt.END)
-                            .setAlignment(Layout.Alignment.ALIGN_CENTER)
-                            .build()
+                if (item.id != draggedItem?.id && item.title.isNotEmpty()) {
+                    val textX = cellXCoords[item.left].toFloat() + labelSideMargin + sideMargins.left
+                    val textY = cellYCoords[item.top] + iconSize * 1.5f + labelSideMargin + sideMargins.top
+                    val staticLayout = StaticLayout.Builder
+                        .obtain(item.title, 0, item.title.length, textPaint, cellWidth - 2 * labelSideMargin)
+                        .setMaxLines(2)
+                        .setEllipsize(TextUtils.TruncateAt.END)
+                        .setAlignment(Layout.Alignment.ALIGN_CENTER)
+                        .build()
 
-                        canvas.save()
-                        canvas.translate(textX, textY)
-                        staticLayout.draw(canvas)
-                        canvas.restore()
-                    }
+                    canvas.save()
+                    canvas.translate(textX, textY)
+                    staticLayout.draw(canvas)
+                    canvas.restore()
                 }
 
                 item.drawable!!.draw(canvas)
@@ -629,7 +634,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet?, defStyle: Int) : Re
             }
         }
 
-        isFirstDraw = false
+        if (homeScreenPage != null) isFirstDraw = false
     }
 
     private fun fillCellSizes() {
