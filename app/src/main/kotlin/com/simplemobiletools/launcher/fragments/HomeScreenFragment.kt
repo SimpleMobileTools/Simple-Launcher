@@ -4,10 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.MotionEvent
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Button
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -33,12 +30,13 @@ class HomeScreenFragment : Fragment() {
             return fragment
         }
     }
+
     var homeScreenGrid: HomeScreenGrid? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View? {
         val page = arguments?.get(ARG_PAGE) as PageWithGridItems
         Log.i("HOMEVP", "Creating ViewPager, ID:$page")
@@ -61,27 +59,8 @@ class HomeScreenFragment : Fragment() {
         homeScreenGrid = view.findViewById(R.id.home_screen_grid)
         homeScreenGrid?.setHomeScreenPage(page)
         homeScreenGrid?.fetchGridItems()
-//        homeScreenGrid?.setOnTouchListener { _, event ->
-//            when (event.actionMasked) {
-//                MotionEvent.ACTION_MOVE -> {
-//                    val dx = event.x - mLastX
-//                    val dy = event.y - mLastY
-//                    if (abs(dx) > abs(dy)) {
-//                        // Horizontal swipe, allow the ViewPager to intercept touch events
-//                        Log.d("HSF", "Horizontal Swipe")
-//                        return@setOnTouchListener false
-//                    }
-//                    Log.d("HSF", "Vertical Swipe")
-//                    // Vertical swipe, pass touch events to MainActivity
-//                    listener?.onFragmentTouchEvent(event)
-//                    return@setOnTouchListener true
-//                }
-//                else -> {
-//                    return@setOnTouchListener false
-//                }
-//            }
-//        }
     }
+
     private fun addNewPage(position: Int) {
         lifecycleScope.launch(Dispatchers.IO) {
             requireContext().homeScreenPagesDB.insert(HomeScreenPage(position = position))
@@ -100,6 +79,7 @@ class HomeScreenFragment : Fragment() {
         super.onPause()
         view?.findViewById<HomeScreenGrid>(R.id.home_screen_grid)?.appWidgetHost?.stopListening()
     }
+
     override fun onAttach(context: Context) {
         super.onAttach(context)
         if (context is OnUpdateAdapterListener) {
@@ -131,8 +111,8 @@ class HomeScreenFragment : Fragment() {
     }
 
     private var listener: OnUpdateAdapterListener? = null
+
     interface OnUpdateAdapterListener {
         fun onUpdateAdapter()
-        fun onFragmentTouchEvent(event: MotionEvent?)
     }
 }

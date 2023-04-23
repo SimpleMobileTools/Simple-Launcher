@@ -51,6 +51,7 @@ import com.simplemobiletools.launcher.fragments.WidgetsFragment
 import com.simplemobiletools.launcher.helpers.*
 import com.simplemobiletools.launcher.interfaces.FlingListener
 import com.simplemobiletools.launcher.models.*
+import com.simplemobiletools.launcher.views.HomeViewPager
 import com.simplemobiletools.launcher.views.MyAppWidgetResizeFrame
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.view.*
@@ -59,8 +60,9 @@ import kotlinx.android.synthetic.main.widgets_fragment.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.abs
 
-class MainActivity : SimpleActivity(), FlingListener, HomeScreenFragment.OnUpdateAdapterListener {
+class MainActivity : SimpleActivity(), FlingListener, HomeScreenFragment.OnUpdateAdapterListener, HomeViewPager.OnPagerGestureListener {
     private val ANIMATION_DURATION = 150L
 
     private var mTouchDownX = -1
@@ -143,7 +145,7 @@ class MainActivity : SimpleActivity(), FlingListener, HomeScreenFragment.OnUpdat
                     "",
                     shortcutId,
                     icon.toBitmap(),
-                    icon
+                    icon,
                 )
 
                 // delay showing the shortcut both to let the user see adding it in realtime and hackily avoid concurrent modification exception at HomeScreenGrid
@@ -164,6 +166,7 @@ class MainActivity : SimpleActivity(), FlingListener, HomeScreenFragment.OnUpdat
             setupDock(initialDockItems)
         }
     }
+
     private fun getHomeFragment() = homeScreenPagerAdapter?.getFragmentAt(home_screen_view_pager.currentItem)
     private fun findFirstEmptyCell(): Rect? {
         val gridItems = homeScreenGridItemsDB.getAllItems() as ArrayList<HomeScreenGridItem>
@@ -186,11 +189,6 @@ class MainActivity : SimpleActivity(), FlingListener, HomeScreenFragment.OnUpdat
         }
 
         return null
-    }
-
-    override fun onStart() {
-        super.onStart()
-//        home_screen_grid.appWidgetHost.startListening()
     }
 
     override fun onResume() {
@@ -234,9 +232,14 @@ class MainActivity : SimpleActivity(), FlingListener, HomeScreenFragment.OnUpdat
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+//       getHomeFragment()?.homeScreenGrid?.appWidgetHost.startListening()
+    }
+
     override fun onStop() {
         super.onStop()
-//        home_screen_grid?.appWidgetHost?.stopListening()
+//        getHomeFragment()?.homeScreenGrid?.appWidgetHost?.stopListening()
     }
 
     override fun onBackPressed() {
@@ -281,95 +284,7 @@ class MainActivity : SimpleActivity(), FlingListener, HomeScreenFragment.OnUpdat
         (widgets_fragment as? WidgetsFragment)?.onConfigurationChanged()
     }
 
-    override fun onTouchEvent(event: MotionEvent?): Boolean {
-        if (event == null) {
-            return false
-        }
-
-        if (mLongPressedIcon != null && event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
-            mLastUpEvent = System.currentTimeMillis()
-        }
-
-        try {
-            mDetector.onTouchEvent(event)
-        } catch (ignored: Exception) {
-        }
-
-        when (event.actionMasked) {
-            MotionEvent.ACTION_DOWN -> {
-                mTouchDownX = event.x.toInt()
-                mTouchDownY = event.y.toInt()
-                mAllAppsFragmentY = all_apps_fragment.y.toInt()
-                mWidgetsFragmentY = widgets_fragment.y.toInt()
-                mIgnoreUpEvent = false
-            }
-
-            MotionEvent.ACTION_MOVE -> {
-                // if the initial gesture was handled by some other view, fix the Down values
-                val hasFingerMoved = if (mTouchDownX == -1 || mTouchDownY == -1) {
-                    mTouchDownX = event.x.toInt()
-                    mTouchDownY = event.y.toInt()
-                    false
-                } else {
-                    hasFingerMoved(event)
-                }
-
-                if (mLongPressedIcon != null && mOpenPopupMenu != null && hasFingerMoved) {
-                    mOpenPopupMenu?.dismiss()
-                    mOpenPopupMenu = null
-                    homeScreenPagerAdapter?.getFragmentAt(home_screen_view_pager.currentItem)?.itemDraggingStarted(mLongPressedIcon!!)
-                    hideFragment(all_apps_fragment)
-                }
-
-                if (mLongPressedIcon != null && hasFingerMoved) {
-                    homeScreenPagerAdapter?.getFragmentAt(home_screen_view_pager.currentItem)?.draggedItemMoved(event.x.toInt(), event.y.toInt())
-                }
-
-                if (mTouchDownY != -1 && !mIgnoreMoveEvents) {
-                    val diffY = mTouchDownY - event.y
-
-                    if (isWidgetsFragmentExpanded()) {
-                        val newY = mWidgetsFragmentY - diffY
-                        widgets_fragment.y = Math.min(Math.max(0f, newY), mScreenHeight.toFloat())
-                    } else if (mLongPressedIcon == null) {
-                        val newY = mAllAppsFragmentY - diffY
-                        all_apps_fragment.y = Math.min(Math.max(0f, newY), mScreenHeight.toFloat())
-                    }
-                }
-
-                mLastTouchCoords = Pair(event.x, event.y)
-            }
-
-            MotionEvent.ACTION_CANCEL,
-            MotionEvent.ACTION_UP -> {
-                mTouchDownX = -1
-                mTouchDownY = -1
-                mIgnoreMoveEvents = false
-                mLongPressedIcon = null
-                mLastTouchCoords = Pair(-1f, -1f)
-                resetFragmentTouches()
-                getHomeFragment()?.itemDraggingStopped()
-
-                if (!mIgnoreUpEvent) {
-                    if (all_apps_fragment.y < mScreenHeight * 0.5) {
-                        showFragment(all_apps_fragment)
-                    } else if (isAllAppsFragmentExpanded()) {
-                        hideFragment(all_apps_fragment)
-                    }
-
-                    if (widgets_fragment.y < mScreenHeight * 0.5) {
-                        showFragment(widgets_fragment)
-                    } else if (isWidgetsFragmentExpanded()) {
-                        hideFragment(widgets_fragment)
-                    }
-                }
-            }
-        }
-
-        return true
-    }
-
-//     some devices ACTION_MOVE keeps triggering for the whole long press duration, but we are interested in real moves only, when coords change
+    //     some devices ACTION_MOVE keeps triggering for the whole long press duration, but we are interested in real moves only, when coords change
     private fun hasFingerMoved(event: MotionEvent) = mTouchDownX != -1 && mTouchDownY != -1 &&
         (Math.abs(mTouchDownX - event.x) > mMoveGestureThreshold) || (Math.abs(mTouchDownY - event.y) > mMoveGestureThreshold)
 
@@ -419,14 +334,17 @@ class MainActivity : SimpleActivity(), FlingListener, HomeScreenFragment.OnUpdat
         pages.add(PageWithGridItems(page = HomeScreenPage(id = -1L, pages.size), gridItems = emptyList(), isAddNewPageIndicator = true))
         Log.i("HOMEVP", "Pages:$pages")
         homeScreenPagerAdapter = createHomeScreenPagerAdapter(pages)
-//        home_screen_view_pager.isUserInputEnabled = false
+        home_screen_view_pager.setOnVerticalSwipeListener(this)
         home_screen_view_pager.adapter = homeScreenPagerAdapter
-        Log.d("SM-LAUNCHER", "adapter page count: ${homeScreenPagerAdapter?.itemCount}")
+        Log.d("SM-LAUNCHER", "adapter page count: ${homeScreenPagerAdapter?.count}")
     }
 
     private fun createHomeScreenPagerAdapter(pages: ArrayList<PageWithGridItems>): HomeScreenPagerAdapter {
-        return HomeScreenPagerAdapter(this@MainActivity, pages)
+        return HomeScreenPagerAdapter(supportFragmentManager).apply {
+            setHomePages(pages)
+        }
     }
+
     override fun onUpdateAdapter() {
         lifecycleScope.launch(Dispatchers.IO) {
             val pages = homeScreenPagesDB.getPagesWithGridItems() as ArrayList
@@ -435,9 +353,6 @@ class MainActivity : SimpleActivity(), FlingListener, HomeScreenFragment.OnUpdat
         }
     }
 
-    override fun onFragmentTouchEvent(event: MotionEvent?) {
-        onTouchEvent(event)
-    }
     fun isAllAppsFragmentExpanded() = all_apps_fragment.y != mScreenHeight.toFloat()
 
     private fun isWidgetsFragmentExpanded() = widgets_fragment.y != mScreenHeight.toFloat()
@@ -667,9 +582,9 @@ class MainActivity : SimpleActivity(), FlingListener, HomeScreenFragment.OnUpdat
         }
     }
 
-    private class MyGestureListener(private val flingListener: FlingListener) : GestureDetector.SimpleOnGestureListener() {
+    inner class MyGestureListener(private val flingListener: FlingListener) : GestureDetector.SimpleOnGestureListener() {
         override fun onSingleTapUp(event: MotionEvent): Boolean {
-            (flingListener as MainActivity).homeScreenClicked(event.x, event.y)
+            homeScreenClicked(event.x, event.y)
             return super.onSingleTapUp(event)
         }
 
@@ -678,18 +593,108 @@ class MainActivity : SimpleActivity(), FlingListener, HomeScreenFragment.OnUpdat
             if (System.currentTimeMillis() - mLastUpEvent < 500L) {
                 return true
             }
-
-            if (velocityY > 0) {
-                flingListener.onFlingDown()
-            } else {
-                flingListener.onFlingUp()
+            if (abs(velocityY) > abs(velocityX)) {
+                if (velocityY > 0) {
+                    flingListener.onFlingDown()
+                } else {
+                    flingListener.onFlingUp()
+                }
             }
             return true
         }
 
         override fun onLongPress(event: MotionEvent) {
-            (flingListener as MainActivity).homeScreenLongPressed(event.x, event.y)
+            homeScreenLongPressed(event.x, event.y)
         }
+    }
+
+    override fun onVpTouchEvent(event: MotionEvent?): Boolean {
+        if (event == null) {
+            return false
+        }
+
+        if (mLongPressedIcon != null && event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
+            mLastUpEvent = System.currentTimeMillis()
+        }
+
+        try {
+            mDetector.onTouchEvent(event)
+        } catch (ignored: Exception) {
+        }
+
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                mTouchDownX = event.x.toInt()
+                mTouchDownY = event.y.toInt()
+                mAllAppsFragmentY = all_apps_fragment.y.toInt()
+                mWidgetsFragmentY = widgets_fragment.y.toInt()
+                mIgnoreUpEvent = false
+            }
+
+            MotionEvent.ACTION_MOVE -> {
+                // if the initial gesture was handled by some other view, fix the Down values
+                val hasFingerMoved = if (mTouchDownX == -1 || mTouchDownY == -1) {
+                    mTouchDownX = event.x.toInt()
+                    mTouchDownY = event.y.toInt()
+                    false
+                } else {
+                    hasFingerMoved(event)
+                }
+
+                if (mLongPressedIcon != null && mOpenPopupMenu != null && hasFingerMoved) {
+                    mOpenPopupMenu?.dismiss()
+                    mOpenPopupMenu = null
+                    homeScreenPagerAdapter?.getFragmentAt(home_screen_view_pager.currentItem)?.itemDraggingStarted(mLongPressedIcon!!)
+                    hideFragment(all_apps_fragment)
+                }
+
+                if (mLongPressedIcon != null && hasFingerMoved) {
+                    homeScreenPagerAdapter?.getFragmentAt(home_screen_view_pager.currentItem)?.draggedItemMoved(event.x.toInt(), event.y.toInt())
+                }
+
+                if (mTouchDownY != -1 && !mIgnoreMoveEvents) {
+                    val diffY = mTouchDownY - event.y
+
+                    if (isWidgetsFragmentExpanded()) {
+                        val newY = mWidgetsFragmentY - diffY
+                        widgets_fragment.y = Math.min(Math.max(0f, newY), mScreenHeight.toFloat())
+                    } else if (mLongPressedIcon == null) {
+                        val newY = mAllAppsFragmentY - diffY
+                        all_apps_fragment.y = Math.min(Math.max(0f, newY), mScreenHeight.toFloat())
+                    }
+                }
+
+                mLastTouchCoords = Pair(event.x, event.y)
+            }
+
+            MotionEvent.ACTION_CANCEL,
+            MotionEvent.ACTION_UP,
+            -> {
+                mTouchDownX = -1
+                mTouchDownY = -1
+                mIgnoreMoveEvents = false
+                mLongPressedIcon = null
+                mLastTouchCoords = Pair(-1f, -1f)
+                resetFragmentTouches()
+                getHomeFragment()?.itemDraggingStopped()
+
+                if (!mIgnoreUpEvent) {
+                    if (all_apps_fragment.y < mScreenHeight * 0.5) {
+                        showFragment(all_apps_fragment)
+                    } else if (isAllAppsFragmentExpanded()) {
+                        hideFragment(all_apps_fragment)
+                    }
+
+                    if (widgets_fragment.y < mScreenHeight * 0.5) {
+                        showFragment(widgets_fragment)
+                    } else if (isWidgetsFragmentExpanded()) {
+                        hideFragment(widgets_fragment)
+                    }
+                }
+            }
+        }
+
+        return true
     }
 
     override fun onFlingUp() {
@@ -770,7 +775,23 @@ class MainActivity : SimpleActivity(), FlingListener, HomeScreenFragment.OnUpdat
             val defaultSMSMessengerPackage = Telephony.Sms.getDefaultSmsPackage(this)
             appLaunchers.firstOrNull { it.packageName == defaultSMSMessengerPackage }?.apply {
                 val SMSMessengerIcon =
-                    HomeScreenGridItem(null, pageId, 1, ROW_COUNT - 1, 1, ROW_COUNT - 1, defaultSMSMessengerPackage, "", title, ITEM_TYPE_ICON, "", -1, "", "", null)
+                    HomeScreenGridItem(
+                        null,
+                        pageId,
+                        1,
+                        ROW_COUNT - 1,
+                        1,
+                        ROW_COUNT - 1,
+                        defaultSMSMessengerPackage,
+                        "",
+                        title,
+                        ITEM_TYPE_ICON,
+                        "",
+                        -1,
+                        "",
+                        "",
+                        null,
+                    )
                 homeScreenGridItems.add(SMSMessengerIcon)
             }
         } catch (e: Exception) {
@@ -785,14 +806,16 @@ class MainActivity : SimpleActivity(), FlingListener, HomeScreenFragment.OnUpdat
                     HomeScreenGridItem(null, pageId, 2, ROW_COUNT - 1, 2, ROW_COUNT - 1, defaultBrowserPackage, "", title, ITEM_TYPE_ICON, "", -1, "", "", null)
                 homeScreenGridItems.add(browserIcon)
             }
-        } catch (e: Exception) {}
+        } catch (e: Exception) {
+        }
 
         try {
             val potentialStores = arrayListOf("com.android.vending", "org.fdroid.fdroid", "com.aurora.store")
             val storePackage = potentialStores.firstOrNull { isPackageInstalled(it) && appLaunchers.map { it.packageName }.contains(it) }
             if (storePackage != null) {
                 appLaunchers.firstOrNull { it.packageName == storePackage }?.apply {
-                    val storeIcon = HomeScreenGridItem(null, pageId, 3, ROW_COUNT - 1, 3, ROW_COUNT - 1, storePackage, "", title, ITEM_TYPE_ICON, "", -1, "", "", null)
+                    val storeIcon =
+                        HomeScreenGridItem(null, pageId, 3, ROW_COUNT - 1, 3, ROW_COUNT - 1, storePackage, "", title, ITEM_TYPE_ICON, "", -1, "", "", null)
                     homeScreenGridItems.add(storeIcon)
                 }
             }
@@ -818,7 +841,7 @@ class MainActivity : SimpleActivity(), FlingListener, HomeScreenFragment.OnUpdat
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int,
         appWidgetInfo: AppWidgetProviderInfo,
-        callback: (canBind: Boolean) -> Unit
+        callback: (canBind: Boolean) -> Unit,
     ) {
         mActionOnCanBindWidget = null
         val canCreateWidget = appWidgetManager.bindAppWidgetIdIfAllowed(appWidgetId, appWidgetInfo.provider)
@@ -841,7 +864,7 @@ class MainActivity : SimpleActivity(), FlingListener, HomeScreenFragment.OnUpdat
             appWidgetId,
             0,
             REQUEST_CONFIGURE_WIDGET,
-            null
+            null,
         )
     }
 
