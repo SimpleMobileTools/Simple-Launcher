@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Simple Launcher</string>
-    <string name="app_launcher_name">Oppstarter</string>
-    <string name="launcher_settings">Launcher Settings</string>
+    <string name="app_launcher_name">App-starter</string>
+    <string name="launcher_settings">Innstillinger for App-starter</string>
     <string name="app_info">Programinfo</string>
     <string name="touch_hold_widget">Lang-trykk miniprogrammet og dra det til din hjemmeskjerm</string>
     <string name="uninstall">Avinstaller</string>
-    <string name="hide_icon">Hide icon</string>
-    <string name="add_hidden_icons">Add hidden icons</string>
-    <string name="manage_hidden_icons">Manage hidden icons</string>
-    <string name="hidden_icons">Hidden icons</string>
-    <string name="hidden_icons_placeholder">Some apps cannot be uninstalled due to system restrictions, but you can at least hide their icons to avoid seeing them.</string>
+    <string name="hide_icon">Skjul ikon</string>
+    <string name="add_hidden_icons">Legg til skjulte ikoner</string>
+    <string name="manage_hidden_icons">Håndter skjulte ikoner</string>
+    <string name="hidden_icons">Skjulte ikoner</string>
+    <string name="hidden_icons_placeholder">Noen apper kan ikke avinstalleres pga. systemrestriksjoner, men du kan i det minste skjule deres ikoner for å unngå å se dem.</string>
 </resources>
