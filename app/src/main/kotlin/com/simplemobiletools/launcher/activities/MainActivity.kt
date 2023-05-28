@@ -1,6 +1,5 @@
 package com.simplemobiletools.launcher.activities
 
-import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.appwidget.AppWidgetHost
@@ -19,66 +18,43 @@ import android.graphics.Color
 import android.graphics.Rect
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
 import android.provider.Telephony
 import android.telecom.TelecomManager
 import android.util.Log
 import android.view.*
-import android.view.animation.DecelerateInterpolator
-import android.widget.PopupMenu
+import android.widget.FrameLayout
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.GestureDetectorCompat
-import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
-import com.simplemobiletools.commons.helpers.isPiePlus
-import com.simplemobiletools.commons.helpers.isQPlus
 import com.simplemobiletools.commons.helpers.isRPlus
 import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.adapters.DockAdapter
 import com.simplemobiletools.launcher.adapters.HomeScreenPagerAdapter
-import com.simplemobiletools.launcher.dialogs.RenameItemDialog
 import com.simplemobiletools.launcher.extensions.*
-import com.simplemobiletools.launcher.fragments.AllAppsFragment
-import com.simplemobiletools.launcher.fragments.HomeScreenFragment
-import com.simplemobiletools.launcher.fragments.MyFragment
-import com.simplemobiletools.launcher.fragments.WidgetsFragment
+import com.simplemobiletools.launcher.fragments.*
 import com.simplemobiletools.launcher.helpers.*
-import com.simplemobiletools.launcher.interfaces.FlingListener
+import com.simplemobiletools.launcher.helpers.BottomSheetBehavior.STATE_COLLAPSED
+import com.simplemobiletools.launcher.helpers.BottomSheetBehavior.STATE_EXPANDED
+import com.simplemobiletools.launcher.helpers.BottomSheetBehavior.from
 import com.simplemobiletools.launcher.models.*
-import com.simplemobiletools.launcher.views.HomeViewPager
 import com.simplemobiletools.launcher.views.MyAppWidgetResizeFrame
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.view.*
-import kotlinx.android.synthetic.main.all_apps_fragment.view.*
-import kotlinx.android.synthetic.main.widgets_fragment.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.math.abs
 
-class MainActivity : SimpleActivity(), FlingListener, HomeScreenFragment.OnUpdateAdapterListener, HomeViewPager.OnPagerGestureListener {
+class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListener /*HomeViewPager.OnPagerGestureListener*/ {
     private val ANIMATION_DURATION = 150L
-
-    private var mTouchDownX = -1
-    private var mTouchDownY = -1
-    private var mAllAppsFragmentY = 0
-    private var mWidgetsFragmentY = 0
-    private var mScreenHeight = 0
-
-    private var mMoveGestureThreshold = 0
-    private var mIgnoreUpEvent = false
-    private var mIgnoreMoveEvents = false
     private var mLongPressedIcon: HomeScreenGridItem? = null
-    private var mOpenPopupMenu: PopupMenu? = null
     private var mCachedLaunchers = ArrayList<AppLauncher>()
-
-    private var mLastTouchCoords = Pair(-1f, -1f)
     private var mActionOnCanBindWidget: ((granted: Boolean) -> Unit)? = null
     private var mActionOnWidgetConfiguredWidget: ((granted: Boolean) -> Unit)? = null
     private var mActionOnAddShortcut: ((label: String, icon: Bitmap?, intent: String) -> Unit)? = null
@@ -88,10 +64,8 @@ class MainActivity : SimpleActivity(), FlingListener, HomeScreenFragment.OnUpdat
 
     private lateinit var dockRecyclerView: RecyclerView
     private lateinit var dockAdapter: DockAdapter
-
-    companion object {
-        private var mLastUpEvent = 0L
-    }
+    private var bottomSheetBehavior: BottomSheetBehavior<FrameLayout>? = null
+    private var widgetsBottomSheet: BottomSheetDialogFragment? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         useDynamicTheme = false
@@ -100,21 +74,8 @@ class MainActivity : SimpleActivity(), FlingListener, HomeScreenFragment.OnUpdat
         setContentView(R.layout.activity_main)
         appLaunched(BuildConfig.APPLICATION_ID)
 
-        mDetector = GestureDetectorCompat(this, MyGestureListener(this))
-
         if (isRPlus()) {
             window.setDecorFitsSystemWindows(false)
-        }
-
-        mScreenHeight = realScreenSize.y
-        mAllAppsFragmentY = mScreenHeight
-        mWidgetsFragmentY = mScreenHeight
-        mMoveGestureThreshold = resources.getDimension(R.dimen.move_gesture_threshold).toInt()
-
-        arrayOf(all_apps_fragment as MyFragment, widgets_fragment as MyFragment).forEach { fragment ->
-            fragment.setupFragment(this)
-            fragment.y = mScreenHeight.toFloat()
-            fragment.beVisible()
         }
 
         if (intent.action == LauncherApps.ACTION_CONFIRM_PIN_SHORTCUT) {
@@ -161,10 +122,27 @@ class MainActivity : SimpleActivity(), FlingListener, HomeScreenFragment.OnUpdat
         lifecycleScope.launch {
             setupHomeScreenViewPager()
             val initialDockItems = withContext(Dispatchers.IO) {
-                getDefaultAppPackages(getAllAppLaunchers(), -1)
+                getDefaultAppPackages(launcherHelper.getAllAppLaunchers(), -1)
             }
             setupDock(initialDockItems)
         }
+        bottomSheetBehavior = from(bottomSheetView)
+        bottomSheetBehavior?.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+            override fun onStateChanged(bottomSheet: View, newState: Int) {
+                if(newState == STATE_EXPANDED){
+                    getHomeFragment()?.homeScreenGrid?.fragmentExpanded()
+                    getHomeFragment()?.homeScreenGrid?.hideResizeLines()
+                }else if(newState == STATE_COLLAPSED){
+                    getHomeFragment()?.homeScreenGrid?.fragmentCollapsed()
+                }
+            }
+
+            override fun onSlide(bottomSheet: View, slideOffset: Float) {
+            }
+
+        })
+
+        widgetsBottomSheet = WidgetsBottomSheetFragment()
     }
 
     private fun getHomeFragment() = homeScreenPagerAdapter?.getFragmentAt(home_screen_view_pager.currentItem)
@@ -194,60 +172,13 @@ class MainActivity : SimpleActivity(), FlingListener, HomeScreenFragment.OnUpdat
     override fun onResume() {
         super.onResume()
         updateStatusbarColor(Color.TRANSPARENT)
-
-        main_holder.onGlobalLayout {
-            if (isPiePlus()) {
-                val addTopPadding = main_holder.rootWindowInsets?.displayCutout != null
-                (all_apps_fragment as AllAppsFragment).setupViews(addTopPadding)
-                (widgets_fragment as WidgetsFragment).setupViews(addTopPadding)
-            }
-        }
-
-        ensureBackgroundThread {
-            if (mCachedLaunchers.isEmpty()) {
-                val hiddenIcons = hiddenIconsDB.getHiddenIcons().map {
-                    it.getIconIdentifier()
-                }
-
-                mCachedLaunchers = launchersDB.getAppLaunchers().filter {
-                    val showIcon = !hiddenIcons.contains(it.getLauncherIdentifier())
-                    if (!showIcon) {
-                        try {
-                            launchersDB.deleteById(it.id!!)
-                        } catch (ignored: Exception) {
-                        }
-                    }
-                    showIcon
-                }.toMutableList() as ArrayList<AppLauncher>
-
-                (all_apps_fragment as AllAppsFragment).gotLaunchers(mCachedLaunchers)
-            }
-
-            refetchLaunchers()
-        }
-
-        // avoid showing fully colored navigation bars
-        if (window.navigationBarColor != resources.getColor(R.color.semitransparent_navigation)) {
-            window.navigationBarColor = Color.TRANSPARENT
-        }
-    }
-
-    override fun onStart() {
-        super.onStart()
-//       getHomeFragment()?.homeScreenGrid?.appWidgetHost.startListening()
-    }
-
-    override fun onStop() {
-        super.onStop()
-//        getHomeFragment()?.homeScreenGrid?.appWidgetHost?.stopListening()
     }
 
     override fun onBackPressed() {
-        if (isAllAppsFragmentExpanded()) {
-            hideFragment(all_apps_fragment)
-        } else if (isWidgetsFragmentExpanded()) {
-            hideFragment(widgets_fragment)
-        } else if (getHomeFragment()?.homeScreenGrid?.findViewById<MyAppWidgetResizeFrame>(R.id.resize_frame)?.isVisible == true) {
+        if (bottomSheetBehavior?.state == STATE_EXPANDED) {
+            closeAllAppsBottomSheet()
+        }
+        if (getHomeFragment()?.homeScreenGrid?.findViewById<MyAppWidgetResizeFrame>(R.id.resize_frame)?.isVisible() == true) {
             getHomeFragment()?.homeScreenGrid?.hideResizeLines()
         } else {
             // this is a home launcher app, avoid glitching by pressing Back
@@ -280,17 +211,12 @@ class MainActivity : SimpleActivity(), FlingListener, HomeScreenFragment.OnUpdat
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        (all_apps_fragment as? AllAppsFragment)?.onConfigurationChanged()
+//        allAppsBottomSheet?.onConfigurationChanged()
         (widgets_fragment as? WidgetsFragment)?.onConfigurationChanged()
     }
 
-    //     some devices ACTION_MOVE keeps triggering for the whole long press duration, but we are interested in real moves only, when coords change
-    private fun hasFingerMoved(event: MotionEvent) = mTouchDownX != -1 && mTouchDownY != -1 &&
-        (Math.abs(mTouchDownX - event.x) > mMoveGestureThreshold) || (Math.abs(mTouchDownY - event.y) > mMoveGestureThreshold)
-
     private fun refetchLaunchers() {
-        val launchers = getAllAppLaunchers()
-        (all_apps_fragment as AllAppsFragment).gotLaunchers(launchers)
+        val launchers = launcherHelper.getAllAppLaunchers()
         (widgets_fragment as WidgetsFragment).getAppWidgets()
 
         var hasDeletedAnything = false
@@ -334,7 +260,6 @@ class MainActivity : SimpleActivity(), FlingListener, HomeScreenFragment.OnUpdat
         pages.add(PageWithGridItems(page = HomeScreenPage(id = -1L, pages.size), gridItems = emptyList(), isAddNewPageIndicator = true))
         Log.i("HOMEVP", "Pages:$pages")
         homeScreenPagerAdapter = createHomeScreenPagerAdapter(pages)
-        home_screen_view_pager.setOnVerticalSwipeListener(this)
         home_screen_view_pager.adapter = homeScreenPagerAdapter
         Log.d("SM-LAUNCHER", "adapter page count: ${homeScreenPagerAdapter?.count}")
     }
@@ -353,224 +278,16 @@ class MainActivity : SimpleActivity(), FlingListener, HomeScreenFragment.OnUpdat
         }
     }
 
-    fun isAllAppsFragmentExpanded() = all_apps_fragment.y != mScreenHeight.toFloat()
-
-    private fun isWidgetsFragmentExpanded() = widgets_fragment.y != mScreenHeight.toFloat()
-
     fun startHandlingTouches(touchDownY: Int) {
-        mLongPressedIcon = null
-        mTouchDownY = touchDownY
-        mAllAppsFragmentY = all_apps_fragment.y.toInt()
-        mWidgetsFragmentY = widgets_fragment.y.toInt()
-        mIgnoreUpEvent = false
+//        mLongPressedIcon = null
+//        mTouchDownY = touchDownY
+//        mIgnoreUpEvent = false
     }
-
-    private fun showFragment(fragment: View) {
-        ObjectAnimator.ofFloat(fragment, "y", 0f).apply {
-            duration = ANIMATION_DURATION
-            interpolator = DecelerateInterpolator()
-            start()
-        }
-
-        window.navigationBarColor = resources.getColor(R.color.semitransparent_navigation)
-        getHomeFragment()?.homeScreenGrid?.fragmentExpanded()
-        getHomeFragment()?.homeScreenGrid?.hideResizeLines()
-    }
-
-    private fun hideFragment(fragment: View) {
-        ObjectAnimator.ofFloat(fragment, "y", mScreenHeight.toFloat()).apply {
-            duration = ANIMATION_DURATION
-            interpolator = DecelerateInterpolator()
-            start()
-        }
-
-        window.navigationBarColor = Color.TRANSPARENT
-        getHomeFragment()?.homeScreenGrid?.fragmentCollapsed()
-        Handler().postDelayed({
-            if (fragment is AllAppsFragment) {
-                fragment.all_apps_grid.scrollToPosition(0)
-                fragment.touchDownY = -1
-            } else if (fragment is WidgetsFragment) {
-                fragment.widgets_list.scrollToPosition(0)
-                fragment.touchDownY = -1
-            }
-        }, ANIMATION_DURATION)
-    }
-
-    fun homeScreenLongPressed(x: Float, y: Float) {
-        if (isAllAppsFragmentExpanded()) {
-            return
-        }
-
-        mIgnoreMoveEvents = true
-        val clickedGridItem = getHomeFragment()?.homeScreenGrid?.isClickingGridItem(x.toInt(), y.toInt())
-        if (clickedGridItem != null) {
-            if (clickedGridItem.type == ITEM_TYPE_ICON || clickedGridItem.type == ITEM_TYPE_SHORTCUT) {
-                main_holder.performHapticFeedback()
-            }
-
-            val anchorY = getHomeFragment()?.homeScreenGrid!!.sideMargins.top + (clickedGridItem.top * getHomeFragment()?.homeScreenGrid!!.cellHeight.toFloat())
-            showHomeIconMenu(x, anchorY, clickedGridItem, false)
-            return
-        }
-
-        main_holder.performHapticFeedback()
-        showMainLongPressMenu(x, y)
-    }
-
-    fun homeScreenClicked(x: Float, y: Float) {
-        getHomeFragment()?.homeScreenGrid?.hideResizeLines()
-        val clickedGridItem = getHomeFragment()?.homeScreenGrid?.isClickingGridItem(x.toInt(), y.toInt())
-        if (clickedGridItem != null) {
-            if (clickedGridItem.type == ITEM_TYPE_ICON) {
-                launchApp(clickedGridItem.packageName, clickedGridItem.activityName)
-            } else if (clickedGridItem.type == ITEM_TYPE_SHORTCUT) {
-                if (clickedGridItem.intent.isNotEmpty()) {
-                    launchShortcutIntent(clickedGridItem)
-                } else {
-                    // launch pinned shortcuts
-                    val id = clickedGridItem.shortcutId
-                    val packageName = clickedGridItem.packageName
-                    val userHandle = android.os.Process.myUserHandle()
-                    val shortcutBounds = getHomeFragment()?.homeScreenGrid?.getClickableRect(clickedGridItem)
-                    val launcherApps = applicationContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
-                    launcherApps.startShortcut(packageName, id, shortcutBounds, null, userHandle)
-                }
-            }
-        }
-    }
-
-    fun showHomeIconMenu(x: Float, y: Float, gridItem: HomeScreenGridItem, isOnAllAppsFragment: Boolean) {
-        getHomeFragment()?.homeScreenGrid?.hideResizeLines()
-        mLongPressedIcon = gridItem
-        val anchorY = if (isOnAllAppsFragment || gridItem.type == ITEM_TYPE_WIDGET) {
-            y
-        } else if (gridItem.top == ROW_COUNT - 1) {
-            getHomeFragment()?.homeScreenGrid!!.sideMargins.top + (gridItem.top * getHomeFragment()?.homeScreenGrid!!.cellHeight.toFloat())
-        } else {
-            (gridItem.top * getHomeFragment()?.homeScreenGrid!!.cellHeight.toFloat())
-        }
-
-        home_screen_popup_menu_anchor.x = x
-        home_screen_popup_menu_anchor.y = anchorY
-
-        if (mOpenPopupMenu == null) {
-            mOpenPopupMenu = handleGridItemPopupMenu(home_screen_popup_menu_anchor, gridItem, isOnAllAppsFragment)
-        }
-    }
-
     fun widgetLongPressedOnList(gridItem: HomeScreenGridItem) {
         mLongPressedIcon = gridItem
-        hideFragment(widgets_fragment)
         getHomeFragment()?.homeScreenGrid?.itemDraggingStarted(mLongPressedIcon!!)
     }
-
-    private fun showMainLongPressMenu(x: Float, y: Float) {
-        getHomeFragment()?.homeScreenGrid?.hideResizeLines()
-        home_screen_popup_menu_anchor.x = x
-        home_screen_popup_menu_anchor.y = y - resources.getDimension(R.dimen.long_press_anchor_button_offset_y) * 2
-        val contextTheme = ContextThemeWrapper(this, getPopupMenuTheme())
-        PopupMenu(contextTheme, home_screen_popup_menu_anchor, Gravity.TOP or Gravity.END).apply {
-            inflate(R.menu.menu_home_screen)
-            setOnMenuItemClickListener { item ->
-                when (item.itemId) {
-                    R.id.widgets -> showWidgetsFragment()
-                    R.id.wallpapers -> launchWallpapersIntent()
-                }
-                true
-            }
-            show()
-        }
-    }
-
-    private fun handleGridItemPopupMenu(anchorView: View, gridItem: HomeScreenGridItem, isOnAllAppsFragment: Boolean): PopupMenu {
-        var visibleMenuButtons = 6
-        visibleMenuButtons -= when (gridItem.type) {
-            ITEM_TYPE_ICON -> 1
-            ITEM_TYPE_WIDGET -> 3
-            else -> 4
-        }
-
-        if (isOnAllAppsFragment) {
-            visibleMenuButtons--
-        }
-
-        if (gridItem.type != ITEM_TYPE_WIDGET) {
-            visibleMenuButtons--
-        }
-
-        val yOffset = resources.getDimension(R.dimen.long_press_anchor_button_offset_y) * (visibleMenuButtons - 1)
-        anchorView.y -= yOffset
-
-        val contextTheme = ContextThemeWrapper(this, getPopupMenuTheme())
-        return PopupMenu(contextTheme, anchorView, Gravity.TOP or Gravity.END).apply {
-            if (isQPlus()) {
-                setForceShowIcon(true)
-            }
-
-            inflate(R.menu.menu_app_icon)
-            menu.findItem(R.id.rename).isVisible = gridItem.type == ITEM_TYPE_ICON && !isOnAllAppsFragment
-            menu.findItem(R.id.hide_icon).isVisible = gridItem.type == ITEM_TYPE_ICON && isOnAllAppsFragment
-            menu.findItem(R.id.resize).isVisible = gridItem.type == ITEM_TYPE_WIDGET
-            menu.findItem(R.id.app_info).isVisible = gridItem.type == ITEM_TYPE_ICON
-            menu.findItem(R.id.uninstall).isVisible = gridItem.type == ITEM_TYPE_ICON
-            menu.findItem(R.id.remove).isVisible = !isOnAllAppsFragment
-            setOnMenuItemClickListener { item ->
-                resetFragmentTouches()
-                when (item.itemId) {
-                    R.id.hide_icon -> hideIcon(gridItem)
-                    R.id.rename -> renameItem(gridItem)
-                    R.id.resize -> getHomeFragment()?.homeScreenGrid?.widgetLongPressed(gridItem)
-                    R.id.app_info -> launchAppInfo(gridItem.packageName)
-                    R.id.remove -> getHomeFragment()?.homeScreenGrid?.removeAppIcon(gridItem)
-                    R.id.uninstall -> uninstallApp(gridItem.packageName)
-                }
-                true
-            }
-
-            setOnDismissListener {
-                mOpenPopupMenu = null
-                resetFragmentTouches()
-            }
-
-            show()
-        }
-    }
-
-    private fun resetFragmentTouches() {
-        (widgets_fragment as WidgetsFragment).apply {
-            touchDownY = -1
-            ignoreTouches = false
-        }
-
-        (all_apps_fragment as AllAppsFragment).apply {
-            touchDownY = -1
-            ignoreTouches = false
-        }
-    }
-
-    private fun showWidgetsFragment() {
-        showFragment(widgets_fragment)
-    }
-
-    private fun hideIcon(item: HomeScreenGridItem) {
-        ensureBackgroundThread {
-            val hiddenIcon = HiddenIcon(null, item.packageName, item.activityName, item.title, null)
-            hiddenIconsDB.insert(hiddenIcon)
-
-            runOnUiThread {
-                (all_apps_fragment as AllAppsFragment).hideIcon(item)
-            }
-        }
-    }
-
-    private fun renameItem(homeScreenGridItem: HomeScreenGridItem) {
-        RenameItemDialog(this, homeScreenGridItem) {
-            getHomeFragment()?.homeScreenGrid?.fetchGridItems()
-        }
-    }
-
-    private fun launchWallpapersIntent() {
+    override fun launchWallpapersIntent() {
         try {
             Intent(Intent.ACTION_SET_WALLPAPER).apply {
                 startActivity(this)
@@ -581,184 +298,22 @@ class MainActivity : SimpleActivity(), FlingListener, HomeScreenFragment.OnUpdat
             showErrorToast(e)
         }
     }
-
-    inner class MyGestureListener(private val flingListener: FlingListener) : GestureDetector.SimpleOnGestureListener() {
-        override fun onSingleTapUp(event: MotionEvent): Boolean {
-            homeScreenClicked(event.x, event.y)
-            return super.onSingleTapUp(event)
-        }
-
-        override fun onFling(event1: MotionEvent, event2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
-            // ignore fling events just after releasing an icon from dragging
-            if (System.currentTimeMillis() - mLastUpEvent < 500L) {
-                return true
-            }
-            if (abs(velocityY) > abs(velocityX)) {
-                if (velocityY > 0) {
-                    flingListener.onFlingDown()
-                } else {
-                    flingListener.onFlingUp()
-                }
-            }
-            return true
-        }
-
-        override fun onLongPress(event: MotionEvent) {
-            homeScreenLongPressed(event.x, event.y)
-        }
+    override fun showWidgetsFragment() {
+        widgetsBottomSheet?.show(supportFragmentManager,"Widgets BS")
     }
-
-    override fun onVpTouchEvent(event: MotionEvent?): Boolean {
-        if (event == null) {
-            return false
-        }
-
-        if (mLongPressedIcon != null && event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
-            mLastUpEvent = System.currentTimeMillis()
-        }
-
-        try {
-            mDetector.onTouchEvent(event)
-        } catch (ignored: Exception) {
-        }
-
-        when (event.actionMasked) {
-            MotionEvent.ACTION_DOWN -> {
-                mTouchDownX = event.x.toInt()
-                mTouchDownY = event.y.toInt()
-                mAllAppsFragmentY = all_apps_fragment.y.toInt()
-                mWidgetsFragmentY = widgets_fragment.y.toInt()
-                mIgnoreUpEvent = false
-            }
-
-            MotionEvent.ACTION_MOVE -> {
-                // if the initial gesture was handled by some other view, fix the Down values
-                val hasFingerMoved = if (mTouchDownX == -1 || mTouchDownY == -1) {
-                    mTouchDownX = event.x.toInt()
-                    mTouchDownY = event.y.toInt()
-                    false
-                } else {
-                    hasFingerMoved(event)
-                }
-
-                if (mLongPressedIcon != null && mOpenPopupMenu != null && hasFingerMoved) {
-                    mOpenPopupMenu?.dismiss()
-                    mOpenPopupMenu = null
-                    homeScreenPagerAdapter?.getFragmentAt(home_screen_view_pager.currentItem)?.itemDraggingStarted(mLongPressedIcon!!)
-                    hideFragment(all_apps_fragment)
-                }
-
-                if (mLongPressedIcon != null && hasFingerMoved) {
-                    homeScreenPagerAdapter?.getFragmentAt(home_screen_view_pager.currentItem)?.draggedItemMoved(event.x.toInt(), event.y.toInt())
-                }
-
-                if (mTouchDownY != -1 && !mIgnoreMoveEvents) {
-                    val diffY = mTouchDownY - event.y
-
-                    if (isWidgetsFragmentExpanded()) {
-                        val newY = mWidgetsFragmentY - diffY
-                        widgets_fragment.y = Math.min(Math.max(0f, newY), mScreenHeight.toFloat())
-                    } else if (mLongPressedIcon == null) {
-                        val newY = mAllAppsFragmentY - diffY
-                        all_apps_fragment.y = Math.min(Math.max(0f, newY), mScreenHeight.toFloat())
-                    }
-                }
-
-                mLastTouchCoords = Pair(event.x, event.y)
-            }
-
-            MotionEvent.ACTION_CANCEL,
-            MotionEvent.ACTION_UP,
-            -> {
-                mTouchDownX = -1
-                mTouchDownY = -1
-                mIgnoreMoveEvents = false
-                mLongPressedIcon = null
-                mLastTouchCoords = Pair(-1f, -1f)
-                resetFragmentTouches()
-                getHomeFragment()?.itemDraggingStopped()
-
-                if (!mIgnoreUpEvent) {
-                    if (all_apps_fragment.y < mScreenHeight * 0.5) {
-                        showFragment(all_apps_fragment)
-                    } else if (isAllAppsFragmentExpanded()) {
-                        hideFragment(all_apps_fragment)
-                    }
-
-                    if (widgets_fragment.y < mScreenHeight * 0.5) {
-                        showFragment(widgets_fragment)
-                    } else if (isWidgetsFragmentExpanded()) {
-                        hideFragment(widgets_fragment)
-                    }
-                }
-            }
-        }
-
-        return true
+    private fun showAllAppsBottomSheet() {
+        bottomSheetBehavior?.state = STATE_EXPANDED
     }
-
+    fun closeAllAppsBottomSheet() {
+        bottomSheetBehavior?.state = STATE_COLLAPSED
+    }
     override fun onFlingUp() {
-        if (!isWidgetsFragmentExpanded()) {
-            mIgnoreUpEvent = true
-            showFragment(all_apps_fragment)
-        }
+        showAllAppsBottomSheet()
     }
-
     @SuppressLint("WrongConstant")
     override fun onFlingDown() {
-        mIgnoreUpEvent = true
-        if (isAllAppsFragmentExpanded()) {
-            hideFragment(all_apps_fragment)
-        } else if (isWidgetsFragmentExpanded()) {
-            hideFragment(widgets_fragment)
-        } else {
-            try {
-                Class.forName("android.app.StatusBarManager").getMethod("expandNotificationsPanel").invoke(getSystemService("statusbar"))
-            } catch (e: Exception) {
-            }
-        }
+//        bottomSheetBehavior?.state = STATE_COLLAPSED
     }
-
-    @SuppressLint("WrongConstant")
-    fun getAllAppLaunchers(): ArrayList<AppLauncher> {
-        val hiddenIcons = hiddenIconsDB.getHiddenIcons().map {
-            it.getIconIdentifier()
-        }
-
-        val allApps = ArrayList<AppLauncher>()
-        val intent = Intent(Intent.ACTION_MAIN, null)
-        intent.addCategory(Intent.CATEGORY_LAUNCHER)
-
-        val simpleLauncher = applicationContext.packageName
-        val microG = "com.google.android.gms"
-        val list = packageManager.queryIntentActivities(intent, PackageManager.PERMISSION_GRANTED)
-        for (info in list) {
-            val componentInfo = info.activityInfo.applicationInfo
-            val packageName = componentInfo.packageName
-            if (packageName == simpleLauncher || packageName == microG) {
-                continue
-            }
-
-            val activityName = info.activityInfo.name
-            if (hiddenIcons.contains("$packageName/$activityName")) {
-                continue
-            }
-
-            val label = info.loadLabel(packageManager).toString()
-            val drawable = info.loadIcon(packageManager) ?: getDrawableForPackageName(packageName) ?: continue
-            val placeholderColor = calculateAverageColor(drawable.toBitmap())
-            allApps.add(AppLauncher(null, label, packageName, activityName, 0, placeholderColor, drawable))
-        }
-
-        // add Simple Launchers settings as an app
-        val drawable = getDrawableForPackageName(packageName)
-        val placeholderColor = calculateAverageColor(drawable!!.toBitmap())
-        val launcherSettings = AppLauncher(null, getString(R.string.launcher_settings), packageName, "", 0, placeholderColor, drawable)
-        allApps.add(launcherSettings)
-        launchersDB.insertAll(allApps)
-        return allApps
-    }
-
     private fun getDefaultAppPackages(appLaunchers: ArrayList<AppLauncher>, pageId: Long = 0): ArrayList<HomeScreenGridItem> {
         val homeScreenGridItems = ArrayList<HomeScreenGridItem>()
         try {
@@ -875,29 +430,6 @@ class MainActivity : SimpleActivity(), FlingListener, HomeScreenFragment.OnUpdat
             component = componentName
             startActivityForResult(this, REQUEST_CREATE_SHORTCUT)
         }
-    }
-
-    // taken from https://gist.github.com/maxjvh/a6ab15cbba9c82a5065d
-    private fun calculateAverageColor(bitmap: Bitmap): Int {
-        var red = 0
-        var green = 0
-        var blue = 0
-        val height = bitmap.height
-        val width = bitmap.width
-        var n = 0
-        val pixels = IntArray(width * height)
-        bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
-        var i = 0
-        while (i < pixels.size) {
-            val color = pixels[i]
-            red += Color.red(color)
-            green += Color.green(color)
-            blue += Color.blue(color)
-            n++
-            i += 1
-        }
-
-        return Color.rgb(red / n, green / n, blue / n)
     }
 
     private fun setupDock(initialDockItems: List<HomeScreenGridItem>) {

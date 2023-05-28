@@ -14,10 +14,9 @@
             android:visibility="gone" />
 
     </com.simplemobiletools.launcher.views.HomeScreenGrid>
-<!--    <TextView-->
-<!--        android:id="@+id/page_number"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_gravity="center"-->
-<!--        android:textSize="28sp"/>-->
+    <View
+        android:id="@+id/home_screen_popup_menu_anchor"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        android:visibility="gone" />
 </FrameLayout>

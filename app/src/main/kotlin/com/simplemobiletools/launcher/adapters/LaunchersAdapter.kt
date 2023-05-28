@@ -1,5 +1,6 @@
 package com.simplemobiletools.launcher.adapters
 
+import android.content.ClipData
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,8 +24,8 @@ import kotlinx.android.synthetic.main.item_launcher_label.view.*
 class LaunchersAdapter(
     val activity: SimpleActivity,
     var launchers: ArrayList<AppLauncher>,
-    val allAppsListener: AllAppsListener,
-    val itemClick: (Any) -> Unit
+    val onItemLongPressed: (View, AppLauncher) -> Unit,
+    val itemClick: (Any) -> Unit,
 ) : RecyclerView.Adapter<LaunchersAdapter.ViewHolder>(), RecyclerViewFastScroller.OnPopupTextUpdate {
 
     private var textColor = activity.getProperTextColor()
@@ -52,7 +53,7 @@ class LaunchersAdapter(
                 R.integer.portrait_column_count
             } else {
                 R.integer.landscape_column_count
-            }
+            },
         )
 
         val iconWidth = activity.realScreenSize.x / currentColumnCount
@@ -104,7 +105,7 @@ class LaunchersAdapter(
 
                 setOnClickListener { itemClick(launcher) }
                 setOnLongClickListener { view ->
-                    allAppsListener.onAppLauncherLongPressed(view.x + width / 2, view.y, launcher)
+                    onItemLongPressed(view, launcher)
                     true
                 }
             }

@@ -16,7 +16,6 @@ import android.util.AttributeSet
 import android.util.Log
 import android.util.Size
 import android.util.SizeF
-import android.view.MotionEvent
 import android.widget.RelativeLayout
 import androidx.core.graphics.drawable.toDrawable
 import com.simplemobiletools.commons.extensions.*
@@ -31,7 +30,6 @@ import com.simplemobiletools.launcher.models.HomeScreenGridItem
 import com.simplemobiletools.launcher.models.PageWithGridItems
 import kotlinx.android.synthetic.main.activity_main.view.*
 import kotlinx.android.synthetic.main.item_homepage.view.resize_frame
-import kotlin.math.abs
 
 class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : RelativeLayout(context, attrs, defStyle) {
     constructor(context: Context, attrs: AttributeSet) : this(context, attrs, 0)
@@ -59,6 +57,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private var gridItems = ArrayList<HomeScreenGridItem>()
     private var gridCenters = ArrayList<Pair<Int, Int>>()
     private var draggedItemCurrentCoords = Pair(-1, -1)
+    private var showDraggedIconShadow = true
     private var widgetViews = ArrayList<MyAppWidgetHostView>()
 
     val appWidgetHost = MyAppWidgetHost(context, WIDGET_HOST_ID)
@@ -147,7 +146,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         redrawGrid()
     }
 
-    fun draggedItemMoved(x: Int, y: Int) {
+    fun draggedItemMoved(x: Int, y: Int, showShadow: Boolean = true) {
         if (draggedItem == null) {
             return
         }
@@ -164,6 +163,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         draggedItemCurrentCoords = Pair(x, y)
+        showDraggedIconShadow = showShadow
         redrawGrid()
     }
 
@@ -238,7 +238,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         Log.d("HSG", "GRID-CENTERS: $gridCenters")
         Log.d(
             "HSG",
-            "COLUMN_COUNT:$COLUMN_COUNT | ROW_COUNT: $ROW_COUNT\ncellWidth: $cellWidth | cellHeight: $cellHeight\ncellXCoords: $cellXCoords | cellYCoords: $cellYCoords"
+            "COLUMN_COUNT:$COLUMN_COUNT | ROW_COUNT: $ROW_COUNT\ncellWidth: $cellWidth | cellHeight: $cellHeight\ncellXCoords: $cellXCoords | cellYCoords: $cellYCoords",
         )
         val center = gridCenters.minBy {
             Math.abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(it.second - draggedItemCurrentCoords.second + sideMargins.top)
@@ -302,7 +302,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         draggedItem!!.icon,
                         draggedItem!!.drawable,
                         draggedItem!!.providerInfo,
-                        draggedItem!!.activityInfo
+                        draggedItem!!.activityInfo,
                     )
 
                     if (newHomeScreenGridItem.type == ITEM_TYPE_ICON) {
@@ -454,10 +454,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         widgetView.setAppWidget(appWidgetId, appWidgetProviderInfo)
         widgetView.longPressListener = { x, y ->
             val activity = context as? MainActivity
-            if (activity?.isAllAppsFragmentExpanded() == false) {
-                activity.showHomeIconMenu(x, widgetView.y, item, false)
-                performHapticFeedback()
-            }
+//            activity?.showHomeIconMenu(x, widgetView.y, item)
+            performHapticFeedback()
         }
 
         widgetView.onIgnoreInterceptedListener = {
@@ -577,7 +575,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 // draw a circle under the current cell
                 val center = gridCenters.minBy {
                     Math.abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(
-                        it.second - draggedItemCurrentCoords.second + sideMargins.top
+                        it.second - draggedItemCurrentCoords.second + sideMargins.top,
                     )
                 }
 
@@ -592,18 +590,19 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
                     canvas.drawCircle(shadowX, shadowY.toFloat(), iconSize / 2f, dragShadowCirclePaint)
                 }
-
-                // show the app icon itself at dragging, move it above the finger a bit to make it visible
-                val drawableX = (draggedItemCurrentCoords.first - iconSize / 1.5f).toInt()
-                val drawableY = (draggedItemCurrentCoords.second - iconSize / 1.2f).toInt()
-                draggedItem!!.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
-                draggedItem!!.drawable!!.draw(canvas)
+                if(showDraggedIconShadow) {
+                    // show the app icon itself at dragging, move it above the finger a bit to make it visible
+                    val drawableX = (draggedItemCurrentCoords.first - iconSize / 1.5f).toInt()
+                    val drawableY = (draggedItemCurrentCoords.second - iconSize / 1.2f).toInt()
+                    draggedItem!!.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
+                    draggedItem!!.drawable!!.draw(canvas)
+                }
             } else if (draggedItem!!.type == ITEM_TYPE_WIDGET) {
                 // at first draw we are loading the widget from the database at some exact spot, not dragging it
                 if (!isFirstDraw) {
                     val center = gridCenters.minBy {
                         Math.abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(
-                            it.second - draggedItemCurrentCoords.second + sideMargins.top
+                            it.second - draggedItemCurrentCoords.second + sideMargins.top,
                         )
                     }
 
@@ -627,7 +626,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         drawableX,
                         drawableY,
                         drawableX + drawableWidth,
-                        (drawableY + drawableWidth * aspectRatio).toInt()
+                        (drawableY + drawableWidth * aspectRatio).toInt(),
                     )
                     drawable.draw(canvas)
                 }

@@ -11,12 +11,15 @@ import com.simplemobiletools.commons.helpers.isSPlus
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.databases.AppsDatabase
 import com.simplemobiletools.launcher.helpers.Config
+import com.simplemobiletools.launcher.helpers.LauncherHelper
 import com.simplemobiletools.launcher.interfaces.AppLaunchersDao
 import com.simplemobiletools.launcher.interfaces.HiddenIconsDao
 import com.simplemobiletools.launcher.interfaces.HomeScreenGridItemsDao
 import com.simplemobiletools.launcher.interfaces.HomeScreenPagesDao
 
 val Context.config: Config get() = Config.newInstance(applicationContext)
+
+val Context.launcherHelper: LauncherHelper get() = LauncherHelper(this)
 
 val Context.launchersDB: AppLaunchersDao get() = AppsDatabase.getInstance(applicationContext).AppLaunchersDao()
 
