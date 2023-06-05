@@ -171,6 +171,7 @@ class AllAppsBottomSheetFragment : Fragment(){
         setupAdapter(sorted)
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private fun setupAdapter(launchers: ArrayList<AppLauncher>) {
         Log.i("AABSF", "Setup Adapter -> $activity")
         activity?.runOnUiThread {
@@ -313,7 +314,7 @@ class AllAppsBottomSheetFragment : Fragment(){
     }
 
     private fun handleGridItemPopupMenu(anchorView: View, gridItem: HomeScreenGridItem): PopupMenu {
-        var visibleMenuButtons = 4
+        val visibleMenuButtons = 4
 
         val yOffset = resources.getDimension(R.dimen.long_press_anchor_button_offset_y) * (visibleMenuButtons - 1)
         anchorView.y -= yOffset

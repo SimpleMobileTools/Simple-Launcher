@@ -42,6 +42,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private var dragShadowCirclePaint: Paint
     private var draggedItem: HomeScreenGridItem? = null
     private var resizedWidget: HomeScreenGridItem? = null
+    private var widgetResizeListener: OnWidgetResizeListener? = null
     private var isFirstDraw = true
     private var iconSize = 0
 
@@ -151,7 +152,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             return
         }
 
-        if (draggedItemCurrentCoords.first == -1 && draggedItemCurrentCoords.second == -1 && draggedItem != null) {
+        if (draggedItemCurrentCoords.first == -1 && draggedItemCurrentCoords.second == -1) {
             if (draggedItem!!.type == ITEM_TYPE_WIDGET) {
                 val draggedWidgetView = widgetViews.firstOrNull { it.tag == draggedItem?.widgetId }
                 if (draggedWidgetView != null) {
@@ -191,6 +192,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         val widgetView = widgetViews.firstOrNull { it.tag == resizedWidget!!.widgetId }
         resize_frame.beGone()
         if (widgetView != null) {
+            widgetResizeListener?.resizeStarted()
             val viewX = widgetView.x.toInt()
             val viewY = widgetView.y.toInt()
             val frameRect = Rect(viewX, viewY, viewX + widgetView.width, viewY + widgetView.height)
@@ -225,6 +227,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         if (resizedWidget == null) {
             return
         }
+        widgetResizeListener?.resizeEnded()
 
         resize_frame.beGone()
         widgetViews.firstOrNull { it.tag == resizedWidget!!.widgetId }?.apply {
@@ -721,5 +724,12 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         return null
+    }
+    fun setWidgetResizeListener(onWidgetResizeListener: OnWidgetResizeListener){
+        widgetResizeListener = onWidgetResizeListener
+    }
+    interface OnWidgetResizeListener{
+        fun resizeStarted()
+        fun resizeEnded()
     }
 }

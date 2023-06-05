@@ -12,9 +12,7 @@ import com.simplemobiletools.launcher.activities.SimpleActivity
 import com.simplemobiletools.launcher.helpers.WIDGET_LIST_ITEMS_HOLDER
 import com.simplemobiletools.launcher.helpers.WIDGET_LIST_SECTION
 import com.simplemobiletools.launcher.interfaces.WidgetsFragmentListener
-import com.simplemobiletools.launcher.models.WidgetsListItem
-import com.simplemobiletools.launcher.models.WidgetsListItemsHolder
-import com.simplemobiletools.launcher.models.WidgetsListSection
+import com.simplemobiletools.launcher.models.*
 import kotlinx.android.synthetic.main.item_widget_list_items_holder.view.*
 import kotlinx.android.synthetic.main.item_widget_list_section.view.*
 import kotlinx.android.synthetic.main.item_widget_preview.view.*
@@ -22,7 +20,7 @@ import kotlinx.android.synthetic.main.item_widget_preview.view.*
 class WidgetsAdapter(
     val activity: SimpleActivity,
     var widgetListItems: ArrayList<WidgetsListItem>,
-    val widgetsFragmentListener: WidgetsFragmentListener,
+    val onItemLongPressed: (View, AppWidget) -> Unit = {_,_->},
     val itemClick: () -> Unit
 ) : RecyclerView.Adapter<WidgetsAdapter.ViewHolder>() {
 
@@ -105,7 +103,7 @@ class WidgetsAdapter(
             widgetPreview.setOnClickListener { itemClick() }
 
             widgetPreview.setOnLongClickListener { view ->
-                widgetsFragmentListener.onWidgetLongPressed(widget)
+                onItemLongPressed(view, widget)
                 true
             }
         }

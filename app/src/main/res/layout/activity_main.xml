@@ -23,13 +23,8 @@
 <!--        layout="@layout/all_apps_fragment"-->
 <!--        android:visibility="gone" />-->
 
-    <include
-        android:id="@+id/widgets_fragment"
-        layout="@layout/widgets_fragment"
-        android:visibility="gone" />
-
     <FrameLayout
-        android:id="@+id/bottomSheetView"
+        android:id="@+id/appsBottomSheetView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:behavior_draggable="true"
@@ -43,9 +38,18 @@
             android:layout_height="match_parent" />
     </FrameLayout>
 
-<!--    <View-->
-<!--        android:id="@+id/home_screen_popup_menu_anchor"-->
-<!--        android:layout_width="1dp"-->
-<!--        android:layout_height="1dp"-->
-<!--        android:visibility="gone" />-->
+    <FrameLayout
+        android:id="@+id/widgetsBottomSheetView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:behavior_draggable="true"
+        app:behavior_peekHeight="0dp"
+        app:layout_behavior="com.simplemobiletools.launcher.helpers.BottomSheetBehavior">
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/bottomSheetWidgets"
+            android:name="com.simplemobiletools.launcher.fragments.WidgetsBottomSheetFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </FrameLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -13,19 +13,17 @@ class HomeViewPager(context: Context, attrs: AttributeSet) : ViewPager(context, 
         adapter = HomeScreenPagerAdapter((context as FragmentActivity).supportFragmentManager)
     }
 
+    private var isPagingEnabled = true
     @SuppressLint("ClickableViewAccessibility")
-    override fun onTouchEvent(ev: MotionEvent): Boolean {
-        listener?.onVpTouchEvent(ev)
-        return super.onTouchEvent(ev)
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        return this.isPagingEnabled && super.onTouchEvent(event)
     }
 
-    private var listener: OnPagerGestureListener? = null
-
-    fun setOnVerticalSwipeListener(listener: OnPagerGestureListener) {
-        this.listener = listener
+    override fun onInterceptTouchEvent(event: MotionEvent?): Boolean {
+        return this.isPagingEnabled && super.onInterceptTouchEvent(event)
     }
 
-    interface OnPagerGestureListener {
-        fun onVpTouchEvent(event: MotionEvent?): Boolean
+    fun setPagingEnabled(enabled: Boolean) {
+        this.isPagingEnabled = enabled
     }
 }

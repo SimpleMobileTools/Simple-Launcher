@@ -9,4 +9,8 @@
         android:id="@+id/wallpapers"
         android:title="@string/wallpapers"
         app:showAsAction="always" />
+    <item
+        android:id="@+id/remove"
+        android:title="@string/remove"
+        app:showAsAction="always" />
 </menu>

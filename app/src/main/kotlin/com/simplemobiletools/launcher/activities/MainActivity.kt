@@ -5,10 +5,7 @@ import android.app.Activity
 import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProviderInfo
-import android.content.ActivityNotFoundException
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
+import android.content.*
 import android.content.pm.ActivityInfo
 import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
@@ -29,7 +26,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.isRPlus
@@ -51,21 +47,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListener /*HomeViewPager.OnPagerGestureListener*/ {
-    private val ANIMATION_DURATION = 150L
+class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListener{
     private var mLongPressedIcon: HomeScreenGridItem? = null
     private var mCachedLaunchers = ArrayList<AppLauncher>()
     private var mActionOnCanBindWidget: ((granted: Boolean) -> Unit)? = null
     private var mActionOnWidgetConfiguredWidget: ((granted: Boolean) -> Unit)? = null
     private var mActionOnAddShortcut: ((label: String, icon: Bitmap?, intent: String) -> Unit)? = null
 
-    private lateinit var mDetector: GestureDetectorCompat
     private var homeScreenPagerAdapter: HomeScreenPagerAdapter? = null
 
     private lateinit var dockRecyclerView: RecyclerView
     private lateinit var dockAdapter: DockAdapter
-    private var bottomSheetBehavior: BottomSheetBehavior<FrameLayout>? = null
-    private var widgetsBottomSheet: BottomSheetDialogFragment? = null
+    private var appBottomSheetBehavior: BottomSheetBehavior<FrameLayout>? = null
+    private var widgetsBottomSheetBehavior: BottomSheetBehavior<FrameLayout>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         useDynamicTheme = false
@@ -126,8 +120,8 @@ class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListe
             }
             setupDock(initialDockItems)
         }
-        bottomSheetBehavior = from(bottomSheetView)
-        bottomSheetBehavior?.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+        appBottomSheetBehavior = from(appsBottomSheetView)
+        appBottomSheetBehavior?.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
             override fun onStateChanged(bottomSheet: View, newState: Int) {
                 if(newState == STATE_EXPANDED){
                     getHomeFragment()?.homeScreenGrid?.fragmentExpanded()
@@ -142,7 +136,7 @@ class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListe
 
         })
 
-        widgetsBottomSheet = WidgetsBottomSheetFragment()
+        widgetsBottomSheetBehavior = from(widgetsBottomSheetView)
     }
 
     private fun getHomeFragment() = homeScreenPagerAdapter?.getFragmentAt(home_screen_view_pager.currentItem)
@@ -175,8 +169,11 @@ class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListe
     }
 
     override fun onBackPressed() {
-        if (bottomSheetBehavior?.state == STATE_EXPANDED) {
+        if (appBottomSheetBehavior?.state == STATE_EXPANDED) {
             closeAllAppsBottomSheet()
+        }
+        if (widgetsBottomSheetBehavior?.state == STATE_EXPANDED) {
+            closeWidgetsBottomSheet()
         }
         if (getHomeFragment()?.homeScreenGrid?.findViewById<MyAppWidgetResizeFrame>(R.id.resize_frame)?.isVisible() == true) {
             getHomeFragment()?.homeScreenGrid?.hideResizeLines()
@@ -212,12 +209,12 @@ class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListe
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
 //        allAppsBottomSheet?.onConfigurationChanged()
-        (widgets_fragment as? WidgetsFragment)?.onConfigurationChanged()
+//        (widgets_fragment as? WidgetsFragment)?.onConfigurationChanged()
     }
 
     private fun refetchLaunchers() {
         val launchers = launcherHelper.getAllAppLaunchers()
-        (widgets_fragment as WidgetsFragment).getAppWidgets()
+//        (widgets_fragment as WidgetsFragment).getAppWidgets()
 
         var hasDeletedAnything = false
         mCachedLaunchers.map { it.packageName }.forEach { packageName ->
@@ -257,13 +254,25 @@ class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListe
     @SuppressLint("ClickableViewAccessibility")
     private suspend fun setupHomeScreenViewPager() {
         val pages = withContext(Dispatchers.IO) { homeScreenPagesDB.getPagesWithGridItems() } as ArrayList
-        pages.add(PageWithGridItems(page = HomeScreenPage(id = -1L, pages.size), gridItems = emptyList(), isAddNewPageIndicator = true))
+        if(pages.isEmpty()){
+            addNewPage(0)
+        }else{
+            pages.add(PageWithGridItems(page = HomeScreenPage(id = -1L, pages.size), gridItems = emptyList(), isAddNewPageIndicator = true))
+        }
         Log.i("HOMEVP", "Pages:$pages")
         homeScreenPagerAdapter = createHomeScreenPagerAdapter(pages)
         home_screen_view_pager.adapter = homeScreenPagerAdapter
+        home_screen_view_pager.setOnTouchListener { _, _ -> false }
         Log.d("SM-LAUNCHER", "adapter page count: ${homeScreenPagerAdapter?.count}")
     }
-
+    private fun addNewPage(position: Int) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            homeScreenPagesDB.insert(HomeScreenPage(position = position))
+            withContext(Dispatchers.Main) {
+                onUpdateAdapter()
+            }
+        }
+    }
     private fun createHomeScreenPagerAdapter(pages: ArrayList<PageWithGridItems>): HomeScreenPagerAdapter {
         return HomeScreenPagerAdapter(supportFragmentManager).apply {
             setHomePages(pages)
@@ -278,14 +287,31 @@ class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListe
         }
     }
 
-    fun startHandlingTouches(touchDownY: Int) {
-//        mLongPressedIcon = null
-//        mTouchDownY = touchDownY
-//        mIgnoreUpEvent = false
+    override fun onDragStarted() {
+        home_screen_view_pager.setPagingEnabled(false)
     }
-    fun widgetLongPressedOnList(gridItem: HomeScreenGridItem) {
-        mLongPressedIcon = gridItem
-        getHomeFragment()?.homeScreenGrid?.itemDraggingStarted(mLongPressedIcon!!)
+
+    override fun onDragStopped() {
+        home_screen_view_pager.setPagingEnabled(true)
+    }
+
+    override fun onWidgetResizeStarted() {
+        home_screen_view_pager.setPagingEnabled(false)
+    }
+
+    override fun onWidgetResizeStopped() {
+        home_screen_view_pager.setPagingEnabled(true)
+    }
+    override fun gotoNextPage(i: Int) {
+        if ((homeScreenPagerAdapter?.count ?: 0) > i) {
+            home_screen_view_pager.setCurrentItem(i + 1, true)
+        }
+    }
+
+    override fun gotoPrevPage(i: Int) {
+        if (i >  0) {
+            home_screen_view_pager.setCurrentItem(i - 1, true)
+        }
     }
     override fun launchWallpapersIntent() {
         try {
@@ -299,21 +325,22 @@ class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListe
         }
     }
     override fun showWidgetsFragment() {
-        widgetsBottomSheet?.show(supportFragmentManager,"Widgets BS")
+        widgetsBottomSheetBehavior?.state = STATE_EXPANDED
     }
     private fun showAllAppsBottomSheet() {
-        bottomSheetBehavior?.state = STATE_EXPANDED
+        appBottomSheetBehavior?.state = STATE_EXPANDED
     }
     fun closeAllAppsBottomSheet() {
-        bottomSheetBehavior?.state = STATE_COLLAPSED
+        appBottomSheetBehavior?.state = STATE_COLLAPSED
+    }
+    fun closeWidgetsBottomSheet() {
+        widgetsBottomSheetBehavior?.state = STATE_COLLAPSED
     }
     override fun onFlingUp() {
         showAllAppsBottomSheet()
     }
     @SuppressLint("WrongConstant")
-    override fun onFlingDown() {
-//        bottomSheetBehavior?.state = STATE_COLLAPSED
-    }
+    override fun onFlingDown() {}
     private fun getDefaultAppPackages(appLaunchers: ArrayList<AppLauncher>, pageId: Long = 0): ArrayList<HomeScreenGridItem> {
         val homeScreenGridItems = ArrayList<HomeScreenGridItem>()
         try {

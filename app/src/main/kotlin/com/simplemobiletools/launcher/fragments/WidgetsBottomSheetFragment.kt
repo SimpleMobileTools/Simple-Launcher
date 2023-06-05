@@ -2,31 +2,31 @@ package com.simplemobiletools.launcher.fragments
 
 import android.annotation.SuppressLint
 import android.appwidget.AppWidgetManager
+import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.os.Process
 import android.view.*
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import androidx.fragment.app.Fragment
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.isRPlus
 import com.simplemobiletools.launcher.R
-import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.activities.SimpleActivity
 import com.simplemobiletools.launcher.adapters.WidgetsAdapter
 import com.simplemobiletools.launcher.extensions.getInitialCellSize
 import com.simplemobiletools.launcher.helpers.ITEM_TYPE_SHORTCUT
 import com.simplemobiletools.launcher.helpers.ITEM_TYPE_WIDGET
-import com.simplemobiletools.launcher.interfaces.WidgetsFragmentListener
 import com.simplemobiletools.launcher.models.*
 import kotlinx.android.synthetic.main.widgets_fragment.view.widgets_list
 import kotlinx.android.synthetic.main.widgets_fragment.widgets_fastscroller
 import kotlinx.android.synthetic.main.widgets_fragment.widgets_list
 
-class WidgetsBottomSheetFragment : BottomSheetDialogFragment(), WidgetsFragmentListener {
+class WidgetsBottomSheetFragment : Fragment(){
     var hasTopPadding = false
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -40,7 +40,6 @@ class WidgetsBottomSheetFragment : BottomSheetDialogFragment(), WidgetsFragmentL
     }
 
     fun onConfigurationChanged() {
-
         view?.widgets_list?.scrollToPosition(0)
         setupViews()
 
@@ -119,11 +118,40 @@ class WidgetsBottomSheetFragment : BottomSheetDialogFragment(), WidgetsFragmentL
         setupAdapter(widgetListItems)
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private fun setupAdapter(widgetsListItems: ArrayList<WidgetsListItem>) {
         activity?.runOnUiThread {
             val currAdapter = view?.widgets_list?.adapter
             if (currAdapter == null) {
-                WidgetsAdapter(requireActivity() as SimpleActivity, widgetsListItems, this) {
+                WidgetsAdapter(requireActivity() as SimpleActivity, widgetsListItems, onItemLongPressed = {v, appWidget ->
+                    var longPressFlag = true
+                    v.setOnTouchListener { v1, event ->
+                        when (event.actionMasked) {
+                            MotionEvent.ACTION_DOWN -> {
+                                // Start a runnable with delay of long press timeout
+                                v1.postDelayed({
+                                    longPressFlag = true
+                                }, ViewConfiguration.getLongPressTimeout().toLong())
+                                true
+                            }
+                            MotionEvent.ACTION_MOVE -> {
+                                if (longPressFlag) {
+                                    // Long press detected and the user moved the view, start drag
+                                    startDrag(v, appWidget)
+                                    // Remove the long press flag
+                                    longPressFlag = false
+                                }
+                                true
+                            }
+                            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                                // Remove the long press flag
+                                longPressFlag = false
+                                true
+                            }
+                            else -> false
+                        }
+                    }
+                }) {
                     requireContext().toast(R.string.touch_hold_widget)
                 }.apply {
                     view?.widgets_list?.adapter = this
@@ -145,23 +173,23 @@ class WidgetsBottomSheetFragment : BottomSheetDialogFragment(), WidgetsFragmentL
         var leftListPadding = 0
         var rightListPadding = 0
 
-        if (activity!!.navigationBarOnBottom) {
-            bottomListPadding = activity!!.navigationBarHeight
+        if (requireActivity().navigationBarOnBottom) {
+            bottomListPadding = requireActivity().navigationBarHeight
             leftListPadding = 0
             rightListPadding = 0
-        } else if (activity!!.navigationBarOnSide) {
+        } else if (requireActivity().navigationBarOnSide) {
             bottomListPadding = 0
 
             val display = if (isRPlus()) {
                 view?.display!!
             } else {
-                (activity!!.getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay
+                (requireActivity().getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay
             }
 
             if (display.rotation == Surface.ROTATION_90) {
-                rightListPadding = activity!!.navigationBarWidth
+                rightListPadding = requireActivity().navigationBarWidth
             } else if (display.rotation == Surface.ROTATION_270) {
-                leftListPadding = activity!!.navigationBarWidth
+                leftListPadding = requireActivity().navigationBarWidth
             }
         }
 
@@ -169,16 +197,16 @@ class WidgetsBottomSheetFragment : BottomSheetDialogFragment(), WidgetsFragmentL
         widgets_fastscroller.setPadding(leftListPadding, 0, rightListPadding, 0)
 
         hasTopPadding = addTopPadding
-        val topPadding = if (addTopPadding) activity!!.statusBarHeight else 0
-//        setPadding(0, topPadding, 0, 0)
-//        background = ColorDrawable(requireContext().getProperBackgroundColor())
+        val topPadding = if (addTopPadding) requireActivity().statusBarHeight else 0
+        view?.setPadding(0, topPadding, 0, 0)
+        view?.background = ColorDrawable(requireContext().getProperBackgroundColor())
         (widgets_list.adapter as? WidgetsAdapter)?.updateTextColor(requireContext().getProperTextColor())
     }
 
     private fun getAppMetadataFromPackage(packageName: String): WidgetsListSection? {
         try {
-            val appInfo = activity!!.packageManager.getApplicationInfo(packageName, 0)
-            val appTitle = activity!!.packageManager.getApplicationLabel(appInfo).toString()
+            val appInfo = requireActivity().packageManager.getApplicationInfo(packageName, 0)
+            val appTitle = requireActivity().packageManager.getApplicationLabel(appInfo).toString()
 
             val launcher = requireContext().getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
             val activityList = launcher.getActivityList(packageName, Process.myUserHandle())
@@ -198,10 +226,11 @@ class WidgetsBottomSheetFragment : BottomSheetDialogFragment(), WidgetsFragmentL
         return null
     }
 
-    override fun onWidgetLongPressed(appWidget: AppWidget) {
+    fun startDrag(v: View, appWidget: AppWidget) {
         val type = if (appWidget.isShortcut) {
             ITEM_TYPE_SHORTCUT
-        } else {
+        }
+        else {
             ITEM_TYPE_WIDGET
         }
 
@@ -227,8 +256,9 @@ class WidgetsBottomSheetFragment : BottomSheetDialogFragment(), WidgetsFragmentL
             appWidget.widthCells,
             appWidget.heightCells
         )
-
-        (activity as? MainActivity)?.widgetLongPressedOnList(gridItem)
-        dismiss()
+        val data = ClipData.newPlainText(gridItem.title, gridItem.toString())
+        val shadowBuilder = View.DragShadowBuilder(v)
+        v.startDragAndDrop(data, shadowBuilder, gridItem, 0)
+        requireActivity().onBackPressed()
     }
 }

@@ -3,6 +3,7 @@ package com.simplemobiletools.launcher.fragments
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.LauncherApps
+import android.content.res.Resources
 import android.os.Bundle
 import android.util.Log
 import android.view.*
@@ -15,7 +16,6 @@ import com.simplemobiletools.commons.extensions.getPopupMenuTheme
 import com.simplemobiletools.commons.extensions.performHapticFeedback
 import com.simplemobiletools.commons.helpers.isQPlus
 import com.simplemobiletools.launcher.R
-import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.dialogs.RenameItemDialog
 import com.simplemobiletools.launcher.extensions.*
 import com.simplemobiletools.launcher.helpers.ITEM_TYPE_ICON
@@ -27,8 +27,6 @@ import com.simplemobiletools.launcher.models.HomeScreenGridItem
 import com.simplemobiletools.launcher.models.HomeScreenPage
 import com.simplemobiletools.launcher.models.PageWithGridItems
 import com.simplemobiletools.launcher.views.HomeScreenGrid
-import kotlinx.android.synthetic.main.activity_main.home_screen_view_pager
-import kotlinx.android.synthetic.main.activity_main.widgets_fragment
 import kotlinx.android.synthetic.main.item_homepage.home_screen_popup_menu_anchor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -58,6 +56,8 @@ class HomeScreenFragment : Fragment(), FlingListener {
     private var mTouchDownY = -1
 
     private var mMoveGestureThreshold = 0
+    private var isIndicatorPage = false
+    private var currentPage: PageWithGridItems? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -68,6 +68,7 @@ class HomeScreenFragment : Fragment(), FlingListener {
         Log.i("HOMEVP", "Creating ViewPager, ID:$page")
 
         return if (page.isAddNewPageIndicator) {
+            isIndicatorPage = true
             // Inflate a layout with a button for adding a new page
             inflater.inflate(R.layout.add_new_page_layout, container, false)
         } else {
@@ -78,90 +79,126 @@ class HomeScreenFragment : Fragment(), FlingListener {
     @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val page = arguments?.get(ARG_PAGE) as PageWithGridItems
-        view.findViewById<Button>(R.id.add_new_page_button)?.setOnClickListener {
-            addNewPage(page.page?.position ?: return@setOnClickListener)
-        }
-        homeScreenGrid = view.findViewById(R.id.home_screen_grid)
-        homeScreenGrid?.setHomeScreenPage(page)
-        homeScreenGrid?.fetchGridItems()
+        currentPage = arguments?.get(ARG_PAGE) as PageWithGridItems
 
-        view.setOnDragListener { v, event ->
-            when(event.action){
-                DragEvent.ACTION_DRAG_ENTERED -> {
-                    Log.i("HOMEVP", "Drag Entered On Page:$page")
-                    val draggedData = event.localState
-                    if(draggedData is HomeScreenGridItem) {
-                        homeScreenGrid?.itemDraggingStarted(draggedData.copy(pageId = page.page?.id ?: -1))
+        view.findViewById<Button>(R.id.add_new_page_button)?.setOnClickListener {
+            addNewPage(currentPage?.page?.position ?: return@setOnClickListener)
+        }
+        if(!isIndicatorPage) {
+            homeScreenGrid = view.findViewById(R.id.home_screen_grid)
+            homeScreenGrid?.setHomeScreenPage(currentPage!!)
+            homeScreenGrid?.fetchGridItems()
+            homeScreenGrid?.setWidgetResizeListener(object : HomeScreenGrid.OnWidgetResizeListener{
+                override fun resizeStarted() {
+                    listener?.onWidgetResizeStarted()
+                }
+
+                override fun resizeEnded() {
+                   listener?.onWidgetResizeStopped()
+                }
+
+            })
+            view.setOnDragListener { v, event ->
+                when (event.action) {
+                    DragEvent.ACTION_DRAG_ENTERED -> {
+                        Log.i("HOMEVP", "Drag Entered On Page:$currentPage")
+                        val draggedData = event.localState
+                        if (draggedData is HomeScreenGridItem) {
+                            homeScreenGrid?.itemDraggingStarted(draggedData.copy(pageId = currentPage?.page?.id ?: -1))
+                            listener?.onDragStarted()
+                        }
+                    }
+
+                    DragEvent.ACTION_DRAG_ENDED -> {
+                        Log.i("HOMEVP", "Drag Ended On Page:$currentPage")
+                        homeScreenGrid?.itemDraggingStopped()
+                        listener?.onDragStopped()
+                    }
+
+                    DragEvent.ACTION_DROP -> {
+                        Log.i("HOMEVP", "Drag Dropped On Page:$currentPage")
+                    }
+
+                    DragEvent.ACTION_DRAG_LOCATION -> {
+                        val screenWidth = Resources.getSystem().displayMetrics.widthPixels
+                        val edgeThreshold = 50  // You can adjust this value as needed
+
+                        // If the drag event reaches the edge of the screen on the right side
+                        if (event.x > screenWidth - edgeThreshold) {
+                            // Go to next page if exists
+                            listener?.gotoNextPage(currentPage?.page?.position ?: 0)
+                        }
+                        // If the drag event reaches the edge of the screen on the left side
+                        else if (event.x < edgeThreshold) {
+                            // Go to previous page if exists
+                            listener?.gotoPrevPage(currentPage?.page?.position ?: 0)
+                        }
+
+                        homeScreenGrid?.draggedItemMoved(event.x.toInt(), event.y.toInt(), false)
                     }
                 }
-                DragEvent.ACTION_DRAG_ENDED ->{
-                    Log.i("HOMEVP", "Drag Ended On Page:$page")
-                    homeScreenGrid?.itemDraggingStopped()
-                }
-                DragEvent.ACTION_DROP ->{
-                    Log.i("HOMEVP", "Drag Dropped On Page:$page")
-                }
-                DragEvent.ACTION_DRAG_LOCATION -> {
-                    homeScreenGrid?.draggedItemMoved(event.x.toInt(), event.y.toInt(), false)
-                }
-            }
-            return@setOnDragListener true
-        }
-
-        mMoveGestureThreshold = resources.getDimension(R.dimen.move_gesture_threshold).toInt()
-        mDetector = GestureDetectorCompat(requireContext(), MyGestureListener(this))
-        view.setOnTouchListener { _, event ->
-            if (mLongPressedIcon != null
-                && event.actionMasked == MotionEvent.ACTION_UP
-                || event.actionMasked == MotionEvent.ACTION_CANCEL) {
-                mLastUpEvent = System.currentTimeMillis()
+                return@setOnDragListener true
             }
 
-            runCatching {
-                mDetector.onTouchEvent(event)
-            }
-
-            when(event.actionMasked) {
-                MotionEvent.ACTION_DOWN -> {
-                    mTouchDownX = event.x.toInt()
-                    mTouchDownY = event.y.toInt()
+            mMoveGestureThreshold = resources.getDimension(R.dimen.move_gesture_threshold).toInt()
+            mDetector = GestureDetectorCompat(requireContext(), MyGestureListener(this))
+            view.setOnTouchListener { _, event ->
+                if (mLongPressedIcon != null
+                    && event.actionMasked == MotionEvent.ACTION_UP
+                    || event.actionMasked == MotionEvent.ACTION_CANCEL
+                ) {
+                    mLastUpEvent = System.currentTimeMillis()
                 }
-                MotionEvent.ACTION_MOVE -> {
-                    // if the initial gesture was handled by some other view, fix the Down values
-                    val hasFingerMoved = if (mTouchDownX == -1 || mTouchDownY == -1) {
+
+                runCatching {
+                    mDetector.onTouchEvent(event)
+                }
+
+                when (event.actionMasked) {
+                    MotionEvent.ACTION_DOWN -> {
                         mTouchDownX = event.x.toInt()
                         mTouchDownY = event.y.toInt()
-                        false
-                    } else {
-                        hasFingerMoved(event)
                     }
 
-                    if (mLongPressedIcon != null && mOpenPopupMenu != null && hasFingerMoved) {
-                        mOpenPopupMenu?.dismiss()
-                        mOpenPopupMenu = null
-                        homeScreenGrid?.itemDraggingStarted(mLongPressedIcon!!)
+                    MotionEvent.ACTION_MOVE -> {
+                        // if the initial gesture was handled by some other view, fix the Down values
+                        val hasFingerMoved = if (mTouchDownX == -1 || mTouchDownY == -1) {
+                            mTouchDownX = event.x.toInt()
+                            mTouchDownY = event.y.toInt()
+                            false
+                        } else {
+                            hasFingerMoved(event)
+                        }
+
+                        if (mLongPressedIcon != null && mOpenPopupMenu != null && hasFingerMoved) {
+                            mOpenPopupMenu?.dismiss()
+                            mOpenPopupMenu = null
+                            homeScreenGrid?.itemDraggingStarted(mLongPressedIcon!!)
+                            listener?.onDragStarted()
+                        }
+
+                        if (mLongPressedIcon != null && hasFingerMoved) {
+                            homeScreenGrid?.draggedItemMoved(event.x.toInt(), event.y.toInt())
+                        }
                     }
 
-                    if (mLongPressedIcon != null && hasFingerMoved) {
-                        homeScreenGrid?.draggedItemMoved(event.x.toInt(), event.y.toInt())
+                    MotionEvent.ACTION_CANCEL,
+                    MotionEvent.ACTION_UP,
+                    -> {
+                        mTouchDownX = -1
+                        mTouchDownY = -1
+                        mLongPressedIcon = null
+                        homeScreenGrid?.itemDraggingStopped()
+                        listener?.onDragStopped()
                     }
                 }
-                MotionEvent.ACTION_CANCEL,
-                MotionEvent.ACTION_UP,
-                -> {
-                    mTouchDownX = -1
-                    mTouchDownY = -1
-                    mLongPressedIcon = null
-                    homeScreenGrid?.itemDraggingStopped()
-                }
+                true
             }
-            true
         }
     }
     //     some devices ACTION_MOVE keeps triggering for the whole long press duration, but we are interested in real moves only, when coords change
     private fun hasFingerMoved(event: MotionEvent) = mTouchDownX != -1 && mTouchDownY != -1 &&
-        (Math.abs(mTouchDownX - event.x) > mMoveGestureThreshold) || (Math.abs(mTouchDownY - event.y) > mMoveGestureThreshold)
+        (abs(mTouchDownX - event.x) > mMoveGestureThreshold) || (abs(mTouchDownY - event.y) > mMoveGestureThreshold)
 
     private fun addNewPage(position: Int) {
         lifecycleScope.launch(Dispatchers.IO) {
@@ -171,7 +208,14 @@ class HomeScreenFragment : Fragment(), FlingListener {
             }
         }
     }
-
+    private fun removePage(pageId: Long) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            requireContext().homeScreenPagesDB.delete(pageId)
+            withContext(Dispatchers.Main) {
+                listener?.onUpdateAdapter()
+            }
+        }
+    }
     override fun onResume() {
         super.onResume()
         view?.findViewById<HomeScreenGrid>(R.id.home_screen_grid)?.appWidgetHost?.startListening()
@@ -260,6 +304,7 @@ class HomeScreenFragment : Fragment(), FlingListener {
                 when (item.itemId) {
                     R.id.widgets -> listener?.showWidgetsFragment()
                     R.id.wallpapers -> listener?.launchWallpapersIntent()
+                    R.id.remove -> removePage(currentPage?.page?.id!!)
                 }
                 true
             }
@@ -330,6 +375,12 @@ class HomeScreenFragment : Fragment(), FlingListener {
         fun onFlingUp()
         fun showWidgetsFragment()
         fun launchWallpapersIntent()
+        fun gotoNextPage(i: Int)
+        fun gotoPrevPage(i: Int)
+        fun onDragStarted()
+        fun onDragStopped()
+        fun onWidgetResizeStarted()
+        fun onWidgetResizeStopped()
     }
     inner class MyGestureListener(private val flingListener: FlingListener) : GestureDetector.SimpleOnGestureListener() {
         override fun onSingleTapUp(event: MotionEvent): Boolean {
