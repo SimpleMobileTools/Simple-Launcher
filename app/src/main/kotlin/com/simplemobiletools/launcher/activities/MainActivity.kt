@@ -48,7 +48,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListener{
-    private var mLongPressedIcon: HomeScreenGridItem? = null
     private var mCachedLaunchers = ArrayList<AppLauncher>()
     private var mActionOnCanBindWidget: ((granted: Boolean) -> Unit)? = null
     private var mActionOnWidgetConfiguredWidget: ((granted: Boolean) -> Unit)? = null
@@ -214,7 +213,6 @@ class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListe
 
     private fun refetchLaunchers() {
         val launchers = launcherHelper.getAllAppLaunchers()
-//        (widgets_fragment as WidgetsFragment).getAppWidgets()
 
         var hasDeletedAnything = false
         mCachedLaunchers.map { it.packageName }.forEach { packageName ->
