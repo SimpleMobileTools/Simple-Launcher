@@ -5,10 +5,16 @@ const val WIDGET_LIST_ITEMS_HOLDER = 1
 
 // shared prefs
 const val WAS_HOME_SCREEN_INIT = "was_home_screen_init"
+const val COLUMN_COUNT_PREF = "column_count_pref"
+const val ROW_COUNT_PREF = "row_count_pref"
+const val HOME_GRID_PREF = "home_grid_pref"
 
 // default home screen grid size
-const val ROW_COUNT = 6
-const val COLUMN_COUNT = 5
+val GRID_SIZE_4x4 = 0
+val GRID_SIZE_5x5 = 1
+val GRID_SIZE_6x4 = 2
+val GRID_SIZE_6x5 = 3
+val GRID_SIZE_6x6 = 4
 
 const val UNINSTALL_APP_REQUEST_CODE = 50
 const val REQUEST_CONFIGURE_WIDGET = 51

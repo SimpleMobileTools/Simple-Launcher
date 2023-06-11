@@ -2,13 +2,16 @@ package com.simplemobiletools.launcher.activities
 
 import android.content.Intent
 import android.os.Bundle
+import com.simplemobiletools.commons.dialogs.RadioGroupDialog
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.NavigationIcon
 import com.simplemobiletools.commons.helpers.isTiramisuPlus
 import com.simplemobiletools.commons.models.FAQItem
+import com.simplemobiletools.commons.models.RadioItem
 import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.extensions.config
+import com.simplemobiletools.launcher.helpers.*
 import kotlinx.android.synthetic.main.activity_settings.*
 import java.util.*
 import kotlin.system.exitProcess
@@ -34,6 +37,7 @@ class SettingsActivity : SimpleActivity() {
         setupUseEnglish()
         setupLanguage()
         setupManageHiddenIcons()
+        setupGridSize()
         updateTextColors(settings_holder)
 
         arrayOf(settings_color_customization_section_label, settings_general_settings_label).forEach {
@@ -96,6 +100,63 @@ class SettingsActivity : SimpleActivity() {
         }
     }
 
+    private fun setupGridSize() {
+        settings_grid_size.text = getHomeGridText()
+        settings_grid_size_holder.setOnClickListener {
+
+            val items = arrayListOf(
+                RadioItem(GRID_SIZE_4x4, getString(R.string.home_grid_4x4)),
+                RadioItem(GRID_SIZE_5x5, getString(R.string.home_grid_5x5)),
+                RadioItem(GRID_SIZE_6x4, getString(R.string.home_grid_6x4)),
+                RadioItem(GRID_SIZE_6x5, getString(R.string.home_grid_6x5)),
+                RadioItem(GRID_SIZE_6x6, getString(R.string.home_grid_6x6))
+            )
+
+            RadioGroupDialog(this@SettingsActivity, items, config.homeGrid) {
+                config.homeGrid = it as Int
+                setHomeGrid()
+                settings_grid_size.text = getHomeGridText()
+            }
+        }
+    }
+    private fun setHomeGrid(){
+        when(config.homeGrid){
+            GRID_SIZE_4x4 -> {
+                config.rowCount = 4
+                config.columnCount = 4
+            }
+            GRID_SIZE_5x5 -> {
+                config.rowCount = 5
+                config.columnCount = 5
+            }
+            GRID_SIZE_6x4 -> {
+                config.rowCount = 6
+                config.columnCount = 4
+            }
+            GRID_SIZE_6x5 -> {
+                config.rowCount = 6
+                config.columnCount = 5
+            }
+            GRID_SIZE_6x6 -> {
+                config.rowCount = 6
+                config.columnCount = 6
+            }
+            else -> {
+                config.rowCount = 5
+                config.columnCount = 5
+            }
+        }
+    }
+    private fun getHomeGridText(): String{
+        return when(config.homeGrid){
+            GRID_SIZE_4x4 -> getString(R.string.home_grid_4x4)
+            GRID_SIZE_5x5 -> getString(R.string.home_grid_5x5)
+            GRID_SIZE_6x4 -> getString(R.string.home_grid_6x4)
+            GRID_SIZE_6x5 -> getString(R.string.home_grid_6x5)
+            GRID_SIZE_6x6 -> getString(R.string.home_grid_6x6)
+            else -> getString(R.string.home_grid_5x5)
+        }
+    }
     private fun launchAbout() {
         val licenses = 0L
         val faqItems = ArrayList<FAQItem>()

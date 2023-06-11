@@ -21,7 +21,6 @@ import android.util.Log
 import android.view.*
 import android.widget.FrameLayout
 import androidx.core.graphics.drawable.toBitmap
-import androidx.core.view.GestureDetectorCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -60,6 +59,8 @@ class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListe
     private var appBottomSheetBehavior: BottomSheetBehavior<FrameLayout>? = null
     private var widgetsBottomSheetBehavior: BottomSheetBehavior<FrameLayout>? = null
 
+    private var currentGridSize = GRID_SIZE_5x5
+
     override fun onCreate(savedInstanceState: Bundle?) {
         useDynamicTheme = false
 
@@ -70,6 +71,8 @@ class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListe
         if (isRPlus()) {
             window.setDecorFitsSystemWindows(false)
         }
+
+        currentGridSize = config.homeGrid
 
         if (intent.action == LauncherApps.ACTION_CONFIRM_PIN_SHORTCUT) {
             val launcherApps = applicationContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
@@ -137,8 +140,142 @@ class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListe
 
         widgetsBottomSheetBehavior = from(widgetsBottomSheetView)
     }
+    private fun adjustGridItems() {
+        lifecycleScope.launch {
+            val columnCount = config.columnCount
+            val rowCount = config.rowCount
 
-    private fun getHomeFragment() = homeScreenPagerAdapter?.getFragmentAt(home_screen_view_pager.currentItem)
+            withContext(Dispatchers.IO) {
+                val pages = homeScreenPagesDB.getPagesWithGridItems()
+
+                for (pageWithGridItems in pages) {
+                    val gridItems = pageWithGridItems.gridItems.toMutableList()
+
+                    // Adjust the position of items to fit the new grid size
+                    for (item in gridItems) {
+                        val itemWidth = item.right - item.left
+                        val itemHeight = item.bottom - item.top
+                        // Check if the item exceeds the new grid size
+                        if (item.left >= columnCount || item.top >= rowCount || item.right > columnCount || item.bottom > rowCount) {
+                            // Move the item to the nearest available cell within the grid
+                            val emptyCell = findEmptyCell(columnCount, rowCount, gridItems)
+                            if (emptyCell != null) {
+                                item.left = emptyCell.first
+                                item.top = emptyCell.second
+                                item.right = item.left + itemWidth
+                                item.bottom = item.top + itemHeight
+                            }
+                        }
+                    }
+
+                    if (gridItems.size > columnCount * rowCount) {
+                        val newPageCount = gridItems.size / (columnCount * rowCount) + 1
+                        val existingPageCount = pages.size
+                        val pageDiff = newPageCount - existingPageCount
+
+                        if (pageDiff > 0) {
+                            // Create new pages and assign grid items to them
+                            for (i in 0 until pageDiff) {
+                                val newPage = HomeScreenPage(/* page properties */)
+                                val newPageId = homeScreenPagesDB.insert(newPage)
+
+                                val startIndex = existingPageCount * (columnCount * rowCount) + i * (columnCount * rowCount)
+                                val endIndex = minOf(startIndex + (columnCount * rowCount), gridItems.size)
+
+                                for (j in startIndex until endIndex) {
+                                    val itemToUpdate = gridItems[j]
+                                    itemToUpdate.pageId = newPageId
+                                    // Calculate new coordinates for the item within the new page
+                                    val itemIndexWithinPage = j - startIndex
+                                    val newItemLeft = itemIndexWithinPage % columnCount
+                                    val newItemTop = itemIndexWithinPage / columnCount
+                                    val newItemRight = newItemLeft + itemToUpdate.right - itemToUpdate.left
+                                    val newItemBottom = newItemTop + itemToUpdate.bottom - itemToUpdate.top
+                                    itemToUpdate.left = newItemLeft
+                                    itemToUpdate.top = newItemTop
+                                    itemToUpdate.right = newItemRight
+                                    itemToUpdate.bottom = newItemBottom
+                                }
+                            }
+                        }
+                    }
+
+                    // Update the grid items in the database
+                    homeScreenGridItemsDB.insertAll(gridItems)
+                }
+            }
+            // reload homepage
+            setupHomeScreenViewPager()
+        }
+    }
+
+    private fun findEmptyCell(columnCount: Int, rowCount: Int, gridItems: List<HomeScreenGridItem>): Pair<Int, Int>? {
+        val occupiedCells = HashSet<Pair<Int, Int>>()
+
+        for (item in gridItems) {
+            for (x in item.left until item.right) {
+                for (y in item.top until item.bottom) {
+                    occupiedCells.add(Pair(x, y))
+                }
+            }
+        }
+
+        for (x in 0 until columnCount) {
+            for (y in 0 until rowCount) {
+                val cell = Pair(x, y)
+                if (!occupiedCells.contains(cell)) {
+                    return cell // Return the first empty cell found
+                }
+            }
+        }
+
+        return null // No empty cell found
+    }
+
+    private fun findEmptyCell(
+        columnCount: Int,
+        rowCount: Int,
+        gridItems: List<HomeScreenGridItem>,
+        itemWidth: Int,
+        itemHeight: Int,
+        startCell: Pair<Int, Int>
+    ): Pair<Int, Int>? {
+        val occupiedCells = Array(columnCount) { BooleanArray(rowCount) }
+
+        for (item in gridItems) {
+            for (x in item.left until item.right) {
+                for (y in item.top until item.bottom) {
+                    occupiedCells[x][y] = true
+                }
+            }
+        }
+
+        val (startX, startY) = startCell
+
+        // Find the first empty cell that can accommodate the item without overlapping existing items
+        for (y in startY until rowCount) {
+            for (x in if (y == startY) startX until columnCount else 0 until columnCount) {
+                var empty = true
+                for (i in x until x + itemWidth) {
+                    for (j in y until y + itemHeight) {
+                        if (i >= columnCount || j >= rowCount || occupiedCells[i][j]) {
+                            empty = false
+                            break
+                        }
+                    }
+                    if (!empty) {
+                        break
+                    }
+                }
+                if (empty) {
+                    return Pair(x, y)
+                }
+            }
+        }
+
+        return null // No empty cell found
+    }
+
     private fun findFirstEmptyCell(): Rect? {
         val gridItems = homeScreenGridItemsDB.getAllItems() as ArrayList<HomeScreenGridItem>
         val occupiedCells = ArrayList<Pair<Int, Int>>()
@@ -150,8 +287,8 @@ class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListe
             }
         }
 
-        for (checkedYCell in 0 until COLUMN_COUNT) {
-            for (checkedXCell in 0 until ROW_COUNT - 1) {
+        for (checkedYCell in 0 until config.columnCount) {
+            for (checkedXCell in 0 until config.rowCount) {
                 val wantedCell = Pair(checkedXCell, checkedYCell)
                 if (!occupiedCells.contains(wantedCell)) {
                     return Rect(wantedCell.first, wantedCell.second, wantedCell.first, wantedCell.second)
@@ -162,9 +299,15 @@ class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListe
         return null
     }
 
+    private fun getHomeFragment() = homeScreenPagerAdapter?.getFragmentAt(home_screen_view_pager.currentItem)
+
     override fun onResume() {
         super.onResume()
         updateStatusbarColor(Color.TRANSPARENT)
+        if(currentGridSize != config.homeGrid) {
+            adjustGridItems()
+            currentGridSize = config.homeGrid
+        }
     }
 
     override fun onBackPressed() {
@@ -207,8 +350,6 @@ class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListe
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-//        allAppsBottomSheet?.onConfigurationChanged()
-//        (widgets_fragment as? WidgetsFragment)?.onConfigurationChanged()
     }
 
     private fun refetchLaunchers() {
@@ -260,6 +401,9 @@ class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListe
         Log.i("HOMEVP", "Pages:$pages")
         homeScreenPagerAdapter = createHomeScreenPagerAdapter(pages)
         home_screen_view_pager.adapter = homeScreenPagerAdapter
+//        val layoutParams = home_screen_view_pager.layoutParams as ViewGroup.MarginLayoutParams
+//        layoutParams.setMargins(0,statusBarHeight, 0, 0)
+//        home_screen_view_pager.layoutParams = layoutParams
         home_screen_view_pager.setOnTouchListener { _, _ -> false }
         Log.d("SM-LAUNCHER", "adapter page count: ${homeScreenPagerAdapter?.count}")
     }
@@ -340,12 +484,13 @@ class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListe
     @SuppressLint("WrongConstant")
     override fun onFlingDown() {}
     private fun getDefaultAppPackages(appLaunchers: ArrayList<AppLauncher>, pageId: Long = 0): ArrayList<HomeScreenGridItem> {
+        val rowCount = config.rowCount
         val homeScreenGridItems = ArrayList<HomeScreenGridItem>()
         try {
             val defaultDialerPackage = (getSystemService(Context.TELECOM_SERVICE) as TelecomManager).defaultDialerPackage
             appLaunchers.firstOrNull { it.packageName == defaultDialerPackage }?.apply {
                 val dialerIcon =
-                    HomeScreenGridItem(null, pageId, 0, ROW_COUNT - 1, 0, ROW_COUNT - 1, defaultDialerPackage, "", title, ITEM_TYPE_ICON, "", -1, "", "", null)
+                    HomeScreenGridItem(null, pageId, 0, rowCount - 1, 0, rowCount - 1, defaultDialerPackage, "", title, ITEM_TYPE_ICON, "", -1, "", "", null)
                 homeScreenGridItems.add(dialerIcon)
             }
         } catch (e: Exception) {
@@ -359,9 +504,9 @@ class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListe
                         null,
                         pageId,
                         1,
-                        ROW_COUNT - 1,
+                        rowCount - 1,
                         1,
-                        ROW_COUNT - 1,
+                        rowCount - 1,
                         defaultSMSMessengerPackage,
                         "",
                         title,
@@ -383,7 +528,7 @@ class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListe
             val defaultBrowserPackage = resolveInfo!!.activityInfo.packageName
             appLaunchers.firstOrNull { it.packageName == defaultBrowserPackage }?.apply {
                 val browserIcon =
-                    HomeScreenGridItem(null, pageId, 2, ROW_COUNT - 1, 2, ROW_COUNT - 1, defaultBrowserPackage, "", title, ITEM_TYPE_ICON, "", -1, "", "", null)
+                    HomeScreenGridItem(null, pageId, 2, rowCount - 1, 2, rowCount - 1, defaultBrowserPackage, "", title, ITEM_TYPE_ICON, "", -1, "", "", null)
                 homeScreenGridItems.add(browserIcon)
             }
         } catch (e: Exception) {
@@ -395,7 +540,7 @@ class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListe
             if (storePackage != null) {
                 appLaunchers.firstOrNull { it.packageName == storePackage }?.apply {
                     val storeIcon =
-                        HomeScreenGridItem(null, pageId, 3, ROW_COUNT - 1, 3, ROW_COUNT - 1, storePackage, "", title, ITEM_TYPE_ICON, "", -1, "", "", null)
+                        HomeScreenGridItem(null, pageId, 3, rowCount - 1, 3, rowCount - 1, storePackage, "", title, ITEM_TYPE_ICON, "", -1, "", "", null)
                     homeScreenGridItems.add(storeIcon)
                 }
             }
@@ -408,7 +553,7 @@ class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListe
             val defaultCameraPackage = resolveInfo!!.activityInfo.packageName
             appLaunchers.firstOrNull { it.packageName == defaultCameraPackage }?.apply {
                 val cameraIcon =
-                    HomeScreenGridItem(null, pageId, 4, ROW_COUNT - 1, 4, ROW_COUNT - 1, defaultCameraPackage, "", title, ITEM_TYPE_ICON, "", -1, "", "", null)
+                    HomeScreenGridItem(null, pageId, 4, rowCount - 1, 4, rowCount - 1, defaultCameraPackage, "", title, ITEM_TYPE_ICON, "", -1, "", "", null)
                 homeScreenGridItems.add(cameraIcon)
             }
         } catch (e: Exception) {

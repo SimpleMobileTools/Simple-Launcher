@@ -119,6 +119,28 @@
                     tools:text="English" />
 
             </RelativeLayout>
+            <RelativeLayout
+                android:id="@+id/settings_grid_size_holder"
+                style="@style/SettingsHolderTextViewStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <com.simplemobiletools.commons.views.MyTextView
+                    android:id="@+id/settings_grid_size_label"
+                    style="@style/SettingsTextLabelStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Home Grid" />
+
+                <com.simplemobiletools.commons.views.MyTextView
+                    android:id="@+id/settings_grid_size"
+                    style="@style/SettingsTextValueStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/settings_grid_size_label"
+                    tools:text="4x4" />
+
+            </RelativeLayout>
 
             <RelativeLayout
                 android:id="@+id/settings_manage_hidden_icons_holder"

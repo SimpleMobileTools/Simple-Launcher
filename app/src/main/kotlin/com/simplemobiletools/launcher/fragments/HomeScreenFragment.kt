@@ -21,7 +21,6 @@ import com.simplemobiletools.launcher.extensions.*
 import com.simplemobiletools.launcher.helpers.ITEM_TYPE_ICON
 import com.simplemobiletools.launcher.helpers.ITEM_TYPE_SHORTCUT
 import com.simplemobiletools.launcher.helpers.ITEM_TYPE_WIDGET
-import com.simplemobiletools.launcher.helpers.ROW_COUNT
 import com.simplemobiletools.launcher.interfaces.FlingListener
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
 import com.simplemobiletools.launcher.models.HomeScreenPage
@@ -280,7 +279,7 @@ class HomeScreenFragment : Fragment(), FlingListener {
         homeScreenGrid?.hideResizeLines()
         val anchorY = if (gridItem.type == ITEM_TYPE_WIDGET) {
             y
-        } else if (gridItem.top == ROW_COUNT - 1) {
+        } else if (gridItem.top == requireContext().config.rowCount - 1) {
             homeScreenGrid!!.sideMargins.top + (gridItem.top * homeScreenGrid!!.cellHeight.toFloat())
         } else {
             (gridItem.top * homeScreenGrid!!.cellHeight.toFloat())

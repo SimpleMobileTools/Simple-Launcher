@@ -12,6 +12,11 @@
     <string name="hidden_icons">Hidden icons</string>
     <string name="hidden_icons_placeholder">Some apps cannot be uninstalled due to system restrictions, but you can at least hide their icons to avoid seeing them.</string>
     <string name="add_new_page">Add new page</string>
+    <string name="home_grid_4x4">4x4</string>
+    <string name="home_grid_5x5">5x5</string>
+    <string name="home_grid_6x4">6x4</string>
+    <string name="home_grid_6x5">6x5</string>
+    <string name="home_grid_6x6">6x6</string>
     <!--
         Haven't found some strings? There's more at
         https://github.com/SimpleMobileTools/Simple-Commons/tree/master/commons/src/main/res

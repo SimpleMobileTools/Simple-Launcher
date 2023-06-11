@@ -23,6 +23,7 @@ import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.isSPlus
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.MainActivity
+import com.simplemobiletools.launcher.extensions.config
 import com.simplemobiletools.launcher.extensions.getDrawableForPackageName
 import com.simplemobiletools.launcher.extensions.homeScreenGridItemsDB
 import com.simplemobiletools.launcher.helpers.*
@@ -45,13 +46,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private var widgetResizeListener: OnWidgetResizeListener? = null
     private var isFirstDraw = true
     private var iconSize = 0
-
-    // let's use a 6x5 grid for now with 1 special row at the bottom, prefilled with default apps
-    private var cellXCoords = ArrayList<Int>(COLUMN_COUNT)
-    private var cellYCoords = ArrayList<Int>(ROW_COUNT)
+    private var cellXCoords = ArrayList<Int>(context.config.columnCount)
+    private var cellYCoords = ArrayList<Int>(context.config.rowCount)
     var cellWidth = 0
     var cellHeight = 0
-
     // apply fake margins at the home screen. Real ones would cause the icons be cut at dragging at screen sides
     var sideMargins = Rect()
 
@@ -79,8 +77,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
         val sideMargin = context.resources.getDimension(R.dimen.normal_margin).toInt()
         sideMargins.apply {
-            top = context.statusBarHeight
-            bottom = context.navigationBarHeight
+            top = (context as MainActivity).statusBarHeight + context.resources.getDimension(R.dimen.home_top_padding).toInt()
+            bottom = context.navigationBarHeight + context.resources.getDimension(R.dimen.dock_height).toInt()
             left = sideMargin
             right = sideMargin
         }
@@ -238,11 +236,6 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     }
 
     private fun addAppIconOrShortcut() {
-        Log.d("HSG", "GRID-CENTERS: $gridCenters")
-        Log.d(
-            "HSG",
-            "COLUMN_COUNT:$COLUMN_COUNT | ROW_COUNT: $ROW_COUNT\ncellWidth: $cellWidth | cellHeight: $cellHeight\ncellXCoords: $cellXCoords | cellYCoords: $cellYCoords",
-        )
         val center = gridCenters.minBy {
             Math.abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(it.second - draggedItemCurrentCoords.second + sideMargins.top)
         }
@@ -289,7 +282,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                     // we are dragging a new item at the home screen from the All Apps fragment
                     val newHomeScreenGridItem = HomeScreenGridItem(
                         null,
-                        homeScreenPage?.page?.id ?: -1, // change to Dynamic ID
+                        homeScreenPage?.page?.id ?: -1,
                         xIndex,
                         yIndex,
                         xIndex,
@@ -539,11 +532,6 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             if (item.id != draggedItem?.id) {
                 val drawableX = cellXCoords[item.left] + iconMargin + sideMargins.left
 
-                // icons at the bottom are drawn at the bottom of the grid and they have no label
-//                if (item.top == ROW_COUNT - 1) {
-//                    val drawableY = cellYCoords[item.top] + cellHeight - iconSize - iconMargin * 2 + sideMargins.top
-//                    item.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
-//                } else {
                 val drawableY = cellYCoords[item.top] + iconSize / 2 + sideMargins.top
                 item.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
 
@@ -585,7 +573,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 val gridCells = getClosestGridCells(center)
                 if (gridCells != null) {
                     val shadowX = cellXCoords[gridCells.first] + iconMargin.toFloat() + iconSize / 2 + sideMargins.left
-                    val shadowY = if (gridCells.second == ROW_COUNT - 1) {
+                    val shadowY = if (gridCells.second == context.config.rowCount - 1) {
                         cellYCoords[gridCells.second] + cellHeight - iconSize / 2 - iconMargin * 2
                     } else {
                         cellYCoords[gridCells.second] + iconSize
@@ -640,14 +628,14 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     }
 
     private fun fillCellSizes() {
-        cellWidth = getFakeWidth() / COLUMN_COUNT
-        cellHeight = getFakeHeight() / ROW_COUNT
+        cellWidth = getFakeWidth() /context.config.columnCount
+        cellHeight = getFakeHeight() / context.config.rowCount
         iconSize = cellWidth - 2 * iconMargin
-        for (i in 0 until COLUMN_COUNT) {
+        for (i in 0 until context.config.columnCount) {
             cellXCoords.add(i, i * cellWidth)
         }
 
-        for (i in 0 until ROW_COUNT) {
+        for (i in 0 until context.config.rowCount) {
             cellYCoords.add(i, i * cellHeight)
         }
 
@@ -688,17 +676,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         if (rect.left < 0) {
             rect.right -= rect.left
             rect.left = 0
-        } else if (rect.right > COLUMN_COUNT - 1) {
-            val diff = rect.right - COLUMN_COUNT + 1
+        } else if (rect.right > context.config.columnCount - 1) {
+            val diff = rect.right - context.config.columnCount + 1
             rect.right -= diff
             rect.left -= diff
-        }
-
-        // do not allow placing widgets at the bottom row, that is for pinned default apps
-        if (rect.bottom >= ROW_COUNT - 1) {
-            val diff = rect.bottom - ROW_COUNT + 2
-            rect.bottom -= diff
-            rect.top -= diff
         }
 
         return rect
