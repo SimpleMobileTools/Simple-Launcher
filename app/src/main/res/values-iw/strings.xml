@@ -11,4 +11,5 @@
     <string name="manage_hidden_icons">ניהול אייקונים נסתרים</string>
     <string name="hidden_icons">אייקונים נסתרים</string>
     <string name="hidden_icons_placeholder">חלק מהאפליקציות לא ניתנות להסרה עקב הגבלות מערכת, לפחות אתה יכול להחביא את האייקונים כדי לא לראותם במסך הבית.</string>
+    <string name="add_new_page">Add new page</string>
 </resources>

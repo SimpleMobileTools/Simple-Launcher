@@ -11,4 +11,5 @@
     <string name="manage_hidden_icons">Gizli simgeleri yönet</string>
     <string name="hidden_icons">Gizli simgeler</string>
     <string name="hidden_icons_placeholder">Bazı uygulamalar sistem kısıtlamaları nedeniyle kaldırılamaz, ancak en azından onları görmemek için simgelerini gizleyebilirsiniz.</string>
+    <string name="add_new_page">Add new page</string>
 </resources>

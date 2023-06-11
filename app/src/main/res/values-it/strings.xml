@@ -11,4 +11,5 @@
     <string name="manage_hidden_icons">Gestisci le icone nascoste</string>
     <string name="hidden_icons">Icone nascoste</string>
     <string name="hidden_icons_placeholder">Alcune applicazioni non possono essere disinstallate a causa di restrizioni di sistema, ma è possibile almeno nascondere le loro icone per evitare di vederle.</string>
+    <string name="add_new_page">Add new page</string>
 </resources>

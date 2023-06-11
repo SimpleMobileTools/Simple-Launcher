@@ -11,6 +11,7 @@
     <string name="manage_hidden_icons">Διαχείριση κρυφών εικονιδίων</string>
     <string name="hidden_icons">Κρυφά εικονίδια</string>
     <string name="hidden_icons_placeholder">Ορισμένες εφαρμογές δεν μπορούν να απεγκατασταθούν λόγω περιορισμών του συστήματος, αλλά μπορείτε να αποκρύψετε τα εικονίδια τους για να μην τις βλέπετε.</string>
+    <string name="add_new_page">Add new page</string>
     <!--
         Haven't found some strings? There's more at
         https://github.com/SimpleMobileTools/Simple-Commons/tree/master/commons/src/main/res

@@ -11,4 +11,5 @@
     <string name="manage_hidden_icons">Gestiona les icones ocultes</string>
     <string name="hidden_icons">Icones ocultes</string>
     <string name="hidden_icons_placeholder">Algunes aplicacions no es poden desinstal·lar a causa de les restriccions del sistema, però almenys podeu ocultar les seves icones per evitar que es vegin.</string>
+    <string name="add_new_page">Add new page</string>
 </resources>
