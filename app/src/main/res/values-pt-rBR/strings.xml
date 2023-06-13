@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">Simple Launcher</string>
     <string name="app_launcher_name">Launcher</string>
-    <string name="launcher_settings">Launcher Settings</string>
+    <string name="launcher_settings">Configurações do Iniciador</string>
     <string name="app_info">Informações do aplicativo</string>
     <string name="touch_hold_widget">Toque e segure o widget e arraste-o para sua tela inicial</string>
     <string name="uninstall">Desinstalar</string>
