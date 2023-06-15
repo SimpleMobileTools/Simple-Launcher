@@ -14,7 +14,15 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             app:layout_constraintBottom_toTopOf="@id/dock"/>
-
+        <LinearLayout
+            android:id="@+id/page_indicators_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/home_screen_view_pager"
+            app:layout_constraintBottom_toTopOf="@id/dock"/>
         <include
             android:id="@+id/dock"
             layout="@layout/dock_layout"
@@ -39,7 +47,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </FrameLayout>
-
     <FrameLayout
         android:id="@+id/widgetsBottomSheetView"
         android:layout_width="match_parent"

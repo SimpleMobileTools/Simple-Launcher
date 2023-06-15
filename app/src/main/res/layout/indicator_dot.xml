@@ -1,0 +1,6 @@
+<View
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="8dp"
+    android:layout_height="8dp"
+    android:background="@drawable/indicator_dot_selector"
+    android:layout_margin="4dp" />

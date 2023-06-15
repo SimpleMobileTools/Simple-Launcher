@@ -25,6 +25,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager.widget.ViewPager
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.isRPlus
@@ -401,11 +402,29 @@ class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListe
         Log.i("HOMEVP", "Pages:$pages")
         homeScreenPagerAdapter = createHomeScreenPagerAdapter(pages)
         home_screen_view_pager.adapter = homeScreenPagerAdapter
-//        val layoutParams = home_screen_view_pager.layoutParams as ViewGroup.MarginLayoutParams
-//        layoutParams.setMargins(0,statusBarHeight, 0, 0)
-//        home_screen_view_pager.layoutParams = layoutParams
         home_screen_view_pager.setOnTouchListener { _, _ -> false }
-        Log.d("SM-LAUNCHER", "adapter page count: ${homeScreenPagerAdapter?.count}")
+        setupPageIndicator()
+    }
+   private fun setupPageIndicator(selectedPosition: Int = 0){
+       page_indicators_container.removeAllViews()
+
+        //Set up page indicators
+        val pageCount = homeScreenPagerAdapter?.count ?: 0
+        for (i in 0 until pageCount) {
+            val dot = layoutInflater.inflate(R.layout.indicator_dot, page_indicators_container, false)
+            page_indicators_container.addView(dot)
+        }
+
+        // Set the initial dot indicator as selected
+        page_indicators_container.getChildAt(selectedPosition)?.isSelected = true
+
+        home_screen_view_pager.addOnPageChangeListener(object: ViewPager.SimpleOnPageChangeListener() {
+            override fun onPageSelected(position: Int) {
+                for (i in 0 until page_indicators_container.childCount) {
+                    page_indicators_container.getChildAt(i).isSelected = (i == position)
+                }
+            }
+        })
     }
     private fun addNewPage(position: Int) {
         lifecycleScope.launch(Dispatchers.IO) {
@@ -425,7 +444,10 @@ class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListe
         lifecycleScope.launch(Dispatchers.IO) {
             val pages = homeScreenPagesDB.getPagesWithGridItems() as ArrayList
             pages.add(PageWithGridItems(page = HomeScreenPage(id = -1L, position = pages.size), gridItems = emptyList(), isAddNewPageIndicator = true))
-            launch(Dispatchers.Main) { homeScreenPagerAdapter?.updateItems(pages) }
+            launch(Dispatchers.Main) {
+                homeScreenPagerAdapter?.updateItems(pages)
+                setupPageIndicator(home_screen_view_pager.currentItem)
+            }
         }
     }
 
