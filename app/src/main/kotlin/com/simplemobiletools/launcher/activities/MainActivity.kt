@@ -20,7 +20,10 @@ import android.telecom.TelecomManager
 import android.util.Log
 import android.view.*
 import android.widget.FrameLayout
+import android.widget.LinearLayout
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.graphics.drawable.toBitmap
+import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -308,6 +311,11 @@ class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListe
         if(currentGridSize != config.homeGrid) {
             adjustGridItems()
             currentGridSize = config.homeGrid
+        }
+
+        // avoid showing fully colored navigation bars
+        if (window.navigationBarColor != resources.getColor(R.color.semitransparent_navigation)) {
+            window.navigationBarColor = Color.TRANSPARENT
         }
     }
 
@@ -625,6 +633,10 @@ class MainActivity : SimpleActivity(), HomeScreenFragment.HomeScreenActionsListe
     }
 
     private fun setupDock(initialDockItems: List<HomeScreenGridItem>) {
+        dock.updateLayoutParams<ConstraintLayout.LayoutParams> {
+            bottomMargin = navigationBarHeight
+        }
+
         dockRecyclerView = findViewById(R.id.dock_recycler_view)
         dockRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
 
