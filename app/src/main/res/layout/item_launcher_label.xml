@@ -1,30 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/launcher_holder"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center_horizontal"
     android:background="?attr/selectableItemBackground"
     android:clickable="true"
     android:focusable="true"
-    android:paddingStart="@dimen/small_margin"
-    android:paddingTop="@dimen/medium_margin"
-    android:paddingEnd="@dimen/small_margin"
     android:paddingBottom="@dimen/small_margin">
 
     <com.simplemobiletools.commons.views.MySquareImageView
         android:id="@+id/launcher_icon"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/launcher_icon_size"
-        android:layout_gravity="center_horizontal|bottom" />
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|bottom"
+        android:foregroundGravity="center"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.3" />
 
     <TextView
         android:id="@+id/launcher_label"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_below="@+id/launcher_icon"
+        android:layout_marginTop="@dimen/medium_margin"
         android:ellipsize="end"
-        android:gravity="center_horizontal|top"
+        android:gravity="center"
         android:maxLines="2"
-        android:textSize="@dimen/smaller_text_size" />
+        android:textSize="@dimen/smaller_text_size"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/launcher_icon"
+        app:layout_constraintStart_toStartOf="@+id/launcher_icon"
+        app:layout_constraintTop_toBottomOf="@+id/launcher_icon"
+        app:layout_constraintVertical_bias="0.0"
+        tools:text="An App" />
 
-</RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

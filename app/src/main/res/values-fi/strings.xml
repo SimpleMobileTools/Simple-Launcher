@@ -11,4 +11,7 @@
     <string name="manage_hidden_icons">Hallitse piilotettuja kuvakkeita</string>
     <string name="hidden_icons">Piilotetut kuvakkeet</string>
     <string name="hidden_icons_placeholder">Joitakin sovelluksia ei ole järjestelmärajoitusten vuoksi mahdollista poistaa, mutta voit kuitenkin piilottaa niiden kuvakkeet näkyvistä.</string>
+    <string name="set_drawer_grid_text">Set Rows &amp; Columns</string>
+    <string name="rows">Rows</string>
+    <string name="columns">Columns</string>
 </resources>

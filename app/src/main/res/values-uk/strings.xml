@@ -11,4 +11,7 @@
     <string name="manage_hidden_icons">Керування прихованими піктограмами</string>
     <string name="hidden_icons">Приховані піктограми</string>
     <string name="hidden_icons_placeholder">Деякі застосунки не можна видалити через системні обмеження, але ви можете принаймні приховати їх піктограми, щоб уникнути їх перегляду.</string>
+    <string name="set_drawer_grid_text">Set Rows &amp; Columns</string>
+    <string name="rows">Rows</string>
+    <string name="columns">Columns</string>
 </resources>

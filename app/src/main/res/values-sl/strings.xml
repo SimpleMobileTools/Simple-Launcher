@@ -11,4 +11,7 @@
     <string name="manage_hidden_icons">Upravljajte s skritimi ikonami</string>
     <string name="hidden_icons">Skrite ikone</string>
     <string name="hidden_icons_placeholder">Določenih aplikacij zaradi sistemskih omejitev ni mogoče odstraniti, njihove ikone pa skrijete, da jih ne vidite.</string>
+    <string name="set_drawer_grid_text">Set Rows &amp; Columns</string>
+    <string name="rows">Rows</string>
+    <string name="columns">Columns</string>
 </resources>

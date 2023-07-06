@@ -11,4 +11,7 @@
     <string name="manage_hidden_icons">管理隐藏的图标</string>
     <string name="hidden_icons">隐藏的图标</string>
     <string name="hidden_icons_placeholder">某些应用因系统限制而无法卸载， 但你至少可以隐藏它们的图标避免看见它们。</string>
+    <string name="set_drawer_grid_text">Set Rows &amp; Columns</string>
+    <string name="rows">Rows</string>
+    <string name="columns">Columns</string>
 </resources>

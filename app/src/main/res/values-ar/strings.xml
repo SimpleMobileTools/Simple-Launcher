@@ -11,6 +11,9 @@
     <string name="manage_hidden_icons">إدارة اﻷيقونات المخفية</string>
     <string name="hidden_icons">اﻷيقونات المخفية</string>
     <string name="hidden_icons_placeholder">لا يمكن إلغاء تثبيت بعض التطبيقات بسبب قيود النظام، ولكن يمكن إخفاء أيقوناتها لتجنب ظهورها.</string>
+    <string name="set_drawer_grid_text">Set Rows &amp; Columns</string>
+    <string name="rows">Rows</string>
+    <string name="columns">Columns</string>
     <!--
         Haven't found some strings? There's more at
         https://github.com/SimpleMobileTools/Simple-Commons/tree/master/commons/src/main/res

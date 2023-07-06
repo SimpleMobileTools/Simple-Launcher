@@ -11,4 +11,7 @@
     <string name="manage_hidden_icons">Zarządzaj ukrytymi ikonami</string>
     <string name="hidden_icons">Ukryte ikony</string>
     <string name="hidden_icons_placeholder">Niektórych aplikacji nie można odinstalować ze względu na ograniczenia systemowe, ale możesz przynajmniej ukryć ich ikony, aby ich nie widzieć.</string>
+    <string name="set_drawer_grid_text">Set Rows &amp; Columns</string>
+    <string name="rows">Rows</string>
+    <string name="columns">Columns</string>
 </resources>

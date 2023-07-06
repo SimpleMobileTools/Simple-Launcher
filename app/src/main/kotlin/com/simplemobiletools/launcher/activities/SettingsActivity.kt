@@ -1,5 +1,6 @@
 package com.simplemobiletools.launcher.activities
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import com.simplemobiletools.commons.extensions.*
@@ -8,6 +9,7 @@ import com.simplemobiletools.commons.helpers.isTiramisuPlus
 import com.simplemobiletools.commons.models.FAQItem
 import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
+import com.simplemobiletools.launcher.dialogs.RowColumnPickerDialog
 import com.simplemobiletools.launcher.extensions.config
 import kotlinx.android.synthetic.main.activity_settings.*
 import java.util.*
@@ -34,11 +36,26 @@ class SettingsActivity : SimpleActivity() {
         setupUseEnglish()
         setupLanguage()
         setupManageHiddenIcons()
+        setupAppGridSize()
         updateTextColors(settings_holder)
 
         arrayOf(settings_color_customization_section_label, settings_general_settings_label).forEach {
             it.setTextColor(getProperPrimaryColor())
         }
+    }
+
+    private fun setupAppGridSize() {
+        updateGridText()
+        settings_drawer_app_grid.setOnClickListener {
+            RowColumnPickerDialog(this) {
+                updateGridText()
+                setResult(Activity.RESULT_OK)
+            }
+        }
+    }
+
+    private fun updateGridText() {
+        settings_grid_text.text = getString(R.string.grid_text, config.rowCount, config.columnCount)
     }
 
     private fun setupOptionsMenu() {

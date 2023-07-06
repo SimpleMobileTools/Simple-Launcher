@@ -11,6 +11,9 @@
     <string name="manage_hidden_icons">Gerenciar ícones ocultos</string>
     <string name="hidden_icons">Ícones ocultos</string>
     <string name="hidden_icons_placeholder">Alguns aplicativos não podem ser desinstalados devido a restrições do sistema, mas você pode ao menos ocultar seus ícones para evitar vê-los.</string>
+    <string name="set_drawer_grid_text">Set Rows &amp; Columns</string>
+    <string name="rows">Rows</string>
+    <string name="columns">Columns</string>
     <!--
         Haven't found some strings? There's more at
         https://github.com/SimpleMobileTools/Simple-Commons/tree/master/commons/src/main/res

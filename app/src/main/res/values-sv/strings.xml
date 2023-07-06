@@ -11,4 +11,7 @@
     <string name="manage_hidden_icons">Hantera dolda ikoner</string>
     <string name="hidden_icons">Dolda ikoner</string>
     <string name="hidden_icons_placeholder">Vissa appar kan inte avinstalleras på grund av systembegränsningar, men du kan åtminstone dölja deras ikoner för att slippa se dem.</string>
+    <string name="set_drawer_grid_text">Set Rows &amp; Columns</string>
+    <string name="rows">Rows</string>
+    <string name="columns">Columns</string>
 </resources>

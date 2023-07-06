@@ -13,7 +13,7 @@ import com.simplemobiletools.commons.views.MyGridLayoutManager
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.adapters.LaunchersAdapter
-import com.simplemobiletools.launcher.extensions.getColumnCount
+import com.simplemobiletools.launcher.extensions.config
 import com.simplemobiletools.launcher.extensions.launchApp
 import com.simplemobiletools.launcher.helpers.ITEM_TYPE_ICON
 import com.simplemobiletools.launcher.interfaces.AllAppsListener
@@ -50,9 +50,17 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
         setupViews()
 
         val layoutManager = all_apps_grid.layoutManager as MyGridLayoutManager
-        layoutManager.spanCount = context.getColumnCount()
+        layoutManager.spanCount = context.config.columnCount
         val launchers = (all_apps_grid.adapter as LaunchersAdapter).launchers
         setupAdapter(launchers)
+    }
+
+    fun updateRowAndColumnCount() {
+        // invalidate the adapter
+        val launchers = (all_apps_grid.adapter as LaunchersAdapter).launchers
+        setupAdapter(launchers, true)
+        all_apps_grid.invalidate()
+        all_apps_grid.requestLayout()
     }
 
     override fun onInterceptTouchEvent(event: MotionEvent?): Boolean {
@@ -97,13 +105,13 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
         setupAdapter(sorted)
     }
 
-    private fun setupAdapter(launchers: ArrayList<AppLauncher>) {
+    private fun setupAdapter(launchers: ArrayList<AppLauncher>, overrideAdapter: Boolean = false) {
         activity?.runOnUiThread {
             val layoutManager = all_apps_grid.layoutManager as MyGridLayoutManager
-            layoutManager.spanCount = context.getColumnCount()
+            layoutManager.spanCount = context.config.columnCount
 
             val currAdapter = all_apps_grid.adapter
-            if (currAdapter == null) {
+            if (currAdapter == null || overrideAdapter.not()) {
                 LaunchersAdapter(activity!!, launchers, this) {
                     activity?.launchApp((it as AppLauncher).packageName, it.activityName)
                     ignoreTouches = false

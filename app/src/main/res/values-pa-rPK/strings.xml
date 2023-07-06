@@ -11,4 +11,7 @@
     <string name="manage_hidden_icons">لُکاۓ آئیکون دیاں سیٹنگاں</string>
     <string name="hidden_icons">لُکاۓ آئیکون</string>
     <string name="hidden_icons_placeholder">سِسٹم پابندیاں کرکے کجھ اَیپاں اݨ‌اینسٹال کر نہیں سکیاں، پر تسیں آئیکون لُکا سکدے او۔</string>
+    <string name="set_drawer_grid_text">Set Rows &amp; Columns</string>
+    <string name="rows">Rows</string>
+    <string name="columns">Columns</string>
 </resources>

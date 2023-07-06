@@ -11,4 +11,7 @@
     <string name="manage_hidden_icons">Управљајте скривеним иконама</string>
     <string name="hidden_icons">Скривене иконе</string>
     <string name="hidden_icons_placeholder">Неке апликације се не могу деинсталирати због системских ограничења, али можете барем сакрити њихове иконе да их не видите.</string>
+    <string name="set_drawer_grid_text">Set Rows &amp; Columns</string>
+    <string name="rows">Rows</string>
+    <string name="columns">Columns</string>
 </resources>

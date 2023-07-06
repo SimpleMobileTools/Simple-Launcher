@@ -1,8 +1,10 @@
 package com.simplemobiletools.launcher.adapters
 
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -11,14 +13,15 @@ import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
 import com.simplemobiletools.commons.extensions.getColoredDrawableWithColor
 import com.simplemobiletools.commons.extensions.getProperTextColor
-import com.simplemobiletools.commons.extensions.portrait
 import com.simplemobiletools.commons.extensions.realScreenSize
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.SimpleActivity
+import com.simplemobiletools.launcher.extensions.config
 import com.simplemobiletools.launcher.interfaces.AllAppsListener
 import com.simplemobiletools.launcher.models.AppLauncher
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
-import kotlinx.android.synthetic.main.item_launcher_label.view.*
+import kotlinx.android.synthetic.main.item_launcher_label.view.launcher_icon
+import kotlinx.android.synthetic.main.item_launcher_label.view.launcher_label
 
 class LaunchersAdapter(
     val activity: SimpleActivity,
@@ -37,6 +40,7 @@ class LaunchersAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_launcher_label, parent, false)
+        setSizeOfViewHolder(view)
         return ViewHolder(view)
     }
 
@@ -47,16 +51,24 @@ class LaunchersAdapter(
     override fun getItemCount() = launchers.size
 
     private fun calculateIconWidth() {
-        val currentColumnCount = activity.resources.getInteger(
-            if (activity.portrait) {
-                R.integer.portrait_column_count
-            } else {
-                R.integer.landscape_column_count
-            }
-        )
-
-        val iconWidth = activity.realScreenSize.x / currentColumnCount
+        val iconWidth = activity.realScreenSize.x / activity.config.columnCount
         iconPadding = (iconWidth * 0.1f).toInt()
+    }
+
+    private fun setSizeOfViewHolder(view: View) {
+        val displayMetrics = view.context.resources.displayMetrics
+        val rowCount = view.context.config.rowCount
+        val columnCount = view.context.config.columnCount
+        val screenHeight = displayMetrics.heightPixels / displayMetrics.density
+        val screenWidth = displayMetrics.widthPixels / displayMetrics.density
+        val columnWidth = screenWidth / columnCount
+        val rowHeight = screenHeight / rowCount
+        val rowHeightPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, rowHeight, displayMetrics).toInt()
+        val columnWidthPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, columnWidth, displayMetrics).toInt()
+        view.updateLayoutParams<ViewGroup.LayoutParams> {
+            height = rowHeightPx
+            width = columnWidthPx
+        }
     }
 
     fun hideIcon(item: HomeScreenGridItem) {

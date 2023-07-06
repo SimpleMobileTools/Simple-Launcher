@@ -11,6 +11,10 @@
     <string name="manage_hidden_icons">Manage hidden icons</string>
     <string name="hidden_icons">Hidden icons</string>
     <string name="hidden_icons_placeholder">Some apps cannot be uninstalled due to system restrictions, but you can at least hide their icons to avoid seeing them.</string>
+    <string name="set_drawer_grid_text">Set Rows &amp; Columns</string>
+    <string name="grid_text" translatable="false">%1$d X %2$d</string>
+    <string name="rows">Rows</string>
+    <string name="columns">Columns</string>
     <!--
         Haven't found some strings? There's more at
         https://github.com/SimpleMobileTools/Simple-Commons/tree/master/commons/src/main/res

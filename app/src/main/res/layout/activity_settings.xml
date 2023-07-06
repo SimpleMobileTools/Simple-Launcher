@@ -135,6 +135,28 @@
                     android:text="@string/manage_hidden_icons" />
 
             </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/settings_drawer_app_grid"
+                style="@style/SettingsHolderTextViewOneLinerStyle"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/ripple_bottom_corners">
+
+                <com.simplemobiletools.commons.views.MyTextView
+                    android:id="@+id/settings_drawer_app_grid_text"
+                    style="@style/SettingsTextLabelStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Drawer App Grid" />
+                <com.simplemobiletools.commons.views.MyTextView
+                    android:id="@+id/settings_grid_text"
+                    style="@style/SettingsTextValueStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/settings_drawer_app_grid_text"
+                    tools:text="2 X 5" />
+            </RelativeLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
