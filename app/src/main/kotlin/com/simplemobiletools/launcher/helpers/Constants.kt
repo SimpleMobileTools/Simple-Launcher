@@ -11,8 +11,8 @@ const val ROW_COUNT = 6
 const val COLUMN_COUNT = 5
 
 // default app drawer grid size
-const val DEFAULT_ROW_COUNT = 3
-const val DEFAULT_COLUMN_COUNT = 3
+const val DEFAULT_ROW_COUNT = 6
+const val DEFAULT_COLUMN_COUNT = 5
 const val MAX_ROW_COUNT = 6
 const val MAX_COLUMN_COUNT = 5
 const val MIN_ROW_COUNT = 3
