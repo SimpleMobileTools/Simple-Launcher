@@ -695,9 +695,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             rect.left -= diff
         }
 
-        // do not allow placing widgets at the bottom row, that is for pinned default apps
-        if (rect.bottom >= context.config.homeRowCount - 1) {
-            val diff = rect.bottom - context.config.homeRowCount + 2
+        if (rect.top < 0) {
+            rect.bottom -= rect.top
+            rect.top = 0
+        } else if (rect.bottom > context.config.homeRowCount - 1) {
+            val diff = rect.bottom - context.config.homeColumnCount + 1
             rect.bottom -= diff
             rect.top -= diff
         }
