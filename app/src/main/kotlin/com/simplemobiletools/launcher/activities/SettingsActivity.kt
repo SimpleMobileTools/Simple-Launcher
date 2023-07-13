@@ -41,7 +41,7 @@ class SettingsActivity : SimpleActivity() {
         setupManageHiddenIcons()
         updateTextColors(settings_holder)
 
-        arrayOf(settings_color_customization_section_label, settings_general_settings_label).forEach {
+        arrayOf(settings_color_customization_section_label, settings_general_settings_label, settings_drawer_settings_label).forEach {
             it.setTextColor(getProperPrimaryColor())
         }
     }
