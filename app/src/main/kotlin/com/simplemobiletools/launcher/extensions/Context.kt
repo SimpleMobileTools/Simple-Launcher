@@ -31,6 +31,22 @@ fun Context.getColumnCount(): Int {
     }
 }
 
+fun Context.getHomeRowCount(): Int {
+    return if (portrait) {
+        config.portraitHomeRowCount
+    } else {
+        config.landscapeHomeRowCount
+    }
+}
+
+fun Context.getHomeColumnCount(): Int {
+    return if (portrait) {
+        config.portraitHomeColumnCount
+    } else {
+        config.landscapeHomeColumnCount
+    }
+}
+
 fun Context.getDrawableForPackageName(packageName: String): Drawable? {
     var drawable: Drawable? = null
     try {

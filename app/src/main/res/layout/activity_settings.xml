@@ -135,6 +135,65 @@
                     android:text="@string/manage_hidden_icons" />
 
             </RelativeLayout>
+
+            <include
+                android:id="@+id/settings_general_settings_divider"
+                layout="@layout/divider" />
+
+            <TextView
+                android:id="@+id/settings_home_screen_label"
+                style="@style/SettingsSectionLabelStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Home screen" />
+
+            <RelativeLayout
+                android:id="@+id/settings_home_screen_row_count_holder"
+                style="@style/SettingsHolderTextViewOneLinerStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/ripple_bottom_corners">
+
+                <com.simplemobiletools.commons.views.MyTextView
+                    android:id="@+id/settings_home_screen_row_count_label"
+                    style="@style/SettingsTextLabelStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Home screen row count" />
+
+                <com.simplemobiletools.commons.views.MyTextView
+                    android:id="@+id/settings_home_screen_row_count"
+                    style="@style/SettingsTextValueStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/settings_home_screen_row_count_label"
+                    tools:text="3" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/settings_home_screen_column_count_holder"
+                style="@style/SettingsHolderTextViewOneLinerStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/ripple_bottom_corners">
+
+                <com.simplemobiletools.commons.views.MyTextView
+                    android:id="@+id/settings_home_screen_column_count_label"
+                    style="@style/SettingsTextLabelStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Home screen column count" />
+
+                <com.simplemobiletools.commons.views.MyTextView
+                    android:id="@+id/settings_home_screen_column_count"
+                    style="@style/SettingsTextValueStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/settings_home_screen_column_count_label"
+                    tools:text="3" />
+
+            </RelativeLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -23,10 +23,14 @@ import com.simplemobiletools.commons.helpers.isSPlus
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.extensions.getDrawableForPackageName
+import com.simplemobiletools.launcher.extensions.getHomeColumnCount
+import com.simplemobiletools.launcher.extensions.getHomeRowCount
 import com.simplemobiletools.launcher.extensions.homeScreenGridItemsDB
 import com.simplemobiletools.launcher.helpers.*
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
 import kotlinx.android.synthetic.main.activity_main.view.*
+import kotlin.math.max
+import kotlin.math.min
 
 class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : RelativeLayout(context, attrs, defStyle) {
     constructor(context: Context, attrs: AttributeSet) : this(context, attrs, 0)
@@ -41,9 +45,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private var isFirstDraw = true
     private var iconSize = 0
 
-    // let's use a 6x5 grid for now with 1 special row at the bottom, prefilled with default apps
-    private var cellXCoords = ArrayList<Int>(COLUMN_COUNT)
-    private var cellYCoords = ArrayList<Int>(ROW_COUNT)
+    private var columnCount = context.getHomeColumnCount()
+    private var rowCount = context.getHomeRowCount()
+    private var cellXCoords = ArrayList<Int>(columnCount)
+    private var cellYCoords = ArrayList<Int>(rowCount)
     var cellWidth = 0
     var cellHeight = 0
 
@@ -103,6 +108,16 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             }
 
             redrawGrid()
+        }
+    }
+
+    fun resizeGrid(newRowCount: Int, newColumnCount: Int) {
+        if (columnCount != newColumnCount || rowCount != newRowCount){
+            rowCount = newRowCount
+            columnCount = newColumnCount
+            cellXCoords = ArrayList(columnCount)
+            cellYCoords = ArrayList(rowCount)
+            invalidate()
         }
     }
 
@@ -521,11 +536,15 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         gridItems.filter { it.drawable != null && it.type == ITEM_TYPE_ICON || it.type == ITEM_TYPE_SHORTCUT }.forEach { item ->
+            if (item.outOfBounds()) {
+                return@forEach
+            }
+
             if (item.id != draggedItem?.id) {
                 val drawableX = cellXCoords[item.left] + iconMargin + sideMargins.left
 
                 // icons at the bottom are drawn at the bottom of the grid and they have no label
-                if (item.top == ROW_COUNT - 1) {
+                if (item.top == context.getHomeRowCount() - 1) {
                     val drawableY = cellYCoords[item.top] + cellHeight - iconSize - iconMargin * 2 + sideMargins.top
                     item.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
                 } else {
@@ -569,7 +588,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 val gridCells = getClosestGridCells(center)
                 if (gridCells != null) {
                     val shadowX = cellXCoords[gridCells.first] + iconMargin.toFloat() + iconSize / 2 + sideMargins.left
-                    val shadowY = if (gridCells.second == ROW_COUNT - 1) {
+                    val shadowY = if (gridCells.second == context.getHomeRowCount() - 1) {
                         cellYCoords[gridCells.second] + cellHeight - iconSize / 2 - iconMargin * 2
                     } else {
                         cellYCoords[gridCells.second] + iconSize
@@ -621,14 +640,14 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     }
 
     private fun fillCellSizes() {
-        cellWidth = getFakeWidth() / COLUMN_COUNT
-        cellHeight = getFakeHeight() / ROW_COUNT
-        iconSize = cellWidth - 2 * iconMargin
-        for (i in 0 until COLUMN_COUNT) {
+        cellWidth = getFakeWidth() / context.getHomeColumnCount()
+        cellHeight = getFakeHeight() / context.getHomeRowCount()
+        iconSize = min(cellWidth, cellHeight) - 2 * iconMargin
+        for (i in 0 until context.getHomeColumnCount()) {
             cellXCoords.add(i, i * cellWidth)
         }
 
-        for (i in 0 until ROW_COUNT) {
+        for (i in 0 until context.getHomeRowCount()) {
             cellYCoords.add(i, i * cellHeight)
         }
 
@@ -669,15 +688,15 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         if (rect.left < 0) {
             rect.right -= rect.left
             rect.left = 0
-        } else if (rect.right > COLUMN_COUNT - 1) {
-            val diff = rect.right - COLUMN_COUNT + 1
+        } else if (rect.right > context.getHomeColumnCount() - 1) {
+            val diff = rect.right - context.getHomeColumnCount() + 1
             rect.right -= diff
             rect.left -= diff
         }
 
         // do not allow placing widgets at the bottom row, that is for pinned default apps
-        if (rect.bottom >= ROW_COUNT - 1) {
-            val diff = rect.bottom - ROW_COUNT + 2
+        if (rect.bottom >= context.getHomeRowCount() - 1) {
+            val diff = rect.bottom - context.getHomeRowCount() + 2
             rect.bottom -= diff
             rect.top -= diff
         }
@@ -687,6 +706,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     fun isClickingGridItem(x: Int, y: Int): HomeScreenGridItem? {
         for (gridItem in gridItems) {
+            if (gridItem.outOfBounds()) {
+                continue
+            }
+
             if (gridItem.type == ITEM_TYPE_ICON || gridItem.type == ITEM_TYPE_SHORTCUT) {
                 val rect = getClickableRect(gridItem)
                 if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
@@ -705,5 +728,9 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         return null
+    }
+
+    private fun HomeScreenGridItem.outOfBounds(): Boolean {
+        return (left >= cellXCoords.size || right >= cellXCoords.size || top >= cellYCoords.size || bottom >= cellYCoords.size)
     }
 }
