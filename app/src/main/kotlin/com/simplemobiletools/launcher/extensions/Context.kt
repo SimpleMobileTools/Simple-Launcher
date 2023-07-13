@@ -6,9 +6,7 @@ import android.content.pm.LauncherApps
 import android.graphics.drawable.Drawable
 import android.os.Process
 import android.util.Size
-import com.simplemobiletools.commons.extensions.portrait
 import com.simplemobiletools.commons.helpers.isSPlus
-import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.databases.AppsDatabase
 import com.simplemobiletools.launcher.helpers.Config
 import com.simplemobiletools.launcher.interfaces.AppLaunchersDao
@@ -22,14 +20,6 @@ val Context.launchersDB: AppLaunchersDao get() = AppsDatabase.getInstance(applic
 val Context.homeScreenGridItemsDB: HomeScreenGridItemsDao get() = AppsDatabase.getInstance(applicationContext).HomeScreenGridItemsDao()
 
 val Context.hiddenIconsDB: HiddenIconsDao get() = AppsDatabase.getInstance(applicationContext).HiddenIconsDao()
-
-fun Context.getDrawerColumnCount(): Int {
-    return if (portrait) {
-        config.portraitDrawerColumnCount
-    } else {
-        config.landscapeDrawerColumnCount
-    }
-}
 
 fun Context.getDrawableForPackageName(packageName: String): Drawable? {
     var drawable: Drawable? = null

@@ -13,11 +13,7 @@ class Config(context: Context) : BaseConfig(context) {
         get() = prefs.getBoolean(WAS_HOME_SCREEN_INIT, false)
         set(wasHomeScreenInit) = prefs.edit().putBoolean(WAS_HOME_SCREEN_INIT, wasHomeScreenInit).apply()
 
-    var portraitDrawerColumnCount: Int
-        get() = prefs.getInt(PORTRAIT_DRAWER_COLUMN_COUNT, context.resources.getInteger(R.integer.portrait_column_count))
-        set(portraitDrawerColumnCount) = prefs.edit().putInt(PORTRAIT_DRAWER_COLUMN_COUNT, portraitDrawerColumnCount).apply()
-
-    var landscapeDrawerColumnCount: Int
-        get() = prefs.getInt(LANDSCAPE_DRAWER_COLUMN_COUNT, context.resources.getInteger(R.integer.landscape_column_count))
-        set(landscapeDrawerColumnCount) = prefs.edit().putInt(LANDSCAPE_DRAWER_COLUMN_COUNT, landscapeDrawerColumnCount).apply()
+    var drawerColumnCount: Int
+        get() = prefs.getInt(DRAWER_COLUMN_COUNT, context.resources.getInteger(R.integer.portrait_column_count))
+        set(drawerColumnCount) = prefs.edit().putInt(DRAWER_COLUMN_COUNT, drawerColumnCount).apply()
 }

@@ -11,7 +11,6 @@ import com.simplemobiletools.commons.models.RadioItem
 import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.extensions.config
-import com.simplemobiletools.launcher.extensions.getDrawerColumnCount
 import com.simplemobiletools.launcher.helpers.MAX_COLUMN_COUNT
 import kotlinx.android.synthetic.main.activity_settings.*
 import java.util.Locale
@@ -88,7 +87,7 @@ class SettingsActivity : SimpleActivity() {
     }
 
     private fun setupDrawerColumnCount() {
-        val currentColumnCount = getDrawerColumnCount()
+        val currentColumnCount = config.drawerColumnCount
         settings_drawer_column_count.text = currentColumnCount.toString()
         settings_drawer_column_count_holder.setOnClickListener {
             val items = ArrayList<RadioItem>()
@@ -99,11 +98,7 @@ class SettingsActivity : SimpleActivity() {
             RadioGroupDialog(this, items, currentColumnCount) {
                 val newColumnCount = it as Int
                 if (currentColumnCount != newColumnCount) {
-                    if (portrait) {
-                        config.portraitDrawerColumnCount = newColumnCount
-                    } else {
-                        config.landscapeDrawerColumnCount = newColumnCount
-                    }
+                    config.drawerColumnCount = newColumnCount
                     setupDrawerColumnCount()
                 }
             }

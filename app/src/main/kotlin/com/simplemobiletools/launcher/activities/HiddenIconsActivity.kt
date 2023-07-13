@@ -11,7 +11,7 @@ import com.simplemobiletools.commons.interfaces.RefreshRecyclerViewListener
 import com.simplemobiletools.commons.views.MyGridLayoutManager
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.adapters.HiddenIconsAdapter
-import com.simplemobiletools.launcher.extensions.getDrawerColumnCount
+import com.simplemobiletools.launcher.extensions.config
 import com.simplemobiletools.launcher.extensions.getDrawableForPackageName
 import com.simplemobiletools.launcher.extensions.hiddenIconsDB
 import com.simplemobiletools.launcher.models.HiddenIcon
@@ -28,7 +28,7 @@ class HiddenIconsActivity : SimpleActivity(), RefreshRecyclerViewListener {
         setupMaterialScrollListener(manage_hidden_icons_list, manage_hidden_icons_toolbar)
 
         val layoutManager = manage_hidden_icons_list.layoutManager as MyGridLayoutManager
-        layoutManager.spanCount = getDrawerColumnCount()
+        layoutManager.spanCount = config.drawerColumnCount
     }
 
     override fun onResume() {

@@ -14,7 +14,7 @@ import com.simplemobiletools.commons.extensions.getProperTextColor
 import com.simplemobiletools.commons.extensions.realScreenSize
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.SimpleActivity
-import com.simplemobiletools.launcher.extensions.getDrawerColumnCount
+import com.simplemobiletools.launcher.extensions.config
 import com.simplemobiletools.launcher.interfaces.AllAppsListener
 import com.simplemobiletools.launcher.models.AppLauncher
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
@@ -47,7 +47,7 @@ class LaunchersAdapter(
     override fun getItemCount() = launchers.size
 
     private fun calculateIconWidth() {
-        val currentColumnCount = activity.getDrawerColumnCount()
+        val currentColumnCount = activity.config.drawerColumnCount
 
         val iconWidth = activity.realScreenSize.x / currentColumnCount
         iconPadding = (iconWidth * 0.1f).toInt()
