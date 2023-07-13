@@ -29,7 +29,7 @@ import com.simplemobiletools.launcher.extensions.homeScreenGridItemsDB
 import com.simplemobiletools.launcher.helpers.*
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
 import kotlinx.android.synthetic.main.activity_main.view.*
-import kotlin.math.max
+import kotlin.math.abs
 import kotlin.math.min
 
 class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : RelativeLayout(context, attrs, defStyle) {
@@ -43,6 +43,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private var draggedItem: HomeScreenGridItem? = null
     private var resizedWidget: HomeScreenGridItem? = null
     private var isFirstDraw = true
+    private var redrawWidgets = false
     private var iconSize = 0
 
     private var columnCount = context.getHomeColumnCount()
@@ -117,6 +118,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             columnCount = newColumnCount
             cellXCoords = ArrayList(columnCount)
             cellYCoords = ArrayList(rowCount)
+            redrawWidgets = true
             invalidate()
         }
     }
@@ -535,64 +537,64 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             fillCellSizes()
         }
 
+        val extraXMargin = if (cellWidth > cellHeight) {
+            (cellWidth - cellHeight) / 2
+        } else {
+            0
+        }
+        val extraYMargin = if (cellHeight > cellWidth) {
+            (cellHeight - cellWidth) / 2
+        } else {
+            0
+        }
         gridItems.filter { it.drawable != null && it.type == ITEM_TYPE_ICON || it.type == ITEM_TYPE_SHORTCUT }.forEach { item ->
             if (item.outOfBounds()) {
                 return@forEach
             }
 
             if (item.id != draggedItem?.id) {
-                val drawableX = cellXCoords[item.left] + iconMargin + sideMargins.left
+                val drawableX = cellXCoords[item.left] + iconMargin + extraXMargin + sideMargins.left
+                val drawableY = cellYCoords[item.top] + iconMargin + extraYMargin + sideMargins.top
+                item.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
 
-                // icons at the bottom are drawn at the bottom of the grid and they have no label
-                if (item.top == context.getHomeRowCount() - 1) {
-                    val drawableY = cellYCoords[item.top] + cellHeight - iconSize - iconMargin * 2 + sideMargins.top
-                    item.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
-                } else {
-                    val drawableY = cellYCoords[item.top] + iconSize / 2 + sideMargins.top
-                    item.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
+                if (item.id != draggedItem?.id && item.title.isNotEmpty()) {
+                    val textX = cellXCoords[item.left].toFloat() + labelSideMargin + sideMargins.left
+                    val textY = cellYCoords[item.top].toFloat() + iconSize + iconMargin + extraYMargin + labelSideMargin + sideMargins.top
+                    val staticLayout = StaticLayout.Builder
+                        .obtain(item.title, 0, item.title.length, textPaint, cellWidth - 2 * labelSideMargin)
+                        .setMaxLines(2)
+                        .setEllipsize(TextUtils.TruncateAt.END)
+                        .setAlignment(Layout.Alignment.ALIGN_CENTER)
+                        .build()
 
-                    if (item.id != draggedItem?.id && item.title.isNotEmpty()) {
-                        val textX = cellXCoords[item.left].toFloat() + labelSideMargin + sideMargins.left
-                        val textY = cellYCoords[item.top] + iconSize * 1.5f + labelSideMargin + sideMargins.top
-                        val staticLayout = StaticLayout.Builder
-                            .obtain(item.title, 0, item.title.length, textPaint, cellWidth - 2 * labelSideMargin)
-                            .setMaxLines(2)
-                            .setEllipsize(TextUtils.TruncateAt.END)
-                            .setAlignment(Layout.Alignment.ALIGN_CENTER)
-                            .build()
-
-                        canvas.save()
-                        canvas.translate(textX, textY)
-                        staticLayout.draw(canvas)
-                        canvas.restore()
-                    }
+                    canvas.save()
+                    canvas.translate(textX, textY)
+                    staticLayout.draw(canvas)
+                    canvas.restore()
                 }
 
                 item.drawable!!.draw(canvas)
             }
         }
 
-        if (isFirstDraw) {
+        if (isFirstDraw || redrawWidgets) {
             gridItems.filter { it.type == ITEM_TYPE_WIDGET }.forEach { item ->
-                bindWidget(item, true)
+                bindWidget(item, isFirstDraw)
             }
+            redrawWidgets = false
         }
 
         if (draggedItem != null && draggedItemCurrentCoords.first != -1 && draggedItemCurrentCoords.second != -1) {
             if (draggedItem!!.type == ITEM_TYPE_ICON || draggedItem!!.type == ITEM_TYPE_SHORTCUT) {
                 // draw a circle under the current cell
                 val center = gridCenters.minBy {
-                    Math.abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(it.second - draggedItemCurrentCoords.second + sideMargins.top)
+                    abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + abs(it.second - draggedItemCurrentCoords.second + sideMargins.top)
                 }
 
                 val gridCells = getClosestGridCells(center)
                 if (gridCells != null) {
                     val shadowX = cellXCoords[gridCells.first] + iconMargin.toFloat() + iconSize / 2 + sideMargins.left
-                    val shadowY = if (gridCells.second == context.getHomeRowCount() - 1) {
-                        cellYCoords[gridCells.second] + cellHeight - iconSize / 2 - iconMargin * 2
-                    } else {
-                        cellYCoords[gridCells.second] + iconSize
-                    } + sideMargins.top
+                    val shadowY = cellYCoords[gridCells.second] + iconSize + sideMargins.top
 
                     canvas.drawCircle(shadowX, shadowY.toFloat(), iconSize / 2f, dragShadowCirclePaint)
                 }
