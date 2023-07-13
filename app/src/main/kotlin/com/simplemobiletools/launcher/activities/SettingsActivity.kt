@@ -11,8 +11,6 @@ import com.simplemobiletools.commons.models.RadioItem
 import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.extensions.config
-import com.simplemobiletools.launcher.extensions.getHomeColumnCount
-import com.simplemobiletools.launcher.extensions.getHomeRowCount
 import com.simplemobiletools.launcher.helpers.MAX_COLUMN_COUNT
 import com.simplemobiletools.launcher.helpers.MAX_ROW_COUNT
 import com.simplemobiletools.launcher.helpers.MIN_COLUMN_COUNT
@@ -93,7 +91,7 @@ class SettingsActivity : SimpleActivity() {
     }
 
     private fun setupHomeRowCount() {
-        val currentRowCount = getHomeRowCount()
+        val currentRowCount = config.homeRowCount
         settings_home_screen_row_count.text = currentRowCount.toString()
         settings_home_screen_row_count_holder.setOnClickListener {
             val items = ArrayList<RadioItem>()
@@ -104,11 +102,7 @@ class SettingsActivity : SimpleActivity() {
             RadioGroupDialog(this, items, currentRowCount) {
                 val newRowCount = it as Int
                 if (currentRowCount != newRowCount) {
-                    if (portrait) {
-                        config.portraitHomeRowCount = newRowCount
-                    } else {
-                        config.landscapeHomeRowCount = newRowCount
-                    }
+                    config.homeRowCount = newRowCount
                     setupHomeRowCount()
                 }
             }
@@ -116,7 +110,7 @@ class SettingsActivity : SimpleActivity() {
     }
 
     private fun setupHomeColumnCount() {
-        val currentColumnCount = getHomeColumnCount()
+        val currentColumnCount = config.homeColumnCount
         settings_home_screen_column_count.text = currentColumnCount.toString()
         settings_home_screen_column_count_holder.setOnClickListener {
             val items = ArrayList<RadioItem>()
@@ -127,11 +121,7 @@ class SettingsActivity : SimpleActivity() {
             RadioGroupDialog(this, items, currentColumnCount) {
                 val newColumnCount = it as Int
                 if (currentColumnCount != newColumnCount) {
-                    if (portrait) {
-                        config.portraitHomeColumnCount = newColumnCount
-                    } else {
-                        config.landscapeHomeColumnCount = newColumnCount
-                    }
+                    config.homeColumnCount = newColumnCount
                     setupHomeColumnCount()
                 }
             }

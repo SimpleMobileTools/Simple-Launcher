@@ -22,9 +22,8 @@ import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.isSPlus
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.MainActivity
+import com.simplemobiletools.launcher.extensions.config
 import com.simplemobiletools.launcher.extensions.getDrawableForPackageName
-import com.simplemobiletools.launcher.extensions.getHomeColumnCount
-import com.simplemobiletools.launcher.extensions.getHomeRowCount
 import com.simplemobiletools.launcher.extensions.homeScreenGridItemsDB
 import com.simplemobiletools.launcher.helpers.*
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
@@ -46,8 +45,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private var redrawWidgets = false
     private var iconSize = 0
 
-    private var columnCount = context.getHomeColumnCount()
-    private var rowCount = context.getHomeRowCount()
+    private var columnCount = context.config.homeColumnCount
+    private var rowCount = context.config.homeRowCount
     private var cellXCoords = ArrayList<Int>(columnCount)
     private var cellYCoords = ArrayList<Int>(rowCount)
     var cellWidth = 0
@@ -642,14 +641,14 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     }
 
     private fun fillCellSizes() {
-        cellWidth = getFakeWidth() / context.getHomeColumnCount()
-        cellHeight = getFakeHeight() / context.getHomeRowCount()
+        cellWidth = getFakeWidth() / context.config.homeColumnCount
+        cellHeight = getFakeHeight() / context.config.homeRowCount
         iconSize = min(cellWidth, cellHeight) - 2 * iconMargin
-        for (i in 0 until context.getHomeColumnCount()) {
+        for (i in 0 until context.config.homeColumnCount) {
             cellXCoords.add(i, i * cellWidth)
         }
 
-        for (i in 0 until context.getHomeRowCount()) {
+        for (i in 0 until context.config.homeRowCount) {
             cellYCoords.add(i, i * cellHeight)
         }
 
@@ -690,15 +689,15 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         if (rect.left < 0) {
             rect.right -= rect.left
             rect.left = 0
-        } else if (rect.right > context.getHomeColumnCount() - 1) {
-            val diff = rect.right - context.getHomeColumnCount() + 1
+        } else if (rect.right > context.config.homeColumnCount - 1) {
+            val diff = rect.right - context.config.homeColumnCount + 1
             rect.right -= diff
             rect.left -= diff
         }
 
         // do not allow placing widgets at the bottom row, that is for pinned default apps
-        if (rect.bottom >= context.getHomeRowCount() - 1) {
-            val diff = rect.bottom - context.getHomeRowCount() + 2
+        if (rect.bottom >= context.config.homeRowCount - 1) {
+            val diff = rect.bottom - context.config.homeRowCount + 2
             rect.bottom -= diff
             rect.top -= diff
         }

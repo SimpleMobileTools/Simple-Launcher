@@ -9,9 +9,8 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.widget.RelativeLayout
 import com.simplemobiletools.launcher.R
+import com.simplemobiletools.launcher.extensions.config
 import com.simplemobiletools.launcher.extensions.getCellCount
-import com.simplemobiletools.launcher.extensions.getHomeColumnCount
-import com.simplemobiletools.launcher.extensions.getHomeRowCount
 import com.simplemobiletools.launcher.helpers.MAX_CLICK_DURATION
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
 
@@ -76,8 +75,8 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
             it.provider.className == gridItem.className
         } ?: return
 
-        minResizeWidthCells = Math.min(context.getHomeColumnCount(), context.getCellCount(providerInfo.minResizeWidth))
-        minResizeHeightCells = Math.min(context.getHomeRowCount(), context.getCellCount(providerInfo.minResizeHeight))
+        minResizeWidthCells = Math.min(context.config.homeColumnCount, context.getCellCount(providerInfo.minResizeWidth))
+        minResizeHeightCells = Math.min(context.config.homeRowCount, context.getCellCount(providerInfo.minResizeHeight))
         redrawFrame()
 
         occupiedCells.clear()
@@ -224,7 +223,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                             }
                         }
 
-                        if (wantedBottomCellY == context.getHomeRowCount() - 1) {
+                        if (wantedBottomCellY == context.config.homeRowCount - 1) {
                             areAllCellsFree = false
                         }
 
@@ -322,7 +321,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                                 }
                             }
 
-                            if (wantedBottomCellY == context.getHomeRowCount() - 1) {
+                            if (wantedBottomCellY == context.config.homeRowCount - 1) {
                                 areAllCellsFree = false
                             }
 
