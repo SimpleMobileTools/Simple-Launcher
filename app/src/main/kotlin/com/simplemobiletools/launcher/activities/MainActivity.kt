@@ -208,6 +208,8 @@ class MainActivity : SimpleActivity(), FlingListener {
         if (window.navigationBarColor != resources.getColor(R.color.semitransparent_navigation)) {
             window.navigationBarColor = Color.TRANSPARENT
         }
+
+        (all_apps_fragment as? AllAppsFragment)?.onResume()
     }
 
     override fun onStop() {

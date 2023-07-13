@@ -23,11 +23,11 @@ val Context.homeScreenGridItemsDB: HomeScreenGridItemsDao get() = AppsDatabase.g
 
 val Context.hiddenIconsDB: HiddenIconsDao get() = AppsDatabase.getInstance(applicationContext).HiddenIconsDao()
 
-fun Context.getColumnCount(): Int {
+fun Context.getDrawerColumnCount(): Int {
     return if (portrait) {
-        resources.getInteger(R.integer.portrait_column_count)
+        config.portraitDrawerColumnCount
     } else {
-        resources.getInteger(R.integer.landscape_column_count)
+        config.landscapeDrawerColumnCount
     }
 }
 
