@@ -2,15 +2,18 @@ package com.simplemobiletools.launcher.activities
 
 import android.content.Intent
 import android.os.Bundle
+import com.simplemobiletools.commons.dialogs.RadioGroupDialog
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.NavigationIcon
 import com.simplemobiletools.commons.helpers.isTiramisuPlus
 import com.simplemobiletools.commons.models.FAQItem
+import com.simplemobiletools.commons.models.RadioItem
 import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.extensions.config
+import com.simplemobiletools.launcher.helpers.MAX_COLUMN_COUNT
 import kotlinx.android.synthetic.main.activity_settings.*
-import java.util.*
+import java.util.Locale
 import kotlin.system.exitProcess
 
 class SettingsActivity : SimpleActivity() {
@@ -32,11 +35,12 @@ class SettingsActivity : SimpleActivity() {
         setupPurchaseThankYou()
         setupCustomizeColors()
         setupUseEnglish()
+        setupDrawerColumnCount()
         setupLanguage()
         setupManageHiddenIcons()
         updateTextColors(settings_holder)
 
-        arrayOf(settings_color_customization_section_label, settings_general_settings_label).forEach {
+        arrayOf(settings_color_customization_section_label, settings_general_settings_label, settings_drawer_settings_label).forEach {
             it.setTextColor(getProperPrimaryColor())
         }
     }
@@ -79,6 +83,25 @@ class SettingsActivity : SimpleActivity() {
             settings_use_english.toggle()
             config.useEnglish = settings_use_english.isChecked
             exitProcess(0)
+        }
+    }
+
+    private fun setupDrawerColumnCount() {
+        val currentColumnCount = config.drawerColumnCount
+        settings_drawer_column_count.text = currentColumnCount.toString()
+        settings_drawer_column_count_holder.setOnClickListener {
+            val items = ArrayList<RadioItem>()
+            for (i in 1..MAX_COLUMN_COUNT) {
+                items.add(RadioItem(i, resources.getQuantityString(R.plurals.column_counts, i, i)))
+            }
+
+            RadioGroupDialog(this, items, currentColumnCount) {
+                val newColumnCount = it as Int
+                if (currentColumnCount != newColumnCount) {
+                    config.drawerColumnCount = newColumnCount
+                    setupDrawerColumnCount()
+                }
+            }
         }
     }
 

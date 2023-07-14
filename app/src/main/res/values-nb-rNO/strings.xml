@@ -11,4 +11,5 @@
     <string name="manage_hidden_icons">Håndter skjulte ikoner</string>
     <string name="hidden_icons">Skjulte ikoner</string>
     <string name="hidden_icons_placeholder">Noen apper kan ikke avinstalleres pga. systemrestriksjoner, men du kan i det minste skjule deres ikoner for å unngå å se dem.</string>
+    <string name="app_drawer_settings">App drawer</string>
 </resources>

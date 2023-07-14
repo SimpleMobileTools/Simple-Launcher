@@ -11,4 +11,5 @@
     <string name="manage_hidden_icons">非表示アイコンの管理</string>
     <string name="hidden_icons">非表示のアイコン</string>
     <string name="hidden_icons_placeholder">一部のアプリはシステムの制限によりアンインストールできませんが、非表示によって表示されないようにすることはできます。</string>
+    <string name="app_drawer_settings">App drawer</string>
 </resources>

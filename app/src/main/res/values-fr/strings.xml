@@ -11,4 +11,5 @@
     <string name="manage_hidden_icons">Gérer les icônes cachées</string>
     <string name="hidden_icons">Icônes cachées</string>
     <string name="hidden_icons_placeholder">Certaines applications ne peuvent pas être désinstallées en raison de restrictions du système, mais vous pouvez au moins masquer leurs icônes pour éviter de les voir.</string>
+    <string name="app_drawer_settings">App drawer</string>
 </resources>

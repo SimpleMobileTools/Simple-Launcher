@@ -11,6 +11,7 @@
     <string name="manage_hidden_icons">Manage hidden icons</string>
     <string name="hidden_icons">Hidden icons</string>
     <string name="hidden_icons_placeholder">Some apps cannot be uninstalled due to system restrictions, but you can at least hide their icons to avoid seeing them.</string>
+    <string name="app_drawer_settings">App drawer</string>
     <!--
         Haven't found some strings? There's more at
         https://github.com/SimpleMobileTools/Simple-Commons/tree/master/commons/src/main/res
