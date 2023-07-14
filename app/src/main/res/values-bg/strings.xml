@@ -1,14 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">Обикновен Начален Екран</string>
     <string name="app_launcher_name">Начален Екран</string>
+    <string name="launcher_settings">Начален Екран Настройки</string>
     <string name="app_info">Информация за приложението</string>
+    <string name="touch_hold_widget">Натиснете дълго приспособлението и го плъзнете на началния екран</string>
+    <string name="uninstall">Деинсталиране</string>
+    <string name="hide_icon">Скриване на иконата</string>
+    <string name="add_hidden_icons">Добавяне на скритите икони</string>
     <string name="manage_hidden_icons">Управлявай скритите икони</string>
     <string name="hidden_icons">Скрити икони</string>
     <string name="hidden_icons_placeholder">Някои приложения не могат да бъдат деинсталирани поради системни ограничения, но можете поне да скриете иконите им, за да не ги виждате.</string>
-    <string name="touch_hold_widget">Натиснете дълго приспособлението и го плъзнете на началния екран</string>
-    <string name="hide_icon">Скриване на иконата</string>
-    <string name="app_name">Обикновен Начален Екран</string>
-    <string name="launcher_settings">Начален Екран Настройки</string>
-    <string name="add_hidden_icons">Добавяне на скритите икони</string>
-    <string name="uninstall">Деинсталиране</string>
+    <string name="app_drawer_settings">App drawer</string>
+    <!--
+        Haven't found some strings? There's more at
+        https://github.com/SimpleMobileTools/Simple-Commons/tree/master/commons/src/main/res
+    -->
 </resources>
