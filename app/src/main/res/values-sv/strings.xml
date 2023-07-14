@@ -11,4 +11,5 @@
     <string name="manage_hidden_icons">Hantera dolda ikoner</string>
     <string name="hidden_icons">Dolda ikoner</string>
     <string name="hidden_icons_placeholder">Vissa appar kan inte avinstalleras på grund av systembegränsningar, men du kan åtminstone dölja deras ikoner för att slippa se dem.</string>
+    <string name="app_drawer_settings">App drawer</string>
 </resources>

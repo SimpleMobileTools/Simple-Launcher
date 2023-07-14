@@ -145,7 +145,7 @@
                 style="@style/SettingsSectionLabelStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Application drawer" />
+                android:text="@string/app_drawer_settings" />
 
             <RelativeLayout
                 android:id="@+id/settings_drawer_column_count_holder"
@@ -159,7 +159,7 @@
                     style="@style/SettingsTextLabelStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Drawer column count" />
+                    android:text="@string/column_count" />
 
                 <com.simplemobiletools.commons.views.MyTextView
                     android:id="@+id/settings_drawer_column_count"
