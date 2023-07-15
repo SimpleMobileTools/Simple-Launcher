@@ -213,6 +213,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             newRowCount = config.homeRowCount,
             newColumnCount = config.homeColumnCount
         )
+        (all_apps_fragment as? AllAppsFragment)?.onResume()
     }
 
     override fun onStop() {

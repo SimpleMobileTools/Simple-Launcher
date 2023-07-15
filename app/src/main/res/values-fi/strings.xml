@@ -11,4 +11,5 @@
     <string name="manage_hidden_icons">Hallitse piilotettuja kuvakkeita</string>
     <string name="hidden_icons">Piilotetut kuvakkeet</string>
     <string name="hidden_icons_placeholder">Joitakin sovelluksia ei ole järjestelmärajoitusten vuoksi mahdollista poistaa, mutta voit kuitenkin piilottaa niiden kuvakkeet näkyvistä.</string>
+    <string name="app_drawer_settings">App drawer</string>
 </resources>

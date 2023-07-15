@@ -13,7 +13,7 @@ import com.simplemobiletools.commons.views.MyGridLayoutManager
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.adapters.LaunchersAdapter
-import com.simplemobiletools.launcher.extensions.getColumnCount
+import com.simplemobiletools.launcher.extensions.config
 import com.simplemobiletools.launcher.extensions.launchApp
 import com.simplemobiletools.launcher.helpers.ITEM_TYPE_ICON
 import com.simplemobiletools.launcher.interfaces.AllAppsListener
@@ -40,6 +40,20 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
         }
     }
 
+    @SuppressLint("NotifyDataSetChanged")
+    fun onResume() {
+        if (all_apps_grid?.layoutManager == null || all_apps_grid?.adapter == null) {
+            return
+        }
+
+        val layoutManager = all_apps_grid.layoutManager as MyGridLayoutManager
+        if (layoutManager.spanCount != context.config.drawerColumnCount) {
+            onConfigurationChanged()
+            // Force redraw due to changed item size
+            (all_apps_grid.adapter as LaunchersAdapter).notifyDataSetChanged()
+        }
+    }
+
     fun onConfigurationChanged() {
         if (all_apps_grid == null) {
             return
@@ -50,7 +64,7 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
         setupViews()
 
         val layoutManager = all_apps_grid.layoutManager as MyGridLayoutManager
-        layoutManager.spanCount = context.getColumnCount()
+        layoutManager.spanCount = context.config.drawerColumnCount
         val launchers = (all_apps_grid.adapter as LaunchersAdapter).launchers
         setupAdapter(launchers)
     }
@@ -100,7 +114,7 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
     private fun setupAdapter(launchers: ArrayList<AppLauncher>) {
         activity?.runOnUiThread {
             val layoutManager = all_apps_grid.layoutManager as MyGridLayoutManager
-            layoutManager.spanCount = context.getColumnCount()
+            layoutManager.spanCount = context.config.drawerColumnCount
 
             val currAdapter = all_apps_grid.adapter
             if (currAdapter == null) {

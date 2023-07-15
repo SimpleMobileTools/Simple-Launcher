@@ -7,6 +7,7 @@ const val WIDGET_LIST_ITEMS_HOLDER = 1
 const val WAS_HOME_SCREEN_INIT = "was_home_screen_init"
 const val HOME_ROW_COUNT = "home_row_count"
 const val HOME_COLUMN_COUNT = "home_column_count"
+const val DRAWER_COLUMN_COUNT = "drawer_column_count"
 
 // default home screen grid size
 const val ROW_COUNT = 6

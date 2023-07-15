@@ -16,7 +16,7 @@ import com.simplemobiletools.launcher.helpers.MAX_ROW_COUNT
 import com.simplemobiletools.launcher.helpers.MIN_COLUMN_COUNT
 import com.simplemobiletools.launcher.helpers.MIN_ROW_COUNT
 import kotlinx.android.synthetic.main.activity_settings.*
-import java.util.*
+import java.util.Locale
 import kotlin.system.exitProcess
 
 class SettingsActivity : SimpleActivity() {
@@ -38,13 +38,14 @@ class SettingsActivity : SimpleActivity() {
         setupPurchaseThankYou()
         setupCustomizeColors()
         setupUseEnglish()
+        setupDrawerColumnCount()
         setupHomeRowCount()
         setupHomeColumnCount()
         setupLanguage()
         setupManageHiddenIcons()
         updateTextColors(settings_holder)
 
-        arrayOf(settings_color_customization_section_label, settings_general_settings_label, settings_home_screen_label).forEach {
+        arrayOf(settings_color_customization_section_label, settings_general_settings_label, settings_drawer_settings_label, settings_home_screen_label).forEach {
             it.setTextColor(getProperPrimaryColor())
         }
     }
@@ -87,6 +88,25 @@ class SettingsActivity : SimpleActivity() {
             settings_use_english.toggle()
             config.useEnglish = settings_use_english.isChecked
             exitProcess(0)
+        }
+    }
+
+    private fun setupDrawerColumnCount() {
+        val currentColumnCount = config.drawerColumnCount
+        settings_drawer_column_count.text = currentColumnCount.toString()
+        settings_drawer_column_count_holder.setOnClickListener {
+            val items = ArrayList<RadioItem>()
+            for (i in 1..MAX_COLUMN_COUNT) {
+                items.add(RadioItem(i, resources.getQuantityString(R.plurals.column_counts, i, i)))
+            }
+
+            RadioGroupDialog(this, items, currentColumnCount) {
+                val newColumnCount = it as Int
+                if (currentColumnCount != newColumnCount) {
+                    config.drawerColumnCount = newColumnCount
+                    setupDrawerColumnCount()
+                }
+            }
         }
     }
 

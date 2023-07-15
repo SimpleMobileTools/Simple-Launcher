@@ -2,6 +2,7 @@ package com.simplemobiletools.launcher.helpers
 
 import android.content.Context
 import com.simplemobiletools.commons.helpers.BaseConfig
+import com.simplemobiletools.launcher.R
 
 class Config(context: Context) : BaseConfig(context) {
     companion object {
@@ -19,4 +20,8 @@ class Config(context: Context) : BaseConfig(context) {
     var homeRowCount: Int
         get() = prefs.getInt(HOME_ROW_COUNT, ROW_COUNT)
         set(homeRowCount) = prefs.edit().putInt(HOME_ROW_COUNT, homeRowCount).apply()
+
+    var drawerColumnCount: Int
+        get() = prefs.getInt(DRAWER_COLUMN_COUNT, context.resources.getInteger(R.integer.portrait_column_count))
+        set(drawerColumnCount) = prefs.edit().putInt(DRAWER_COLUMN_COUNT, drawerColumnCount).apply()
 }

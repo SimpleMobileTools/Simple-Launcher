@@ -11,4 +11,5 @@
     <string name="manage_hidden_icons">Upravljajte s skritimi ikonami</string>
     <string name="hidden_icons">Skrite ikone</string>
     <string name="hidden_icons_placeholder">Določenih aplikacij zaradi sistemskih omejitev ni mogoče odstraniti, njihove ikone pa skrijete, da jih ne vidite.</string>
+    <string name="app_drawer_settings">App drawer</string>
 </resources>
