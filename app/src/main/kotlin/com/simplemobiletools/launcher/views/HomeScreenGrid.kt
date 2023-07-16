@@ -733,6 +733,14 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         return null
     }
 
+    fun intoViewSpaceCoords(screenSpaceX: Float, screenSpaceY: Float): Pair<Float, Float> {
+        val viewLocation = IntArray(2)
+        getLocationOnScreen(viewLocation)
+        val x = screenSpaceX - viewLocation[0]
+        val y = screenSpaceY - viewLocation[1]
+        return Pair(x, y)
+    }
+
     private fun HomeScreenGridItem.outOfBounds(): Boolean {
         return (left >= cellXCoords.size || right >= cellXCoords.size || top >= cellYCoords.size || bottom >= cellYCoords.size)
     }

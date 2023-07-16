@@ -427,11 +427,12 @@ class MainActivity : SimpleActivity(), FlingListener {
         }, ANIMATION_DURATION)
     }
 
-    fun homeScreenLongPressed(x: Float, y: Float) {
+    fun homeScreenLongPressed(eventX: Float, eventY: Float) {
         if (isAllAppsFragmentExpanded()) {
             return
         }
 
+        val (x, y) = home_screen_grid.intoViewSpaceCoords(eventX, eventY)
         mIgnoreMoveEvents = true
         val clickedGridItem = home_screen_grid.isClickingGridItem(x.toInt(), y.toInt())
         if (clickedGridItem != null) {
@@ -448,8 +449,9 @@ class MainActivity : SimpleActivity(), FlingListener {
         showMainLongPressMenu(x, y)
     }
 
-    fun homeScreenClicked(x: Float, y: Float) {
+    fun homeScreenClicked(eventX: Float, eventY: Float) {
         home_screen_grid.hideResizeLines()
+        val (x, y) = home_screen_grid.intoViewSpaceCoords(eventX, eventY)
         val clickedGridItem = home_screen_grid.isClickingGridItem(x.toInt(), y.toInt())
         if (clickedGridItem != null) {
             if (clickedGridItem.type == ITEM_TYPE_ICON) {
