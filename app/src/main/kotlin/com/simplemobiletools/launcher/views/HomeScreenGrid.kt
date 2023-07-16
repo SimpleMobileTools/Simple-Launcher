@@ -679,7 +679,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
         val clickableLeft = item.left * cellWidth + sideMargins.left
         val clickableTop = cellYCoords[item.top] + iconSize / 3 + sideMargins.top
-        return Rect(clickableLeft, clickableTop, clickableLeft + cellWidth, clickableTop + iconSize * 2)
+        return Rect(clickableLeft, clickableTop, clickableLeft + cellWidth, clickableTop + cellHeight - iconSize / 3)
     }
 
     // drag the center of the widget, not the top left corner
