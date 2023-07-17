@@ -16,4 +16,8 @@ class Config(context: Context) : BaseConfig(context) {
     var drawerColumnCount: Int
         get() = prefs.getInt(DRAWER_COLUMN_COUNT, context.resources.getInteger(R.integer.portrait_column_count))
         set(drawerColumnCount) = prefs.edit().putInt(DRAWER_COLUMN_COUNT, drawerColumnCount).apply()
+
+    var useSearchBar: Boolean
+        get() = prefs.getBoolean(USE_SEARCH_BAR, true)
+        set(searchBarEnabled) = prefs.edit().putBoolean(USE_SEARCH_BAR, searchBarEnabled).apply()
 }

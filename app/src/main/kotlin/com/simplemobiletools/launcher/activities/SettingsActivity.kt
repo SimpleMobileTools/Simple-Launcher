@@ -36,6 +36,7 @@ class SettingsActivity : SimpleActivity() {
         setupCustomizeColors()
         setupUseEnglish()
         setupDrawerColumnCount()
+        setupDrawerSearchBar()
         setupLanguage()
         setupManageHiddenIcons()
         updateTextColors(settings_holder)
@@ -102,6 +103,15 @@ class SettingsActivity : SimpleActivity() {
                     setupDrawerColumnCount()
                 }
             }
+        }
+    }
+
+    private fun setupDrawerSearchBar() {
+        val useSearchBar = config.useSearchBar
+        settings_show_search.isChecked = useSearchBar
+        settings_drawer_search_holder.setOnClickListener {
+            settings_show_search.toggle()
+            config.useSearchBar = settings_show_search.isChecked
         }
     }
 

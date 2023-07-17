@@ -174,6 +174,15 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
         setPadding(0, topPadding, 0, 0)
         background = ColorDrawable(context.getProperBackgroundColor())
         (all_apps_grid.adapter as? LaunchersAdapter)?.updateTextColor(context.getProperTextColor())
+
+        search_bar.beVisibleIf(context.config.useSearchBar)
+        search_bar.getToolbar()?.beGone()
+        search_bar.updateColors()
+        search_bar.setupMenu()
+
+        search_bar.onSearchTextChangedListener = {
+            (all_apps_grid.adapter as? LaunchersAdapter)?.updateSearchQuery(it)
+        }
     }
 
     override fun onAppLauncherLongPressed(x: Float, y: Float, appLauncher: AppLauncher) {
@@ -197,5 +206,14 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
 
         activity?.showHomeIconMenu(x, y, gridItem, true)
         ignoreTouches = true
+    }
+
+    fun onBackPressed(): Boolean {
+        if (search_bar.isSearchOpen) {
+            search_bar.closeSearch()
+            return true
+        }
+
+        return false
     }
 }

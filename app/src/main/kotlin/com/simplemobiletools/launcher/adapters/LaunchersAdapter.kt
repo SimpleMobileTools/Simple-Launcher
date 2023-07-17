@@ -22,7 +22,7 @@ import kotlinx.android.synthetic.main.item_launcher_label.view.*
 
 class LaunchersAdapter(
     val activity: SimpleActivity,
-    var launchers: ArrayList<AppLauncher>,
+    launchers: ArrayList<AppLauncher>,
     val allAppsListener: AllAppsListener,
     val itemClick: (Any) -> Unit
 ) : RecyclerView.Adapter<LaunchersAdapter.ViewHolder>(), RecyclerViewFastScroller.OnPopupTextUpdate {
@@ -30,6 +30,14 @@ class LaunchersAdapter(
     private var textColor = activity.getProperTextColor()
     private var iconPadding = 0
     private var wereFreshIconsLoaded = false
+    private var filterQuery: String? = null
+    private var filteredLaunchers: List<AppLauncher> = launchers
+
+    var launchers: ArrayList<AppLauncher> = launchers
+        set(value) {
+            field = value
+            updateFilter()
+        }
 
     init {
         calculateIconWidth()
@@ -41,10 +49,10 @@ class LaunchersAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bindView(launchers[position])
+        holder.bindView(filteredLaunchers[position])
     }
 
-    override fun getItemCount() = launchers.size
+    override fun getItemCount() = filteredLaunchers.size
 
     private fun calculateIconWidth() {
         val currentColumnCount = activity.config.drawerColumnCount
@@ -57,8 +65,10 @@ class LaunchersAdapter(
         val itemToRemove = launchers.firstOrNull { it.getLauncherIdentifier() == item.getItemIdentifier() }
         if (itemToRemove != null) {
             val position = launchers.indexOfFirst { it.getLauncherIdentifier() == item.getItemIdentifier() }
+            val filteredPosition = filteredLaunchers.indexOfFirst { it.getLauncherIdentifier() == item.getItemIdentifier() }
             launchers.removeAt(position)
-            notifyItemRemoved(position)
+            updateFilter()
+            notifyItemRemoved(filteredPosition)
         }
     }
 
@@ -72,11 +82,23 @@ class LaunchersAdapter(
         }
     }
 
+    fun updateSearchQuery(newQuery: String?) {
+        if (filterQuery != newQuery) {
+            filterQuery = newQuery
+            updateFilter()
+            notifyDataSetChanged()
+        }
+    }
+
     fun updateTextColor(newTextColor: Int) {
         if (newTextColor != textColor) {
             textColor = newTextColor
             notifyDataSetChanged()
         }
+    }
+
+    private fun updateFilter() {
+        filteredLaunchers = launchers.filter { filterQuery == null || it.title.contains(filterQuery!!, ignoreCase = true) }
     }
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -107,5 +129,5 @@ class LaunchersAdapter(
         }
     }
 
-    override fun onChange(position: Int) = launchers.getOrNull(position)?.getBubbleText() ?: ""
+    override fun onChange(position: Int) = filteredLaunchers.getOrNull(position)?.getBubbleText() ?: ""
 }
