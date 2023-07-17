@@ -218,10 +218,14 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 item.left = cellsRect.left
                 item.top = cellsRect.top
                 item.right = cellsRect.right
-                item.bottom = cellsRect.bottom
+                item.bottom = if (cellsRect.bottom > rowCount - 2) {
+                    rowCount - 2
+                } else {
+                    cellsRect.bottom
+                }
                 updateWidgetPositionAndSize(widgetView, item)
                 ensureBackgroundThread {
-                    context.homeScreenGridItemsDB.updateItemPosition(cellsRect.left, cellsRect.top, cellsRect.right, cellsRect.bottom, item.id!!)
+                    context.homeScreenGridItemsDB.updateItemPosition(item.left, item.top, item.right, item.bottom, item.id!!)
                 }
             }
 
