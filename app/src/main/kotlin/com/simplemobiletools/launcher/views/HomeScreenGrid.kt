@@ -689,8 +689,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         if (rect.left < 0) {
             rect.right -= rect.left
             rect.left = 0
-        } else if (rect.right > context.config.homeColumnCount - 1) {
-            val diff = rect.right - context.config.homeColumnCount + 1
+        } else if (rect.right > columnCount - 1) {
+            val diff = rect.right - columnCount + 1
             rect.right -= diff
             rect.left -= diff
         }
@@ -698,8 +698,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         if (rect.top < 0) {
             rect.bottom -= rect.top
             rect.top = 0
-        } else if (rect.bottom > context.config.homeRowCount - 1) {
-            val diff = rect.bottom - context.config.homeColumnCount + 1
+        } else if (rect.bottom > rowCount - 1) {
+            val diff = rect.bottom - rowCount + 2
             rect.bottom -= diff
             rect.top -= diff
         }
