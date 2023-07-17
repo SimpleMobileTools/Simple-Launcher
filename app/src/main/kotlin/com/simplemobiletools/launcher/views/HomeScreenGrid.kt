@@ -553,23 +553,30 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
             if (item.id != draggedItem?.id) {
                 val drawableX = cellXCoords[item.left] + iconMargin + extraXMargin + sideMargins.left
-                val drawableY = cellYCoords[item.top] + iconMargin + extraYMargin + sideMargins.top
-                item.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
 
-                if (item.id != draggedItem?.id && item.title.isNotEmpty()) {
-                    val textX = cellXCoords[item.left].toFloat() + labelSideMargin + sideMargins.left
-                    val textY = cellYCoords[item.top].toFloat() + iconSize + iconMargin + extraYMargin + labelSideMargin + sideMargins.top
-                    val staticLayout = StaticLayout.Builder
-                        .obtain(item.title, 0, item.title.length, textPaint, cellWidth - 2 * labelSideMargin)
-                        .setMaxLines(2)
-                        .setEllipsize(TextUtils.TruncateAt.END)
-                        .setAlignment(Layout.Alignment.ALIGN_CENTER)
-                        .build()
+                if (item.top == rowCount - 1) {
+                    val drawableY = cellYCoords[item.top] + cellHeight - iconMargin - iconSize + extraYMargin + sideMargins.top
 
-                    canvas.save()
-                    canvas.translate(textX, textY)
-                    staticLayout.draw(canvas)
-                    canvas.restore()
+                    item.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
+                } else {
+                    val drawableY = cellYCoords[item.top] + iconMargin + extraYMargin + sideMargins.top
+                    item.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
+
+                    if (item.id != draggedItem?.id && item.title.isNotEmpty()) {
+                        val textX = cellXCoords[item.left].toFloat() + labelSideMargin + sideMargins.left
+                        val textY = cellYCoords[item.top].toFloat() + iconSize + iconMargin + extraYMargin + labelSideMargin + sideMargins.top
+                        val staticLayout = StaticLayout.Builder
+                            .obtain(item.title, 0, item.title.length, textPaint, cellWidth - 2 * labelSideMargin)
+                            .setMaxLines(2)
+                            .setEllipsize(TextUtils.TruncateAt.END)
+                            .setAlignment(Layout.Alignment.ALIGN_CENTER)
+                            .build()
+
+                        canvas.save()
+                        canvas.translate(textX, textY)
+                        staticLayout.draw(canvas)
+                        canvas.restore()
+                    }
                 }
 
                 item.drawable!!.draw(canvas)
@@ -592,10 +599,14 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
                 val gridCells = getClosestGridCells(center)
                 if (gridCells != null) {
-                    val shadowX = cellXCoords[gridCells.first] + iconMargin.toFloat() + iconSize / 2 + sideMargins.left
-                    val shadowY = cellYCoords[gridCells.second] + iconSize + sideMargins.top
+                    val shadowX = cellXCoords[gridCells.first] + iconMargin + iconSize / 2f + extraXMargin + sideMargins.left
+                    val shadowY = if (gridCells.second == rowCount - 1) {
+                        cellYCoords[gridCells.second] + cellHeight - iconMargin - iconSize / 2f
+                    } else {
+                        cellYCoords[gridCells.second] + iconMargin + iconSize / 2f
+                    } + extraYMargin + sideMargins.top
 
-                    canvas.drawCircle(shadowX, shadowY.toFloat(), iconSize / 2f, dragShadowCirclePaint)
+                    canvas.drawCircle(shadowX, shadowY, iconSize / 2f, dragShadowCirclePaint)
                 }
 
                 // show the app icon itself at dragging, move it above the finger a bit to make it visible
