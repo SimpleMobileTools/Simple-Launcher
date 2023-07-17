@@ -34,7 +34,14 @@ import kotlin.math.min
 class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : RelativeLayout(context, attrs, defStyle) {
     constructor(context: Context, attrs: AttributeSet) : this(context, attrs, 0)
 
-    private var iconMargin = context.resources.getDimension(R.dimen.icon_side_margin).toInt()
+    private var columnCount = context.config.homeColumnCount
+    private var rowCount = context.config.homeRowCount
+    private var cellXCoords = ArrayList<Int>(columnCount)
+    private var cellYCoords = ArrayList<Int>(rowCount)
+    var cellWidth = 0
+    var cellHeight = 0
+
+    private var iconMargin = (context.resources.getDimension(R.dimen.icon_side_margin) * 5 / columnCount).toInt()
     private var labelSideMargin = context.resources.getDimension(R.dimen.small_margin).toInt()
     private var roundedCornerRadius = context.resources.getDimension(R.dimen.activity_margin)
     private var textPaint: TextPaint
@@ -44,13 +51,6 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private var isFirstDraw = true
     private var redrawWidgets = false
     private var iconSize = 0
-
-    private var columnCount = context.config.homeColumnCount
-    private var rowCount = context.config.homeRowCount
-    private var cellXCoords = ArrayList<Int>(columnCount)
-    private var cellYCoords = ArrayList<Int>(rowCount)
-    var cellWidth = 0
-    var cellHeight = 0
 
     // apply fake margins at the home screen. Real ones would cause the icons be cut at dragging at screen sides
     var sideMargins = Rect()
@@ -117,6 +117,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             columnCount = newColumnCount
             cellXCoords = ArrayList(columnCount)
             cellYCoords = ArrayList(rowCount)
+            iconMargin = (context.resources.getDimension(R.dimen.icon_side_margin) * 5 / columnCount).toInt()
             redrawWidgets = true
             redrawGrid()
         }
