@@ -239,7 +239,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
     }
 
     override fun onWidgetLongPressed(appWidget: AppWidget) {
-        if (appWidget.heightCells > context.config.homeRowCount || appWidget.widthCells > context.config.homeColumnCount) {
+        if (appWidget.heightCells > context.config.homeRowCount - 1 || appWidget.widthCells > context.config.homeColumnCount) {
             context.toast("Widget is too big for current home screen size")
             return
         }
