@@ -555,7 +555,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 val drawableX = cellXCoords[item.left] + iconMargin + extraXMargin + sideMargins.left
 
                 if (item.top == rowCount - 1) {
-                    val drawableY = cellYCoords[item.top] + cellHeight - iconMargin - iconSize + extraYMargin + sideMargins.top
+                    val drawableY = cellYCoords[item.top] + cellHeight - iconMargin - iconSize + sideMargins.top
 
                     item.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
                 } else {
@@ -603,8 +603,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                     val shadowY = if (gridCells.second == rowCount - 1) {
                         cellYCoords[gridCells.second] + cellHeight - iconMargin - iconSize / 2f
                     } else {
-                        cellYCoords[gridCells.second] + iconMargin + iconSize / 2f
-                    } + extraYMargin + sideMargins.top
+                        cellYCoords[gridCells.second] + iconMargin + iconSize / 2f + extraYMargin
+                    } + sideMargins.top
 
                     canvas.drawCircle(shadowX, shadowY, iconSize / 2f, dragShadowCirclePaint)
                 }
@@ -688,9 +688,24 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             fillCellSizes()
         }
 
-        val clickableLeft = item.left * cellWidth + sideMargins.left
-        val clickableTop = cellYCoords[item.top] + iconSize / 3 + sideMargins.top
-        return Rect(clickableLeft, clickableTop, clickableLeft + cellWidth, clickableTop + cellHeight - iconSize / 3)
+        val extraXMargin = if (cellWidth > cellHeight) {
+            (cellWidth - cellHeight) / 2
+        } else {
+            0
+        }
+        val extraYMargin = if (cellHeight > cellWidth) {
+            (cellHeight - cellWidth) / 2
+        } else {
+            0
+        }
+
+        val clickableLeft = cellXCoords[item.left] + sideMargins.left + extraXMargin
+        val clickableTop = if (item.top == rowCount - 1) {
+            cellYCoords[item.top] + cellHeight - iconSize - iconMargin + sideMargins.top
+        } else {
+            cellYCoords[item.top] + sideMargins.top - iconMargin + extraYMargin
+        } + sideMargins.top
+        return Rect(clickableLeft, clickableTop, clickableLeft + iconSize + 2 * iconMargin, clickableTop + iconSize + 2 * iconMargin)
     }
 
     // drag the center of the widget, not the top left corner
