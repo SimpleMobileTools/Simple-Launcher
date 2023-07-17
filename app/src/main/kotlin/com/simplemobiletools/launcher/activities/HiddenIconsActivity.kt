@@ -46,7 +46,11 @@ class HiddenIconsActivity : SimpleActivity(), RefreshRecyclerViewListener {
                 })
             ).toMutableList() as ArrayList<HiddenIcon>
 
-            manage_hidden_icons_placeholder.beVisibleIf(hiddenIcons.isEmpty())
+            val hiddenIconsEmpty = hiddenIcons.isEmpty()
+            runOnUiThread {
+                manage_hidden_icons_placeholder.beVisibleIf(hiddenIconsEmpty)
+            }
+
             if (hiddenIcons.isNotEmpty()) {
                 val intent = Intent(Intent.ACTION_MAIN, null)
                 intent.addCategory(Intent.CATEGORY_LAUNCHER)
