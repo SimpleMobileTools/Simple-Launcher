@@ -118,7 +118,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             cellXCoords = ArrayList(columnCount)
             cellYCoords = ArrayList(rowCount)
             redrawWidgets = true
-            invalidate()
+            redrawGrid()
         }
     }
 
@@ -701,9 +701,9 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
         val clickableLeft = cellXCoords[item.left] + sideMargins.left + extraXMargin
         val clickableTop = if (item.top == rowCount - 1) {
-            cellYCoords[item.top] + cellHeight - iconSize - iconMargin + sideMargins.top
+            cellYCoords[item.top] + cellHeight - iconSize - iconMargin
         } else {
-            cellYCoords[item.top] + sideMargins.top - iconMargin + extraYMargin
+            cellYCoords[item.top] - iconMargin + extraYMargin
         } + sideMargins.top
         return Rect(clickableLeft, clickableTop, clickableLeft + iconSize + 2 * iconMargin, clickableTop + iconSize + 2 * iconMargin)
     }
