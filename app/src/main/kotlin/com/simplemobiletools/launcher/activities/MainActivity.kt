@@ -219,7 +219,9 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     override fun onBackPressed() {
         if (isAllAppsFragmentExpanded()) {
-            hideFragment(all_apps_fragment)
+            if ((all_apps_fragment as? AllAppsFragment)?.onBackPressed() == false) {
+                hideFragment(all_apps_fragment)
+            }
         } else if (isWidgetsFragmentExpanded()) {
             hideFragment(widgets_fragment)
         } else if (home_screen_grid.resize_frame.isVisible) {
