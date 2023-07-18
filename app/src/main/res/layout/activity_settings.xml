@@ -69,7 +69,7 @@
                 style="@style/SettingsHolderTextViewOneLinerStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/ripple_top_corners">
+                android:background="@drawable/ripple_background">
 
                 <com.simplemobiletools.commons.views.MyTextView
                     android:id="@+id/settings_purchase_thank_you"
@@ -85,7 +85,7 @@
                 style="@style/SettingsHolderCheckboxStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/ripple_bottom_corners">
+                android:background="@drawable/ripple_background">
 
                 <com.simplemobiletools.commons.views.MyAppCompatCheckbox
                     android:id="@+id/settings_use_english"
@@ -125,7 +125,7 @@
                 style="@style/SettingsHolderTextViewOneLinerStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/ripple_bottom_corners">
+                android:background="@drawable/ripple_background">
 
                 <com.simplemobiletools.commons.views.MyTextView
                     android:id="@+id/settings_manage_hidden_icons"
@@ -152,7 +152,7 @@
                 style="@style/SettingsHolderTextViewOneLinerStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/ripple_bottom_corners">
+                android:background="@drawable/ripple_background">
 
                 <com.simplemobiletools.commons.views.MyTextView
                     android:id="@+id/settings_drawer_column_count_label"

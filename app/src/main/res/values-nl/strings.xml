@@ -11,5 +11,5 @@
     <string name="manage_hidden_icons">Verborgen iconen beheren</string>
     <string name="hidden_icons">Verborgen iconen</string>
     <string name="hidden_icons_placeholder">Sommige apps kunnen niet worden verwijderd van het systeem, maar hun iconen kunnen wel worden verborgen.</string>
-    <string name="app_drawer_settings">App drawer</string>
+    <string name="app_drawer_settings">App-overzicht</string>
 </resources>
