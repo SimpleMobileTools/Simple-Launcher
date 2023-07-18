@@ -15,6 +15,7 @@ data class HomeScreenGridItem(
     @ColumnInfo(name = "top") var top: Int,
     @ColumnInfo(name = "right") var right: Int,
     @ColumnInfo(name = "bottom") var bottom: Int,
+    @ColumnInfo(name = "page") var page: Int,
     @ColumnInfo(name = "package_name") var packageName: String,
     @ColumnInfo(name = "activity_name") var activityName: String,   // needed at apps that create multiple icons at install, not just the launcher
     @ColumnInfo(name = "title") var title: String,
@@ -31,7 +32,7 @@ data class HomeScreenGridItem(
     @Ignore var widthCells: Int = 1,
     @Ignore var heightCells: Int = 1
 ) {
-    constructor() : this(null, -1, -1, -1, -1, "", "", "", ITEM_TYPE_ICON, "", -1, "", "", null, null, null, null, 1, 1)
+    constructor() : this(null, -1, -1, -1, -1, 0, "", "", "", ITEM_TYPE_ICON, "", -1, "", "", null, null, null, null, 1, 1)
 
     fun getWidthInCells() = if (right == -1 || left == -1) {
         widthCells

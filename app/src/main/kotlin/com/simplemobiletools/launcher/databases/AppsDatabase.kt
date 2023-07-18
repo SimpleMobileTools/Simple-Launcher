@@ -15,7 +15,7 @@ import com.simplemobiletools.launcher.models.AppLauncher
 import com.simplemobiletools.launcher.models.HiddenIcon
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
 
-@Database(entities = [AppLauncher::class, HomeScreenGridItem::class, HiddenIcon::class], version = 4)
+@Database(entities = [AppLauncher::class, HomeScreenGridItem::class, HiddenIcon::class], version = 5)
 @TypeConverters(Converters::class)
 abstract class AppsDatabase : RoomDatabase() {
 
@@ -36,6 +36,7 @@ abstract class AppsDatabase : RoomDatabase() {
                             .addMigrations(MIGRATION_1_2)
                             .addMigrations(MIGRATION_2_3)
                             .addMigrations(MIGRATION_3_4)
+                            .addMigrations(MIGRATION_4_5)
                             .build()
                     }
                 }
@@ -62,6 +63,12 @@ abstract class AppsDatabase : RoomDatabase() {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("CREATE TABLE IF NOT EXISTS `hidden_icons` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `package_name` TEXT NOT NULL, `activity_name` TEXT NOT NULL, `title` TEXT NOT NULL)")
                 database.execSQL("CREATE UNIQUE INDEX `index_hidden_icons_id` ON `hidden_icons` (`id`)")
+            }
+        }
+
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE home_screen_grid_items ADD COLUMN page INTEGER NOT NULL DEFAULT 0")
             }
         }
     }
