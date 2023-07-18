@@ -63,7 +63,7 @@ android {
 }
 
 dependencies {
-    implementation 'com.github.esensar:Simple-Commons:launcher-home-grid-strings-SNAPSHOT'
+    implementation 'com.github.SimpleMobileTools:Simple-Commons:a26066d67d'
 
     kapt "androidx.room:room-compiler:2.5.2"
     implementation "androidx.room:room-runtime:2.5.2"
