@@ -23,6 +23,7 @@ import android.os.Handler
 import android.provider.Telephony
 import android.telecom.TelecomManager
 import android.view.*
+import android.view.accessibility.AccessibilityNodeInfo
 import android.view.animation.DecelerateInterpolator
 import android.widget.PopupMenu
 import androidx.core.graphics.drawable.toBitmap
@@ -409,6 +410,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         window.navigationBarColor = resources.getColor(R.color.semitransparent_navigation)
         home_screen_grid.fragmentExpanded()
         home_screen_grid.hideResizeLines()
+        fragment.performAccessibilityAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null)
     }
 
     private fun hideFragment(fragment: View) {
