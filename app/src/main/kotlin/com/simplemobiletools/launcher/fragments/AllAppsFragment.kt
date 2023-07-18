@@ -206,6 +206,8 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
 
         activity?.showHomeIconMenu(x, y, gridItem, true)
         ignoreTouches = true
+
+        search_bar.closeSearch()
     }
 
     fun onBackPressed(): Boolean {
