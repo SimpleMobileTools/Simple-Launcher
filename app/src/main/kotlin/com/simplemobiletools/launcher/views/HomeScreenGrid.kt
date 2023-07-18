@@ -493,7 +493,26 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     }
 
     private fun updateWidgetPositionAndSize(widgetView: AppWidgetHostView, item: HomeScreenGridItem): Size {
-        widgetView.x = calculateWidgetX(item.left)
+        var x = calculateWidgetX(item.left) + width * item.page - width * lastPage
+        if (pageChangeAnimLeftPercentage > 0f && pageChangeAnimLeftPercentage < 1f && (item.page == currentPage || item.page == lastPage)) {
+            val xFactor = if (currentPage > lastPage) {
+                pageChangeAnimLeftPercentage
+            } else {
+                -pageChangeAnimLeftPercentage
+            }
+            val lastXFactor = if (currentPage > lastPage) {
+                pageChangeAnimLeftPercentage - 1
+            } else {
+                1 - pageChangeAnimLeftPercentage
+            }
+            if (item.page == currentPage) {
+                x += width * xFactor
+            }
+            if (item.page == lastPage) {
+                x += width * lastXFactor
+            }
+        }
+        widgetView.x = x
         widgetView.y = calculateWidgetY(item.top)
         val widgetWidth = item.getWidthInCells() * cellWidth
         val widgetHeight = item.getHeightInCells() * cellHeight
@@ -607,8 +626,14 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         if (isFirstDraw) {
-            gridItems.filter { it.type == ITEM_TYPE_WIDGET && it.page == currentPage }.forEach { item ->
+            gridItems.filter { it.type == ITEM_TYPE_WIDGET }.forEach { item ->
                 bindWidget(item, true)
+            }
+        } else {
+            gridItems.filter { it.type == ITEM_TYPE_WIDGET }.forEach { item ->
+                widgetViews.firstOrNull { it.tag == item.widgetId }?.also {
+                    updateWidgetPositionAndSize(it, item)
+                }
             }
         }
 
@@ -858,6 +883,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                     override fun onAnimationEnd(animation: Animator) {
                         super.onAnimationEnd(animation)
                         pageChangeAnimLeftPercentage = 0f
+                        lastPage = currentPage
                         redrawGrid()
                     }
                 })
