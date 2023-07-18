@@ -26,4 +26,21 @@
             app:spanCount="@integer/portrait_column_count" />
 
     </com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller>
+
+    <com.simplemobiletools.commons.views.MyTextView
+        android:id="@+id/no_results_placeholder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/search_bar"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="@dimen/bigger_margin"
+        android:alpha="0.8"
+        android:gravity="center"
+        android:paddingLeft="@dimen/activity_margin"
+        android:paddingRight="@dimen/activity_margin"
+        android:text="@string/no_items_found"
+        android:textSize="@dimen/bigger_text_size"
+        android:textStyle="italic"
+        android:visibility="gone" />
+
 </com.simplemobiletools.launcher.fragments.AllAppsFragment>

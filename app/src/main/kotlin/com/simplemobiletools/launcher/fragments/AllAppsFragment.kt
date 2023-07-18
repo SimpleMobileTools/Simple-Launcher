@@ -182,7 +182,13 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
 
         search_bar.onSearchTextChangedListener = {
             (all_apps_grid.adapter as? LaunchersAdapter)?.updateSearchQuery(it)
+            showNoResultsPlaceholderIfNeeded()
         }
+    }
+
+    private fun showNoResultsPlaceholderIfNeeded() {
+        val itemCount = all_apps_grid.adapter?.itemCount
+        no_results_placeholder.beVisibleIf(itemCount != null && itemCount == 0)
     }
 
     override fun onAppLauncherLongPressed(x: Float, y: Float, appLauncher: AppLauncher) {
