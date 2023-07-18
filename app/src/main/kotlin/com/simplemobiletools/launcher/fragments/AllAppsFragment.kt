@@ -175,7 +175,7 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
         background = ColorDrawable(context.getProperBackgroundColor())
         (all_apps_grid.adapter as? LaunchersAdapter)?.updateTextColor(context.getProperTextColor())
 
-        search_bar.beVisibleIf(context.config.useSearchBar)
+        search_bar.beVisibleIf(context.config.showSearchBar)
         search_bar.getToolbar()?.beGone()
         search_bar.updateColors()
         search_bar.setupMenu()

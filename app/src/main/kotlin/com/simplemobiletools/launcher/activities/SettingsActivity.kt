@@ -107,11 +107,11 @@ class SettingsActivity : SimpleActivity() {
     }
 
     private fun setupDrawerSearchBar() {
-        val useSearchBar = config.useSearchBar
-        settings_show_search.isChecked = useSearchBar
+        val showSearchBar = config.showSearchBar
+        settings_show_search_bar.isChecked = showSearchBar
         settings_drawer_search_holder.setOnClickListener {
-            settings_show_search.toggle()
-            config.useSearchBar = settings_show_search.isChecked
+            settings_show_search_bar.toggle()
+            config.showSearchBar = settings_show_search_bar.isChecked
         }
     }
 

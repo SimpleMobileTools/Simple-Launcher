@@ -179,7 +179,7 @@
                 android:background="@drawable/ripple_bottom_corners">
 
                 <com.simplemobiletools.commons.views.MyAppCompatCheckbox
-                    android:id="@+id/settings_show_search"
+                    android:id="@+id/settings_show_search_bar"
                     style="@style/SettingsCheckboxStyle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
