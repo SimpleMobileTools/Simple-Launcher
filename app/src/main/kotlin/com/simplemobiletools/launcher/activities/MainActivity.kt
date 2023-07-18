@@ -23,6 +23,7 @@ import android.os.Handler
 import android.provider.Telephony
 import android.telecom.TelecomManager
 import android.view.*
+import android.view.accessibility.AccessibilityNodeInfo
 import android.view.animation.DecelerateInterpolator
 import android.widget.PopupMenu
 import androidx.core.graphics.drawable.toBitmap
@@ -139,6 +140,14 @@ class MainActivity : SimpleActivity(), FlingListener {
                 }
             }
         }
+
+        home_screen_grid.itemClickListener = {
+            performItemClick(it)
+        }
+
+        home_screen_grid.itemLongClickListener = {
+            performItemLongClick(home_screen_grid.getClickableRect(it).left.toFloat(), it)
+        }
     }
 
     private fun findFirstEmptyCell(): Rect? {
@@ -241,6 +250,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                     refetchLaunchers()
                 }
             }
+
             REQUEST_ALLOW_BINDING_WIDGET -> mActionOnCanBindWidget?.invoke(resultCode == Activity.RESULT_OK)
             REQUEST_CONFIGURE_WIDGET -> mActionOnWidgetConfiguredWidget?.invoke(resultCode == Activity.RESULT_OK)
             REQUEST_CREATE_SHORTCUT -> {
@@ -403,6 +413,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         window.navigationBarColor = resources.getColor(R.color.semitransparent_navigation)
         home_screen_grid.fragmentExpanded()
         home_screen_grid.hideResizeLines()
+        fragment.performAccessibilityAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null)
     }
 
     private fun hideFragment(fragment: View) {
@@ -433,12 +444,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         mIgnoreMoveEvents = true
         val clickedGridItem = home_screen_grid.isClickingGridItem(x.toInt(), y.toInt())
         if (clickedGridItem != null) {
-            if (clickedGridItem.type == ITEM_TYPE_ICON || clickedGridItem.type == ITEM_TYPE_SHORTCUT) {
-                main_holder.performHapticFeedback()
-            }
-
-            val anchorY = home_screen_grid.sideMargins.top + (clickedGridItem.top * home_screen_grid.cellHeight.toFloat())
-            showHomeIconMenu(x, anchorY, clickedGridItem, false)
+            performItemLongClick(x, clickedGridItem)
             return
         }
 
@@ -450,22 +456,35 @@ class MainActivity : SimpleActivity(), FlingListener {
         home_screen_grid.hideResizeLines()
         val clickedGridItem = home_screen_grid.isClickingGridItem(x.toInt(), y.toInt())
         if (clickedGridItem != null) {
-            if (clickedGridItem.type == ITEM_TYPE_ICON) {
-                launchApp(clickedGridItem.packageName, clickedGridItem.activityName)
-            } else if (clickedGridItem.type == ITEM_TYPE_SHORTCUT) {
-                if (clickedGridItem.intent.isNotEmpty()) {
-                    launchShortcutIntent(clickedGridItem)
-                } else {
-                    // launch pinned shortcuts
-                    val id = clickedGridItem.shortcutId
-                    val packageName = clickedGridItem.packageName
-                    val userHandle = android.os.Process.myUserHandle()
-                    val shortcutBounds = home_screen_grid.getClickableRect(clickedGridItem)
-                    val launcherApps = applicationContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
-                    launcherApps.startShortcut(packageName, id, shortcutBounds, null, userHandle)
-                }
+            performItemClick(clickedGridItem)
+        }
+    }
+
+    private fun performItemClick(clickedGridItem: HomeScreenGridItem) {
+        if (clickedGridItem.type == ITEM_TYPE_ICON) {
+            launchApp(clickedGridItem.packageName, clickedGridItem.activityName)
+        } else if (clickedGridItem.type == ITEM_TYPE_SHORTCUT) {
+            if (clickedGridItem.intent.isNotEmpty()) {
+                launchShortcutIntent(clickedGridItem)
+            } else {
+                // launch pinned shortcuts
+                val id = clickedGridItem.shortcutId
+                val packageName = clickedGridItem.packageName
+                val userHandle = android.os.Process.myUserHandle()
+                val shortcutBounds = home_screen_grid.getClickableRect(clickedGridItem)
+                val launcherApps = applicationContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+                launcherApps.startShortcut(packageName, id, shortcutBounds, null, userHandle)
             }
         }
+    }
+
+    private fun performItemLongClick(x: Float, clickedGridItem: HomeScreenGridItem) {
+        if (clickedGridItem.type == ITEM_TYPE_ICON || clickedGridItem.type == ITEM_TYPE_SHORTCUT) {
+            main_holder.performHapticFeedback()
+        }
+
+        val anchorY = home_screen_grid.sideMargins.top + (clickedGridItem.top * home_screen_grid.cellHeight.toFloat())
+        showHomeIconMenu(x, anchorY, clickedGridItem, false)
     }
 
     fun showHomeIconMenu(x: Float, y: Float, gridItem: HomeScreenGridItem, isOnAllAppsFragment: Boolean) {
