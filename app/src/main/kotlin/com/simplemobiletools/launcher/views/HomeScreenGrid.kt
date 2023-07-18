@@ -56,7 +56,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     private var lastPage = 0
     private var currentPage = 0
-    private var animPercentage = 0f
+    private var pageChangeAnimLeftPercentage = 0f
     private var pageChangeEnabled = true
 
     // apply fake margins at the home screen. Real ones would cause the icons be cut at dragging at screen sides
@@ -554,14 +554,14 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         val currentXFactor = if (currentPage > lastPage) {
-            animPercentage
+            pageChangeAnimLeftPercentage
         } else {
-            -animPercentage
+            -pageChangeAnimLeftPercentage
         }
         val lastXFactor = if (currentPage > lastPage) {
-            animPercentage - 1
+            pageChangeAnimLeftPercentage - 1
         } else {
-            1 - animPercentage
+            1 - pageChangeAnimLeftPercentage
         }
 
         fun handleDrawing(item: HomeScreenGridItem, xFactor: Float) {
@@ -600,7 +600,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         gridItems.filter { (it.drawable != null && it.type == ITEM_TYPE_ICON || it.type == ITEM_TYPE_SHORTCUT) && it.page == currentPage }.forEach { item ->
             handleDrawing(item, currentXFactor)
         }
-        if (animPercentage > 0f && animPercentage < 1f) {
+        if (pageChangeAnimLeftPercentage > 0f && pageChangeAnimLeftPercentage < 1f) {
             gridItems.filter { (it.drawable != null && it.type == ITEM_TYPE_ICON || it.type == ITEM_TYPE_SHORTCUT) && it.page == lastPage }.forEach { item ->
                 handleDrawing(item, lastXFactor)
             }
@@ -851,13 +851,13 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         ValueAnimator.ofFloat(1f, 0f)
             .apply {
                 addUpdateListener {
-                    animPercentage = it.animatedValue as Float
+                    pageChangeAnimLeftPercentage = it.animatedValue as Float
                     redrawGrid()
                 }
                 addListener(object : AnimatorListenerAdapter() {
                     override fun onAnimationEnd(animation: Animator) {
                         super.onAnimationEnd(animation)
-                        animPercentage = 0f
+                        pageChangeAnimLeftPercentage = 0f
                         redrawGrid()
                     }
                 })
