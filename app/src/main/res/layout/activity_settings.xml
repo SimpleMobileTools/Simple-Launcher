@@ -171,6 +171,22 @@
 
             </RelativeLayout>
 
+            <RelativeLayout
+                android:id="@+id/settings_drawer_search_holder"
+                style="@style/SettingsHolderTextViewOneLinerStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/ripple_bottom_corners">
+
+                <com.simplemobiletools.commons.views.MyAppCompatCheckbox
+                    android:id="@+id/settings_show_search_bar"
+                    style="@style/SettingsCheckboxStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/show_search" />
+
+            </RelativeLayout>
+
             <include
                 android:id="@+id/settings_drawer_settings_divider"
                 layout="@layout/divider" />
