@@ -144,6 +144,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         home_screen_grid.itemClickListener = {
             performItemClick(it)
         }
+
         home_screen_grid.itemLongClickListener = {
             performItemLongClick(home_screen_grid.getClickableRect(it).left.toFloat(), it)
         }
