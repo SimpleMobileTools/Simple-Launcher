@@ -66,7 +66,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     var itemLongClickListener: ((HomeScreenGridItem) -> Unit)? = null
 
     init {
-        ViewCompat.setAccessibilityDelegate(this, HomeScreenGridTouchHelper(this));
+        ViewCompat.setAccessibilityDelegate(this, HomeScreenGridTouchHelper(this))
 
         textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
