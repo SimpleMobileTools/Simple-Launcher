@@ -12,4 +12,5 @@
     <string name="hidden_icons">Iconos ocultos</string>
     <string name="hidden_icons_placeholder">Algunas aplicaciones no se pueden desinstalar debido a las restricciones del sistema, pero al menos puedes ocultar sus iconos para evitar verlas.</string>
     <string name="app_drawer_settings">App drawer</string>
+    <string name="home_screen_settings">Home screen</string>
 </resources>

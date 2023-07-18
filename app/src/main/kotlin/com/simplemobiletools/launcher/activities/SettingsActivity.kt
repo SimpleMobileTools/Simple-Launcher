@@ -116,7 +116,7 @@ class SettingsActivity : SimpleActivity() {
         settings_home_screen_row_count_holder.setOnClickListener {
             val items = ArrayList<RadioItem>()
             for (i in MIN_ROW_COUNT..MAX_ROW_COUNT) {
-                items.add(RadioItem(i, resources.getQuantityString(R.plurals.column_counts, i, i)))
+                items.add(RadioItem(i, resources.getQuantityString(R.plurals.row_counts, i, i)))
             }
 
             RadioGroupDialog(this, items, currentRowCount) {

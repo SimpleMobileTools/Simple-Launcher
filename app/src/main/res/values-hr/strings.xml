@@ -12,4 +12,5 @@
     <string name="hidden_icons">Skrivene ikone</string>
     <string name="hidden_icons_placeholder">Neke aplikacije se ne mogu deinstalirati zbog ograničenja sustava, ali njihove ikone možeš sakriti.</string>
     <string name="app_drawer_settings">App drawer</string>
+    <string name="home_screen_settings">Home screen</string>
 </resources>

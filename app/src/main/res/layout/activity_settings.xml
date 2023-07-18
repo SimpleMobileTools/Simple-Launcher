@@ -180,7 +180,7 @@
                 style="@style/SettingsSectionLabelStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Home screen" />
+                android:text="@string/home_screen_settings" />
 
             <RelativeLayout
                 android:id="@+id/settings_home_screen_row_count_holder"
@@ -194,7 +194,7 @@
                     style="@style/SettingsTextLabelStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Home screen row count" />
+                    android:text="@string/row_count" />
 
                 <com.simplemobiletools.commons.views.MyTextView
                     android:id="@+id/settings_home_screen_row_count"
@@ -218,7 +218,7 @@
                     style="@style/SettingsTextLabelStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Home screen column count" />
+                    android:text="@string/column_count" />
 
                 <com.simplemobiletools.commons.views.MyTextView
                     android:id="@+id/settings_home_screen_column_count"
