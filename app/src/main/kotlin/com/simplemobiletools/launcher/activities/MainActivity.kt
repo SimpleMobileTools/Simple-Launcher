@@ -178,6 +178,14 @@ class MainActivity : SimpleActivity(), FlingListener {
         home_screen_grid.appWidgetHost.startListening()
     }
 
+    override fun onTopResumedActivityChanged(isTopResumedActivity: Boolean) {
+        super.onTopResumedActivityChanged(isTopResumedActivity)
+        if (!isTopResumedActivity) {
+            hideFragment(all_apps_fragment)
+            hideFragment(widgets_fragment)
+        }
+    }
+
     override fun onResume() {
         super.onResume()
         updateStatusbarColor(Color.TRANSPARENT)
