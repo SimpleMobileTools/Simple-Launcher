@@ -367,7 +367,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             }
 
             var areAllCellsEmpty = true
-            gridItems.filter { it.id != draggedItem?.id }.forEach { item ->
+            gridItems.filter { it.id != draggedItem?.id && it.page == currentPage }.forEach { item ->
                 for (xCell in item.left..item.right) {
                     for (yCell in item.top..item.bottom) {
                         val cell = Pair(xCell, yCell)
@@ -764,7 +764,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     }
 
     fun isClickingGridItem(x: Int, y: Int): HomeScreenGridItem? {
-        for (gridItem in gridItems) {
+        for (gridItem in gridItems.filter { it.page == currentPage }) {
             if (gridItem.type == ITEM_TYPE_ICON || gridItem.type == ITEM_TYPE_SHORTCUT) {
                 val rect = getClickableRect(gridItem)
                 if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
