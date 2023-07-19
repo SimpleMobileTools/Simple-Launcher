@@ -177,7 +177,7 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     override fun onTopResumedActivityChanged(isTopResumedActivity: Boolean) {
         super.onTopResumedActivityChanged(isTopResumedActivity)
-        if (!isTopResumedActivity) {
+        if (!isTopResumedActivity && config.alwaysNavigateToHomeScreen) {
             Handler(mainLooper).postDelayed({
                 hideFragment(all_apps_fragment)
                 hideFragment(widgets_fragment)

@@ -35,6 +35,7 @@ class SettingsActivity : SimpleActivity() {
         setupPurchaseThankYou()
         setupCustomizeColors()
         setupUseEnglish()
+        setupAlwaysNavigateToHomeScreen()
         setupDrawerColumnCount()
         setupDrawerSearchBar()
         setupLanguage()
@@ -84,6 +85,14 @@ class SettingsActivity : SimpleActivity() {
             settings_use_english.toggle()
             config.useEnglish = settings_use_english.isChecked
             exitProcess(0)
+        }
+    }
+
+    private fun setupAlwaysNavigateToHomeScreen() {
+        settings_navigate_to_home_grid_on_home.isChecked = config.alwaysNavigateToHomeScreen
+        settings_navigate_to_home_grid_on_home_holder.setOnClickListener {
+            settings_navigate_to_home_grid_on_home.toggle()
+            config.alwaysNavigateToHomeScreen = settings_navigate_to_home_grid_on_home.isChecked
         }
     }
 

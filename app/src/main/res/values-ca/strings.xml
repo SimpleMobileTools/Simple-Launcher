@@ -12,4 +12,5 @@
     <string name="hidden_icons">Icones ocultes</string>
     <string name="hidden_icons_placeholder">Algunes aplicacions no es poden desinstal·lar a causa de les restriccions del sistema, però almenys podeu ocultar les seves icones per evitar que es vegin.</string>
     <string name="app_drawer_settings">Calaix d\'aplicacions</string>
+    <string name="always_navigate_to_home_screen">Always navigate to home screen on home button</string>
 </resources>

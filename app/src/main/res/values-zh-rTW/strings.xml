@@ -12,6 +12,7 @@
     <string name="hidden_icons">隱藏圖示</string>
     <string name="hidden_icons_placeholder">由於系統限制，有些應用程式無法被移除，但您至少可以將它們的圖示隱藏起來，避免看到它們。</string>
     <string name="app_drawer_settings">應用程式抽屜</string>
+    <string name="always_navigate_to_home_screen">Always navigate to home screen on home button</string>
     <!--
         Haven't found some strings? There's more at
         https://github.com/SimpleMobileTools/Simple-Commons/tree/master/commons/src/main/res

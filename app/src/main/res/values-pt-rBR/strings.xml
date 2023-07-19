@@ -12,6 +12,7 @@
     <string name="hidden_icons">Ícones ocultos</string>
     <string name="hidden_icons_placeholder">Alguns aplicativos não podem ser desinstalados devido a restrições do sistema, mas você pode ao menos ocultar seus ícones para evitar vê-los.</string>
     <string name="app_drawer_settings">App drawer</string>
+    <string name="always_navigate_to_home_screen">Always navigate to home screen on home button</string>
     <!--
         Haven't found some strings? There's more at
         https://github.com/SimpleMobileTools/Simple-Commons/tree/master/commons/src/main/res

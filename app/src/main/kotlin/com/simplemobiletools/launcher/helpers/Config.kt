@@ -20,4 +20,8 @@ class Config(context: Context) : BaseConfig(context) {
     var showSearchBar: Boolean
         get() = prefs.getBoolean(SHOW_SEARCH_BAR, true)
         set(showSearchBar) = prefs.edit().putBoolean(SHOW_SEARCH_BAR, showSearchBar).apply()
+
+    var alwaysNavigateToHomeScreen: Boolean
+        get() = prefs.getBoolean(ALWAYS_NAVIGATE_TO_HOME_SCREEN, true)
+        set(alwaysNavigateToHomeScreen) = prefs.edit().putBoolean(ALWAYS_NAVIGATE_TO_HOME_SCREEN, alwaysNavigateToHomeScreen).apply()
 }

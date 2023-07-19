@@ -12,4 +12,5 @@
     <string name="hidden_icons">Gizli simgeler</string>
     <string name="hidden_icons_placeholder">Bazı uygulamalar sistem kısıtlamaları nedeniyle kaldırılamaz, ancak en azından onları görmemek için simgelerini gizleyebilirsiniz.</string>
     <string name="app_drawer_settings">Uygulama çekmecesi</string>
+    <string name="always_navigate_to_home_screen">Always navigate to home screen on home button</string>
 </resources>
