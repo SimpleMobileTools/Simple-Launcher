@@ -101,6 +101,25 @@ class MainActivity : SimpleActivity(), FlingListener {
             fragment.beVisible()
         }
 
+        handleIntentAction(intent)
+
+        home_screen_grid.itemClickListener = {
+            performItemClick(it)
+        }
+
+        home_screen_grid.itemLongClickListener = {
+            performItemLongClick(home_screen_grid.getClickableRect(it).left.toFloat(), it)
+        }
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        if (intent != null) {
+            handleIntentAction(intent)
+        }
+    }
+
+    private fun handleIntentAction(intent: Intent) {
         if (intent.action == LauncherApps.ACTION_CONFIRM_PIN_SHORTCUT) {
             val launcherApps = applicationContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
             val item = launcherApps.getPinItemRequest(intent)
@@ -132,23 +151,18 @@ class MainActivity : SimpleActivity(), FlingListener {
                     icon
                 )
 
+                runOnUiThread {
+                    home_screen_grid.skipToPage(page)
+                }
                 // delay showing the shortcut both to let the user see adding it in realtime and hackily avoid concurrent modification exception at HomeScreenGrid
                 Thread.sleep(2000)
 
                 try {
                     item.accept()
-                    home_screen_grid.storeAndShowGridItem(gridItem, navigateToPage = true)
+                    home_screen_grid.storeAndShowGridItem(gridItem)
                 } catch (ignored: IllegalStateException) {
                 }
             }
-        }
-
-        home_screen_grid.itemClickListener = {
-            performItemClick(it)
-        }
-
-        home_screen_grid.itemLongClickListener = {
-            performItemLongClick(home_screen_grid.getClickableRect(it).left.toFloat(), it)
         }
     }
 
@@ -169,7 +183,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                 for (checkedXCell in 0 until ROW_COUNT - 1) {
                     val wantedCell = Triple(page, checkedXCell, checkedYCell)
                     if (!occupiedCells.contains(wantedCell)) {
-                        return Pair(page, Rect(wantedCell.first, wantedCell.second, wantedCell.first, wantedCell.second))
+                        return Pair(page, Rect(wantedCell.second, wantedCell.third, wantedCell.second, wantedCell.third))
                     }
                 }
             }

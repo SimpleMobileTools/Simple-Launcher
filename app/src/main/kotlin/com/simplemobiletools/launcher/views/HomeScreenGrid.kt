@@ -368,13 +368,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
     }
 
-    fun storeAndShowGridItem(item: HomeScreenGridItem, navigateToPage: Boolean = false) {
+    fun storeAndShowGridItem(item: HomeScreenGridItem) {
         val newId = context.homeScreenGridItemsDB.insert(item)
         item.id = newId
         gridItems.add(item)
-        if (navigateToPage) {
-            skipToPage(item.page)
-        }
         redrawGrid()
     }
 
@@ -903,8 +900,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         return false
     }
 
-    private fun skipToPage(targetPage: Int): Boolean {
-        if (targetPage < getMaxPage() + 1) {
+    fun skipToPage(targetPage: Int): Boolean {
+        if (currentPage != targetPage && targetPage < getMaxPage() + 1) {
             lastPage = currentPage
             currentPage = targetPage
             handlePageChange()
