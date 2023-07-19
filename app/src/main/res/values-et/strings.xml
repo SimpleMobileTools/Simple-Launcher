@@ -12,4 +12,6 @@
     <string name="hidden_icons">Peidetud ikoonid</string>
     <string name="hidden_icons_placeholder">Mõnda rakendust ei saa süsteemipiirangute tõttu eemaldada. Selleks, et neid mitte näha, võid vähemalt nende ikoonid ära peita.</string>
     <string name="app_drawer_settings">App drawer</string>
+    <string name="home_screen_settings">Home screen</string>
+    <string name="widget_too_big">Widget is too big for current home screen size</string>
 </resources>

@@ -12,6 +12,9 @@ import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.extensions.config
 import com.simplemobiletools.launcher.helpers.MAX_COLUMN_COUNT
+import com.simplemobiletools.launcher.helpers.MAX_ROW_COUNT
+import com.simplemobiletools.launcher.helpers.MIN_COLUMN_COUNT
+import com.simplemobiletools.launcher.helpers.MIN_ROW_COUNT
 import kotlinx.android.synthetic.main.activity_settings.*
 import java.util.Locale
 import kotlin.system.exitProcess
@@ -37,11 +40,13 @@ class SettingsActivity : SimpleActivity() {
         setupUseEnglish()
         setupDrawerColumnCount()
         setupDrawerSearchBar()
+        setupHomeRowCount()
+        setupHomeColumnCount()
         setupLanguage()
         setupManageHiddenIcons()
         updateTextColors(settings_holder)
 
-        arrayOf(settings_color_customization_section_label, settings_general_settings_label, settings_drawer_settings_label).forEach {
+        arrayOf(settings_color_customization_section_label, settings_general_settings_label, settings_drawer_settings_label, settings_home_screen_label).forEach {
             it.setTextColor(getProperPrimaryColor())
         }
     }
@@ -112,6 +117,44 @@ class SettingsActivity : SimpleActivity() {
         settings_drawer_search_holder.setOnClickListener {
             settings_show_search_bar.toggle()
             config.showSearchBar = settings_show_search_bar.isChecked
+        }
+    }
+
+    private fun setupHomeRowCount() {
+        val currentRowCount = config.homeRowCount
+        settings_home_screen_row_count.text = currentRowCount.toString()
+        settings_home_screen_row_count_holder.setOnClickListener {
+            val items = ArrayList<RadioItem>()
+            for (i in MIN_ROW_COUNT..MAX_ROW_COUNT) {
+                items.add(RadioItem(i, resources.getQuantityString(R.plurals.row_counts, i, i)))
+            }
+
+            RadioGroupDialog(this, items, currentRowCount) {
+                val newRowCount = it as Int
+                if (currentRowCount != newRowCount) {
+                    config.homeRowCount = newRowCount
+                    setupHomeRowCount()
+                }
+            }
+        }
+    }
+
+    private fun setupHomeColumnCount() {
+        val currentColumnCount = config.homeColumnCount
+        settings_home_screen_column_count.text = currentColumnCount.toString()
+        settings_home_screen_column_count_holder.setOnClickListener {
+            val items = ArrayList<RadioItem>()
+            for (i in MIN_COLUMN_COUNT..MAX_COLUMN_COUNT) {
+                items.add(RadioItem(i, resources.getQuantityString(R.plurals.column_counts, i, i)))
+            }
+
+            RadioGroupDialog(this, items, currentColumnCount) {
+                val newColumnCount = it as Int
+                if (currentColumnCount != newColumnCount) {
+                    config.homeColumnCount = newColumnCount
+                    setupHomeColumnCount()
+                }
+            }
         }
     }
 

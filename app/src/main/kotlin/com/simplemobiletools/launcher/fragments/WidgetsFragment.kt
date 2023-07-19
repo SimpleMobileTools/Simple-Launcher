@@ -18,6 +18,7 @@ import com.simplemobiletools.commons.helpers.isRPlus
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.adapters.WidgetsAdapter
+import com.simplemobiletools.launcher.extensions.config
 import com.simplemobiletools.launcher.extensions.getInitialCellSize
 import com.simplemobiletools.launcher.helpers.ITEM_TYPE_SHORTCUT
 import com.simplemobiletools.launcher.helpers.ITEM_TYPE_WIDGET
@@ -238,6 +239,11 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
     }
 
     override fun onWidgetLongPressed(appWidget: AppWidget) {
+        if (appWidget.heightCells > context.config.homeRowCount - 1 || appWidget.widthCells > context.config.homeColumnCount) {
+            context.showErrorToast(context.getString(R.string.widget_too_big))
+            return
+        }
+
         val type = if (appWidget.isShortcut) {
             ITEM_TYPE_SHORTCUT
         } else {
