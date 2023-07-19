@@ -112,14 +112,14 @@ class MainActivity : SimpleActivity(), FlingListener {
                 val shortcutId = item.shortcutInfo?.id!!
                 val label = item.shortcutInfo?.shortLabel?.toString() ?: item.shortcutInfo?.longLabel?.toString() ?: ""
                 val icon = launcherApps.getShortcutIconDrawable(item.shortcutInfo!!, resources.displayMetrics.densityDpi)
-                val rect = findFirstEmptyCell() ?: return@ensureBackgroundThread
+                val (page, rect) = findFirstEmptyCell()
                 val gridItem = HomeScreenGridItem(
                     null,
                     rect.left,
                     rect.top,
                     rect.right,
                     rect.bottom,
-                    0,
+                    page,
                     item.shortcutInfo!!.`package`,
                     "",
                     label,
@@ -137,7 +137,7 @@ class MainActivity : SimpleActivity(), FlingListener {
 
                 try {
                     item.accept()
-                    home_screen_grid.storeAndShowGridItem(gridItem)
+                    home_screen_grid.storeAndShowGridItem(gridItem, navigateToPage = true)
                 } catch (ignored: IllegalStateException) {
                 }
             }
@@ -152,27 +152,30 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
     }
 
-    private fun findFirstEmptyCell(): Rect? {
+    private fun findFirstEmptyCell(): Pair<Int, Rect> {
         val gridItems = homeScreenGridItemsDB.getAllItems() as ArrayList<HomeScreenGridItem>
-        val occupiedCells = ArrayList<Pair<Int, Int>>()
+        val maxPage = gridItems.map { it.page }.max()
+        val occupiedCells = ArrayList<Triple<Int, Int, Int>>()
         gridItems.forEach { item ->
             for (xCell in item.left..item.right) {
                 for (yCell in item.top..item.bottom) {
-                    occupiedCells.add(Pair(xCell, yCell))
+                    occupiedCells.add(Triple(item.page, xCell, yCell))
                 }
             }
         }
 
-        for (checkedYCell in 0 until COLUMN_COUNT) {
-            for (checkedXCell in 0 until ROW_COUNT - 1) {
-                val wantedCell = Pair(checkedXCell, checkedYCell)
-                if (!occupiedCells.contains(wantedCell)) {
-                    return Rect(wantedCell.first, wantedCell.second, wantedCell.first, wantedCell.second)
+        for (page in 0 until maxPage) {
+            for (checkedYCell in 0 until COLUMN_COUNT) {
+                for (checkedXCell in 0 until ROW_COUNT - 1) {
+                    val wantedCell = Triple(page, checkedXCell, checkedYCell)
+                    if (!occupiedCells.contains(wantedCell)) {
+                        return Pair(page, Rect(wantedCell.first, wantedCell.second, wantedCell.first, wantedCell.second))
+                    }
                 }
             }
         }
 
-        return null
+        return Pair(maxPage + 1, Rect(0, 0, 0, 0))
     }
 
     override fun onStart() {
