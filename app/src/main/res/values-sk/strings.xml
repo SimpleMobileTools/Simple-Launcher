@@ -12,7 +12,7 @@
     <string name="hidden_icons">Skryté ikonky</string>
     <string name="hidden_icons_placeholder">Niektoré apky nemôžu byť odinštalované kvôli systémovým obmedzeniam, viete ich ale aspoň skryť, aby ste ich nevideli.</string>
     <string name="app_drawer_settings">Zoznam apiek</string>
-    <string name="home_screen_settings">Home screen</string>
+    <string name="home_screen_settings">Domáca obrazovka</string>
     <!--
         Haven't found some strings? There's more at
         https://github.com/SimpleMobileTools/Simple-Commons/tree/master/commons/src/main/res
