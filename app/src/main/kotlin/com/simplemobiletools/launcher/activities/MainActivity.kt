@@ -30,10 +30,7 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.isVisible
 import com.simplemobiletools.commons.extensions.*
-import com.simplemobiletools.commons.helpers.ensureBackgroundThread
-import com.simplemobiletools.commons.helpers.isPiePlus
-import com.simplemobiletools.commons.helpers.isQPlus
-import com.simplemobiletools.commons.helpers.isRPlus
+import com.simplemobiletools.commons.helpers.*
 import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.dialogs.RenameItemDialog
@@ -181,8 +178,10 @@ class MainActivity : SimpleActivity(), FlingListener {
     override fun onTopResumedActivityChanged(isTopResumedActivity: Boolean) {
         super.onTopResumedActivityChanged(isTopResumedActivity)
         if (!isTopResumedActivity) {
-            hideFragment(all_apps_fragment)
-            hideFragment(widgets_fragment)
+            Handler(mainLooper).postDelayed({
+                hideFragment(all_apps_fragment)
+                hideFragment(widgets_fragment)
+            }, 1000L)
         }
     }
 
