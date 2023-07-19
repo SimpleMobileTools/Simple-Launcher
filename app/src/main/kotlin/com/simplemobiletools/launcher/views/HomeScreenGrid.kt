@@ -56,6 +56,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     private var lastPage = 0
     private var currentPage = 0
+    private var pageChangeLastArea = PageChangeArea.MIDDLE
+    private var pageChangeLastAreaEntryTime = 0L
     private var pageChangeAnimLeftPercentage = 0f
     private var pageChangeEnabled = true
 
@@ -173,12 +175,34 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         draggedItemCurrentCoords = Pair(x, y)
-        if (x > right - sideMargins.right) {
-            nextOrAdditionalPage()
-        } else if (x < left + 2 * sideMargins.left) {
-            prevPage()
+        if (x > right - sideMargins.right - cellWidth / 2) {
+            doWithPageChangeDelay(PageChangeArea.RIGHT) {
+                nextOrAdditionalPage()
+            }
+        } else if (x < left + sideMargins.left + cellWidth / 2) {
+            doWithPageChangeDelay(PageChangeArea.LEFT) {
+                prevPage()
+            }
+        } else {
+            clearPageChangeFlags()
         }
         redrawGrid()
+    }
+
+    private fun clearPageChangeFlags() {
+        pageChangeLastArea = PageChangeArea.MIDDLE
+        pageChangeLastAreaEntryTime = 0
+    }
+
+    private fun doWithPageChangeDelay(needed: PageChangeArea, pageChangeFunction: () -> Boolean) {
+        if (pageChangeLastArea != needed) {
+            pageChangeLastArea = needed
+            pageChangeLastAreaEntryTime = System.currentTimeMillis()
+        } else if (System.currentTimeMillis() - pageChangeLastAreaEntryTime > PAGE_CHANGE_HOLD_THRESHOLD) {
+            if (pageChangeFunction()) {
+                clearPageChangeFlags()
+            }
+        }
     }
 
     // figure out at which cell was the item dropped, if it is empty
@@ -843,28 +867,37 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     private fun getMaxPage() = gridItems.map { it.page }.max()
 
-    private fun nextOrAdditionalPage(redraw: Boolean = false) {
+    private fun nextOrAdditionalPage(redraw: Boolean = false): Boolean {
         if (currentPage < getMaxPage() + 1 && pageChangeEnabled) {
             lastPage = currentPage
             currentPage++
             handlePageChange(redraw)
+            return true
         }
+
+        return false
     }
 
-    fun nextPage(redraw: Boolean = false) {
+    fun nextPage(redraw: Boolean = false): Boolean {
         if (currentPage < getMaxPage() && pageChangeEnabled) {
             lastPage = currentPage
             currentPage++
             handlePageChange(redraw)
+            return true
         }
+
+        return false
     }
 
-    fun prevPage(redraw: Boolean = false) {
+    fun prevPage(redraw: Boolean = false): Boolean {
         if (currentPage > 0 && pageChangeEnabled) {
             lastPage = currentPage
             currentPage--
             handlePageChange(redraw)
+            return true
         }
+
+        return false
     }
 
     private fun handlePageChange(redraw: Boolean = false) {
@@ -894,5 +927,12 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     companion object {
         private const val ANIMATION_DURATION = 700L
         private const val PAGE_CHANGE_BLOCKING_DURATION = ANIMATION_DURATION + 200L
+        private const val PAGE_CHANGE_HOLD_THRESHOLD = 500L
+
+        private enum class PageChangeArea {
+            LEFT,
+            MIDDLE,
+            RIGHT
+        }
     }
 }
