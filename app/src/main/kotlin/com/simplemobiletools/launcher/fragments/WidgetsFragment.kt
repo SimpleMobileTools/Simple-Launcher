@@ -240,7 +240,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
 
     override fun onWidgetLongPressed(appWidget: AppWidget) {
         if (appWidget.heightCells > context.config.homeRowCount - 1 || appWidget.widthCells > context.config.homeColumnCount) {
-            context.toast(context.getString(R.string.widget_too_big))
+            context.showErrorToast(context.getString(R.string.widget_too_big))
             return
         }
 
