@@ -23,8 +23,8 @@ interface HomeScreenGridItemsDao {
     @Query("UPDATE home_screen_grid_items SET title = :title WHERE id = :id")
     fun updateItemTitle(title: String, id: Long): Int
 
-    @Query("UPDATE home_screen_grid_items SET `left` = :left, `top` = :top, `right` = :right, `bottom` = :bottom, `page` = :page WHERE id = :id")
-    fun updateItemPosition(left: Int, top: Int, right: Int, bottom: Int, page: Int, id: Long)
+    @Query("UPDATE home_screen_grid_items SET `left` = :left, `top` = :top, `right` = :right, `bottom` = :bottom, `page` = :page, `docked` = :docked WHERE id = :id")
+    fun updateItemPosition(left: Int, top: Int, right: Int, bottom: Int, page: Int, docked: Boolean, id: Long)
 
     @Query("DELETE FROM home_screen_grid_items WHERE id = :id")
     fun deleteById(id: Long)

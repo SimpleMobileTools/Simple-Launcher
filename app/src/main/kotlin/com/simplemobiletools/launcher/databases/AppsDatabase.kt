@@ -7,6 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.simplemobiletools.launcher.extensions.config
 import com.simplemobiletools.launcher.helpers.Converters
 import com.simplemobiletools.launcher.interfaces.AppLaunchersDao
 import com.simplemobiletools.launcher.interfaces.HiddenIconsDao
@@ -15,7 +16,7 @@ import com.simplemobiletools.launcher.models.AppLauncher
 import com.simplemobiletools.launcher.models.HiddenIcon
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
 
-@Database(entities = [AppLauncher::class, HomeScreenGridItem::class, HiddenIcon::class], version = 5)
+@Database(entities = [AppLauncher::class, HomeScreenGridItem::class, HiddenIcon::class], version = 6)
 @TypeConverters(Converters::class)
 abstract class AppsDatabase : RoomDatabase() {
 
@@ -37,6 +38,7 @@ abstract class AppsDatabase : RoomDatabase() {
                             .addMigrations(MIGRATION_2_3)
                             .addMigrations(MIGRATION_3_4)
                             .addMigrations(MIGRATION_4_5)
+                            .addMigrations(MIGRATION_5_6.withContext(context))
                             .build()
                     }
                 }
@@ -69,6 +71,15 @@ abstract class AppsDatabase : RoomDatabase() {
         private val MIGRATION_4_5 = object : Migration(4, 5) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE home_screen_grid_items ADD COLUMN page INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        private val MIGRATION_5_6 = object {
+            fun withContext(context: Context) = object : Migration(5, 6) {
+                override fun migrate(database: SupportSQLiteDatabase) {
+                    database.execSQL("ALTER TABLE home_screen_grid_items ADD COLUMN docked INTEGER NOT NULL DEFAULT 0")
+                    database.execSQL("UPDATE home_screen_grid_items SET docked = 1 WHERE page = 0 AND type != 1 AND top = ?", arrayOf(context.config.homeRowCount - 1))
+                }
             }
         }
     }
