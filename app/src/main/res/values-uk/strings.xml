@@ -12,4 +12,6 @@
     <string name="hidden_icons">Приховані піктограми</string>
     <string name="hidden_icons_placeholder">Деякі застосунки не можна видалити через системні обмеження, але ви можете принаймні приховати їх піктограми, щоб уникнути їх перегляду.</string>
     <string name="app_drawer_settings">App drawer</string>
+    <string name="home_screen_settings">Home screen</string>
+    <string name="widget_too_big">Widget is too big for current home screen size</string>
 </resources>
