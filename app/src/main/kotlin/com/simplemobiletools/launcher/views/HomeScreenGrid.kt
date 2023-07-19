@@ -129,6 +129,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             columnCount = newColumnCount
             cellXCoords = ArrayList(columnCount)
             cellYCoords = ArrayList(rowCount)
+            gridCenters.clear()
             iconMargin = (context.resources.getDimension(R.dimen.icon_side_margin) * 5 / columnCount).toInt()
             redrawWidgets = true
             redrawGrid()
