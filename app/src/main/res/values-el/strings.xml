@@ -13,6 +13,7 @@
     <string name="hidden_icons_placeholder">Ορισμένες εφαρμογές δεν μπορούν να απεγκατασταθούν λόγω περιορισμών του συστήματος, αλλά μπορείτε να αποκρύψετε τα εικονίδια τους για να μην φαίνονται.</string>
     <string name="app_drawer_settings">Συρτάρι εφαρμογών</string>
     <string name="home_screen_settings">Home screen</string>
+    <string name="widget_too_big">Widget is too big for current home screen size</string>
     <!--
         Haven't found some strings? There's more at
         https://github.com/SimpleMobileTools/Simple-Commons/tree/master/commons/src/main/res

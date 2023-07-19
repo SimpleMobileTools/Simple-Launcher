@@ -13,4 +13,5 @@
     <string name="hidden_icons_placeholder">某些应用因系统限制而无法卸载， 但你至少可以隐藏它们的图标避免看见它们。</string>
     <string name="app_drawer_settings">应用抽屉</string>
     <string name="home_screen_settings">Home screen</string>
+    <string name="widget_too_big">Widget is too big for current home screen size</string>
 </resources>
