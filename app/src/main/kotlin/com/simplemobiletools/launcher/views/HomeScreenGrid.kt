@@ -24,6 +24,7 @@ import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.ViewCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.customview.widget.ExploreByTouchHelper
+import com.google.android.material.math.MathUtils
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.isSPlus
@@ -37,6 +38,7 @@ import com.simplemobiletools.launcher.models.HomeScreenGridItem
 import kotlinx.android.synthetic.main.activity_main.view.*
 import kotlin.math.abs
 import kotlin.math.floor
+import kotlin.math.max
 import kotlin.math.min
 
 class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : RelativeLayout(context, attrs, defStyle) {
@@ -54,8 +56,13 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private var iconMargin = (context.resources.getDimension(R.dimen.icon_side_margin) * 5 / columnCount).toInt()
     private var labelSideMargin = context.resources.getDimension(R.dimen.small_margin).toInt()
     private var roundedCornerRadius = context.resources.getDimension(R.dimen.activity_margin)
+    private var pageIndicatorRadius = context.resources.getDimension(R.dimen.page_indicator_dot_radius)
+    private var pageIndicatorStrokeWidth = context.resources.getDimension(R.dimen.page_indicator_stroke_width)
+    private var pageIndicatorMargin = context.resources.getDimension(R.dimen.page_indicator_margin)
     private var textPaint: TextPaint
     private var dragShadowCirclePaint: Paint
+    private var emptyPageIndicatorPaint: Paint
+    private var currentPageIndicatorPaint: Paint
     private var draggedItem: HomeScreenGridItem? = null
     private var resizedWidget: HomeScreenGridItem? = null
     private var isFirstDraw = true
@@ -96,6 +103,14 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             color = context.resources.getColor(R.color.light_grey_stroke)
             strokeWidth = context.resources.getDimension(R.dimen.small_margin)
             style = Paint.Style.STROKE
+        }
+
+        emptyPageIndicatorPaint = Paint(dragShadowCirclePaint).apply {
+            strokeWidth = context.resources.getDimension(R.dimen.page_indicator_stroke_width)
+        }
+        currentPageIndicatorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = context.resources.getColor(R.color.hint_white)
+            style = Paint.Style.FILL
         }
 
         val sideMargin = context.resources.getDimension(R.dimen.normal_margin).toInt()
@@ -167,6 +182,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             if (item.type == ITEM_TYPE_WIDGET) {
                 appWidgetHost.deleteAppWidgetId(item.widgetId)
             }
+
         }
     }
 
@@ -635,7 +651,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             1 - pageChangeAnimLeftPercentage
         }
 
-        fun handleDrawing(item: HomeScreenGridItem, xFactor: Float) {
+        fun handleItemDrawing(item: HomeScreenGridItem, xFactor: Float) {
             if (item.id != draggedItem?.id) {
                 val drawableX = cellXCoords[item.left] + iconMargin + extraXMargin + sideMargins.left + (width * xFactor).toInt()
 
@@ -673,14 +689,14 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 return@forEach
             }
 
-            handleDrawing(item, currentXFactor)
+            handleItemDrawing(item, currentXFactor)
         }
         gridItems.filter { (it.drawable != null && it.type == ITEM_TYPE_ICON || it.type == ITEM_TYPE_SHORTCUT) && it.docked }.forEach { item ->
             if (item.outOfBounds()) {
                 return@forEach
             }
 
-            handleDrawing(item, 0f)
+            handleItemDrawing(item, 0f)
         }
         if (pageChangeAnimLeftPercentage > 0f && pageChangeAnimLeftPercentage < 1f) {
             gridItems.filter { (it.drawable != null && it.type == ITEM_TYPE_ICON || it.type == ITEM_TYPE_SHORTCUT) && it.page == lastPage && !it.docked }.forEach { item ->
@@ -688,7 +704,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                     return@forEach
                 }
 
-                handleDrawing(item, lastXFactor)
+                handleItemDrawing(item, lastXFactor)
             }
         }
 
@@ -702,6 +718,28 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                     updateWidgetPositionAndSize(it, item)
                 }
             }
+        }
+
+        // Only draw page indicators when there is a need for it
+        if (getMaxPage() > 0 || currentPage > 0) {
+            val pageCount = max(getMaxPage(), currentPage) + 1
+            val pageIndicatorsRequiredWidth = pageCount * pageIndicatorRadius * 2 + pageCount * (pageIndicatorMargin - 1)
+            val usableWidth = getFakeWidth()
+            val pageIndicatorsStart = (usableWidth - pageIndicatorsRequiredWidth) / 2 + sideMargins.left
+            var currentPageIndicatorLeft = pageIndicatorsStart
+            val pageIndicatorY = cellYCoords[rowCount - 1].toFloat() + sideMargins.top + extraYMargin + iconMargin
+            val pageIndicatorStep = pageIndicatorRadius * 2 + pageIndicatorMargin
+            // Draw empty page indicators
+            for (page in 0 until pageCount) {
+                canvas.drawCircle(currentPageIndicatorLeft + pageIndicatorRadius, pageIndicatorY, pageIndicatorRadius, emptyPageIndicatorPaint)
+                currentPageIndicatorLeft += pageIndicatorStep
+            }
+
+            // Draw current page indicator on exact position
+            val currentIndicatorRangeStart = pageIndicatorsStart + lastPage * pageIndicatorStep
+            val currentIndicatorRangeEnd = pageIndicatorsStart + currentPage * pageIndicatorStep
+            val currentIndicatorPosition = MathUtils.lerp(currentIndicatorRangeStart, currentIndicatorRangeEnd, 1 - pageChangeAnimLeftPercentage)
+            canvas.drawCircle(currentIndicatorPosition + pageIndicatorRadius, pageIndicatorY, pageIndicatorRadius, currentPageIndicatorPaint)
         }
 
         if (draggedItem != null && draggedItemCurrentCoords.first != -1 && draggedItemCurrentCoords.second != -1) {
