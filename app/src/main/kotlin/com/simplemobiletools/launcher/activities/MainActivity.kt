@@ -712,10 +712,12 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     override fun onFlingRight() {
+        mIgnoreUpEvent = true
         home_screen_grid.prevPage(redraw = true)
     }
 
     override fun onFlingLeft() {
+        mIgnoreUpEvent = true
         home_screen_grid.nextPage(redraw = true)
     }
 
