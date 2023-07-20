@@ -1,5 +1,8 @@
 package com.simplemobiletools.launcher.views
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetManager
@@ -21,6 +24,7 @@ import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.ViewCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.customview.widget.ExploreByTouchHelper
+import com.google.android.material.math.MathUtils
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.isSPlus
@@ -34,6 +38,7 @@ import com.simplemobiletools.launcher.models.HomeScreenGridItem
 import kotlinx.android.synthetic.main.activity_main.view.*
 import kotlin.math.abs
 import kotlin.math.floor
+import kotlin.math.max
 import kotlin.math.min
 
 class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : RelativeLayout(context, attrs, defStyle) {
@@ -51,13 +56,24 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private var iconMargin = (context.resources.getDimension(R.dimen.icon_side_margin) * 5 / columnCount).toInt()
     private var labelSideMargin = context.resources.getDimension(R.dimen.small_margin).toInt()
     private var roundedCornerRadius = context.resources.getDimension(R.dimen.activity_margin)
+    private var pageIndicatorRadius = context.resources.getDimension(R.dimen.page_indicator_dot_radius)
+    private var pageIndicatorMargin = context.resources.getDimension(R.dimen.page_indicator_margin)
     private var textPaint: TextPaint
     private var dragShadowCirclePaint: Paint
+    private var emptyPageIndicatorPaint: Paint
+    private var currentPageIndicatorPaint: Paint
     private var draggedItem: HomeScreenGridItem? = null
     private var resizedWidget: HomeScreenGridItem? = null
     private var isFirstDraw = true
     private var redrawWidgets = false
     private var iconSize = 0
+
+    private var lastPage = 0
+    private var currentPage = 0
+    private var pageChangeLastArea = PageChangeArea.MIDDLE
+    private var pageChangeLastAreaEntryTime = 0L
+    private var pageChangeAnimLeftPercentage = 0f
+    private var pageChangeEnabled = true
 
     // apply fake margins at the home screen. Real ones would cause the icons be cut at dragging at screen sides
     var sideMargins = Rect()
@@ -73,6 +89,16 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     var itemClickListener: ((HomeScreenGridItem) -> Unit)? = null
     var itemLongClickListener: ((HomeScreenGridItem) -> Unit)? = null
 
+    private val checkAndExecuteDelayedPageChange: Runnable = Runnable {
+        if (System.currentTimeMillis() - pageChangeLastAreaEntryTime > PAGE_CHANGE_HOLD_THRESHOLD) {
+            when (pageChangeLastArea) {
+                PageChangeArea.RIGHT -> nextOrAdditionalPage(true)
+                PageChangeArea.LEFT -> prevPage(true)
+                else -> clearPageChangeFlags()
+            }
+        }
+    }
+
     init {
         ViewCompat.setAccessibilityDelegate(this, HomeScreenGridTouchHelper(this))
 
@@ -86,6 +112,14 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             color = context.resources.getColor(R.color.light_grey_stroke)
             strokeWidth = context.resources.getDimension(R.dimen.small_margin)
             style = Paint.Style.STROKE
+        }
+
+        emptyPageIndicatorPaint = Paint(dragShadowCirclePaint).apply {
+            strokeWidth = context.resources.getDimension(R.dimen.page_indicator_stroke_width)
+        }
+        currentPageIndicatorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = context.resources.getColor(R.color.hint_white)
+            style = Paint.Style.FILL
         }
 
         val sideMargin = context.resources.getDimension(R.dimen.normal_margin).toInt()
@@ -144,6 +178,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             }
 
             gridItems.removeIf { it.id == item.id }
+            if (currentPage > getMaxPage()) {
+                post {
+                    prevPage()
+                }
+            }
             redrawGrid()
         }
     }
@@ -186,7 +225,40 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         draggedItemCurrentCoords = Pair(x, y)
+        if (x > right - sideMargins.right - cellWidth / 2) {
+            doWithPageChangeDelay(PageChangeArea.RIGHT) {
+                nextOrAdditionalPage()
+            }
+        } else if (x < left + sideMargins.left + cellWidth / 2) {
+            doWithPageChangeDelay(PageChangeArea.LEFT) {
+                prevPage()
+            }
+        } else {
+            clearPageChangeFlags()
+        }
         redrawGrid()
+    }
+
+    private fun clearPageChangeFlags() {
+        pageChangeLastArea = PageChangeArea.MIDDLE
+        pageChangeLastAreaEntryTime = 0
+        removeCallbacks(checkAndExecuteDelayedPageChange)
+    }
+
+    private fun schedulePageChange() {
+        pageChangeLastAreaEntryTime = System.currentTimeMillis()
+        postDelayed(checkAndExecuteDelayedPageChange, PAGE_CHANGE_HOLD_THRESHOLD)
+    }
+
+    private fun doWithPageChangeDelay(needed: PageChangeArea, pageChangeFunction: () -> Boolean) {
+        if (pageChangeLastArea != needed) {
+            pageChangeLastArea = needed
+            schedulePageChange()
+        } else if (System.currentTimeMillis() - pageChangeLastAreaEntryTime > PAGE_CHANGE_HOLD_THRESHOLD) {
+            if (pageChangeFunction()) {
+                clearPageChangeFlags()
+            }
+        }
     }
 
     // figure out at which cell was the item dropped, if it is empty
@@ -235,7 +307,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 }
                 updateWidgetPositionAndSize(widgetView, item)
                 ensureBackgroundThread {
-                    context.homeScreenGridItemsDB.updateItemPosition(item.left, item.top, item.right, item.bottom, item.id!!)
+                    context.homeScreenGridItemsDB.updateItemPosition(item.left, item.top, item.right, item.bottom, item.page, false, item.id!!)
                 }
             }
 
@@ -274,9 +346,9 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             // check if the destination cell is empty
             var areAllCellsEmpty = true
             val wantedCell = Pair(xIndex, yIndex)
-            gridItems.forEach { item ->
+            gridItems.filter { it.page == currentPage || it.docked }.forEach { item ->
                 for (xCell in item.left..item.right) {
-                    for (yCell in item.top..item.bottom) {
+                    for (yCell in item.getDockAdjustedTop(rowCount)..item.getDockAdjustedBottom(rowCount)) {
                         val cell = Pair(xCell, yCell)
                         val isAnyCellOccupied = wantedCell == cell
                         if (isAnyCellOccupied) {
@@ -297,9 +369,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         top = yIndex
                         right = xIndex
                         bottom = yIndex
+                        page = currentPage
+                        docked = yIndex == rowCount - 1
 
                         ensureBackgroundThread {
-                            context.homeScreenGridItemsDB.updateItemPosition(left, top, right, bottom, id!!)
+                            context.homeScreenGridItemsDB.updateItemPosition(left, top, right, bottom, page, docked, id!!)
                         }
                     }
                     redrawIcons = true
@@ -311,6 +385,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         yIndex,
                         xIndex,
                         yIndex,
+                        currentPage,
                         draggedItem!!.packageName,
                         draggedItem!!.activityName,
                         draggedItem!!.title,
@@ -320,6 +395,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         "",
                         "",
                         draggedItem!!.icon,
+                        yIndex == rowCount - 1,
                         draggedItem!!.drawable,
                         draggedItem!!.providerInfo,
                         draggedItem!!.activityInfo
@@ -377,9 +453,9 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             }
 
             var areAllCellsEmpty = true
-            gridItems.filter { it.id != draggedItem?.id }.forEach { item ->
+            gridItems.filter { it.id != draggedItem?.id && (it.page == currentPage || it.docked) }.forEach { item ->
                 for (xCell in item.left..item.right) {
-                    for (yCell in item.top..item.bottom) {
+                    for (yCell in item.getDockAdjustedTop(rowCount)..item.getDockAdjustedBottom(rowCount)) {
                         val cell = Pair(xCell, yCell)
                         val isAnyCellOccupied = widgetTargetCells.contains(cell)
                         if (isAnyCellOccupied) {
@@ -397,6 +473,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                     top = widgetRect.top
                     right = widgetRect.right
                     bottom = widgetRect.bottom
+                    page = currentPage
                 }
 
                 ensureBackgroundThread {
@@ -408,7 +485,15 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                             bindWidget(widgetItem, false)
                         }
                     } else {
-                        context.homeScreenGridItemsDB.updateItemPosition(widgetItem.left, widgetItem.top, widgetItem.right, widgetItem.bottom, widgetItem.id!!)
+                        context.homeScreenGridItemsDB.updateItemPosition(
+                            widgetItem.left,
+                            widgetItem.top,
+                            widgetItem.right,
+                            widgetItem.bottom,
+                            currentPage,
+                            false,
+                            widgetItem.id!!
+                        )
                         val widgetView = widgetViews.firstOrNull { it.tag == widgetItem.widgetId }
                         if (widgetView != null && !widgetItem.outOfBounds()) {
                             post {
@@ -423,6 +508,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                             right = widgetItem.right
                             top = widgetItem.top
                             bottom = widgetItem.bottom
+                            page = widgetItem.page
                         }
                     }
                 }
@@ -462,6 +548,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 } else {
                     removeItemFromHomeScreen(item)
                 }
+
+                if (currentPage > getMaxPage()) {
+                    prevPage(redraw = true)
+                }
             }
         }
     }
@@ -494,7 +584,26 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     }
 
     private fun updateWidgetPositionAndSize(widgetView: AppWidgetHostView, item: HomeScreenGridItem): Size {
-        widgetView.x = calculateWidgetX(item.left)
+        var x = calculateWidgetX(item.left) + width * item.page - width * lastPage
+        if (pageChangeAnimLeftPercentage > 0f && pageChangeAnimLeftPercentage < 1f && (item.page == currentPage || item.page == lastPage)) {
+            val xFactor = if (currentPage > lastPage) {
+                pageChangeAnimLeftPercentage
+            } else {
+                -pageChangeAnimLeftPercentage
+            }
+            val lastXFactor = if (currentPage > lastPage) {
+                pageChangeAnimLeftPercentage - 1
+            } else {
+                1 - pageChangeAnimLeftPercentage
+            }
+            if (item.page == currentPage) {
+                x += width * xFactor
+            }
+            if (item.page == lastPage) {
+                x += width * lastXFactor
+            }
+        }
+        widgetView.x = x
         widgetView.y = calculateWidgetY(item.top)
         val widgetWidth = item.getWidthInCells() * cellWidth
         val widgetHeight = item.getHeightInCells() * cellHeight
@@ -554,16 +663,23 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             fillCellSizes()
         }
 
-        gridItems.filter { it.drawable != null && it.type == ITEM_TYPE_ICON || it.type == ITEM_TYPE_SHORTCUT }.forEach { item ->
-            if (item.outOfBounds()) {
-                return@forEach
-            }
+        val currentXFactor = if (currentPage > lastPage) {
+            pageChangeAnimLeftPercentage
+        } else {
+            -pageChangeAnimLeftPercentage
+        }
+        val lastXFactor = if (currentPage > lastPage) {
+            pageChangeAnimLeftPercentage - 1
+        } else {
+            1 - pageChangeAnimLeftPercentage
+        }
 
+        fun handleItemDrawing(item: HomeScreenGridItem, xFactor: Float) {
             if (item.id != draggedItem?.id) {
-                val drawableX = cellXCoords[item.left] + iconMargin + extraXMargin + sideMargins.left
+                val drawableX = cellXCoords[item.left] + iconMargin + extraXMargin + sideMargins.left + (width * xFactor).toInt()
 
-                if (item.top == rowCount - 1) {
-                    val drawableY = cellYCoords[item.top] + cellHeight - iconMargin - iconSize + sideMargins.top
+                if (item.docked) {
+                    val drawableY = cellYCoords[rowCount - 1] + cellHeight - iconMargin - iconSize + sideMargins.top
 
                     item.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
                 } else {
@@ -571,7 +687,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                     item.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
 
                     if (item.id != draggedItem?.id && item.title.isNotEmpty()) {
-                        val textX = cellXCoords[item.left].toFloat() + labelSideMargin + sideMargins.left
+                        val textX = cellXCoords[item.left].toFloat() + labelSideMargin + sideMargins.left + width * xFactor
                         val textY = cellYCoords[item.top].toFloat() + iconSize + iconMargin + extraYMargin + labelSideMargin + sideMargins.top
                         val staticLayout = StaticLayout.Builder
                             .obtain(item.title, 0, item.title.length, textPaint, cellWidth - 2 * labelSideMargin)
@@ -591,11 +707,64 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             }
         }
 
-        if (isFirstDraw || redrawWidgets) {
-            gridItems.filter { it.type == ITEM_TYPE_WIDGET && !it.outOfBounds() }.forEach { item ->
-                bindWidget(item, isFirstDraw)
+        gridItems.filter { (it.drawable != null && it.type == ITEM_TYPE_ICON || it.type == ITEM_TYPE_SHORTCUT) && it.page == currentPage && !it.docked }
+            .forEach { item ->
+                if (item.outOfBounds()) {
+                    return@forEach
+                }
+
+                handleItemDrawing(item, currentXFactor)
             }
-            redrawWidgets = false
+        gridItems.filter { (it.drawable != null && it.type == ITEM_TYPE_ICON || it.type == ITEM_TYPE_SHORTCUT) && it.docked }.forEach { item ->
+            if (item.outOfBounds()) {
+                return@forEach
+            }
+
+            handleItemDrawing(item, 0f)
+        }
+        if (pageChangeAnimLeftPercentage > 0f && pageChangeAnimLeftPercentage < 1f) {
+            gridItems.filter { (it.drawable != null && it.type == ITEM_TYPE_ICON || it.type == ITEM_TYPE_SHORTCUT) && it.page == lastPage && !it.docked }
+                .forEach { item ->
+                    if (item.outOfBounds()) {
+                        return@forEach
+                    }
+
+                    handleItemDrawing(item, lastXFactor)
+                }
+        }
+
+        if (isFirstDraw) {
+            gridItems.filter { it.type == ITEM_TYPE_WIDGET && !it.outOfBounds() }.forEach { item ->
+                bindWidget(item, true)
+            }
+        } else {
+            gridItems.filter { it.type == ITEM_TYPE_WIDGET && !it.outOfBounds() }.forEach { item ->
+                widgetViews.firstOrNull { it.tag == item.widgetId }?.also {
+                    updateWidgetPositionAndSize(it, item)
+                }
+            }
+        }
+
+        // Only draw page indicators when there is a need for it
+        if (getMaxPage() > 0 || currentPage > 0) {
+            val pageCount = max(getMaxPage(), currentPage) + 1
+            val pageIndicatorsRequiredWidth = pageCount * pageIndicatorRadius * 2 + pageCount * (pageIndicatorMargin - 1)
+            val usableWidth = getFakeWidth()
+            val pageIndicatorsStart = (usableWidth - pageIndicatorsRequiredWidth) / 2 + sideMargins.left
+            var currentPageIndicatorLeft = pageIndicatorsStart
+            val pageIndicatorY = cellYCoords[rowCount - 1].toFloat() + sideMargins.top + extraYMargin + iconMargin
+            val pageIndicatorStep = pageIndicatorRadius * 2 + pageIndicatorMargin
+            // Draw empty page indicators
+            for (page in 0 until pageCount) {
+                canvas.drawCircle(currentPageIndicatorLeft + pageIndicatorRadius, pageIndicatorY, pageIndicatorRadius, emptyPageIndicatorPaint)
+                currentPageIndicatorLeft += pageIndicatorStep
+            }
+
+            // Draw current page indicator on exact position
+            val currentIndicatorRangeStart = pageIndicatorsStart + lastPage * pageIndicatorStep
+            val currentIndicatorRangeEnd = pageIndicatorsStart + currentPage * pageIndicatorStep
+            val currentIndicatorPosition = MathUtils.lerp(currentIndicatorRangeStart, currentIndicatorRangeEnd, 1 - pageChangeAnimLeftPercentage)
+            canvas.drawCircle(currentIndicatorPosition + pageIndicatorRadius, pageIndicatorY, pageIndicatorRadius, currentPageIndicatorPaint)
         }
 
         if (draggedItem != null && draggedItemCurrentCoords.first != -1 && draggedItemCurrentCoords.second != -1) {
@@ -707,8 +876,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         val clickableLeft = cellXCoords[item.left] + sideMargins.left + extraXMargin
-        val clickableTop = if (item.top == rowCount - 1) {
-            cellYCoords[item.top] + cellHeight - iconSize - iconMargin
+        val clickableTop = if (item.docked) {
+            cellYCoords[item.getDockAdjustedTop(rowCount)] + cellHeight - iconSize - iconMargin
         } else {
             cellYCoords[item.top] - iconMargin + extraYMargin
         } + sideMargins.top
@@ -741,7 +910,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     }
 
     fun isClickingGridItem(x: Int, y: Int): HomeScreenGridItem? {
-        for (gridItem in gridItems) {
+        for (gridItem in gridItems.filter { it.page == currentPage || it.docked }) {
             if (gridItem.outOfBounds()) {
                 continue
             }
@@ -775,7 +944,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     }
 
     private fun HomeScreenGridItem.outOfBounds(): Boolean {
-        return (left >= cellXCoords.size || right >= cellXCoords.size || top >= cellYCoords.size || bottom >= cellYCoords.size)
+        return (left >= cellXCoords.size || right >= cellXCoords.size || (!docked && (top >= cellYCoords.size - 1 || bottom >= cellYCoords.size - 1)))
     }
 
     private inner class HomeScreenGridTouchHelper(host: View) : ExploreByTouchHelper(host) {
@@ -790,7 +959,9 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         override fun getVisibleVirtualViews(virtualViewIds: MutableList<Int>?) {
-            val sorted = gridItems.sortedBy { it.top * 100 + it.left }
+            val sorted = gridItems.sortedBy {
+                it.getDockAdjustedTop(rowCount) * 100 + it.left
+            }
             sorted.forEachIndexed { index, homeScreenGridItem ->
                 virtualViewIds?.add(index, homeScreenGridItem.id?.toInt() ?: index)
             }
@@ -830,6 +1001,87 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             }
 
             return false
+        }
+    }
+
+    private fun getMaxPage() = gridItems.filter { !it.docked && !it.outOfBounds() }.maxOfOrNull { it.page } ?: 0
+
+    private fun nextOrAdditionalPage(redraw: Boolean = false): Boolean {
+        if (currentPage < getMaxPage() + 1 && pageChangeEnabled) {
+            lastPage = currentPage
+            currentPage++
+            handlePageChange(redraw)
+            return true
+        }
+
+        return false
+    }
+
+    fun nextPage(redraw: Boolean = false): Boolean {
+        if (currentPage < getMaxPage() && pageChangeEnabled) {
+            lastPage = currentPage
+            currentPage++
+            handlePageChange(redraw)
+            return true
+        }
+
+        return false
+    }
+
+    fun prevPage(redraw: Boolean = false): Boolean {
+        if (currentPage > 0 && pageChangeEnabled) {
+            lastPage = currentPage
+            currentPage--
+            handlePageChange(redraw)
+            return true
+        }
+
+        return false
+    }
+
+    fun skipToPage(targetPage: Int): Boolean {
+        if (currentPage != targetPage && targetPage < getMaxPage() + 1) {
+            lastPage = currentPage
+            currentPage = targetPage
+            handlePageChange()
+            return true
+        }
+
+        return false
+    }
+
+    private fun handlePageChange(redraw: Boolean = false) {
+        pageChangeEnabled = false
+        if (redraw) {
+            redrawGrid()
+        }
+        ValueAnimator.ofFloat(1f, 0f)
+            .apply {
+                addUpdateListener {
+                    pageChangeAnimLeftPercentage = it.animatedValue as Float
+                    redrawGrid()
+                }
+                addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        super.onAnimationEnd(animation)
+                        pageChangeAnimLeftPercentage = 0f
+                        pageChangeEnabled = true
+                        lastPage = currentPage
+                        schedulePageChange()
+                        redrawGrid()
+                    }
+                })
+                start()
+            }
+    }
+
+    companion object {
+        private const val PAGE_CHANGE_HOLD_THRESHOLD = 500L
+
+        private enum class PageChangeArea {
+            LEFT,
+            MIDDLE,
+            RIGHT
         }
     }
 }

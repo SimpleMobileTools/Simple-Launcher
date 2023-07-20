@@ -15,6 +15,7 @@ data class HomeScreenGridItem(
     @ColumnInfo(name = "top") var top: Int,
     @ColumnInfo(name = "right") var right: Int,
     @ColumnInfo(name = "bottom") var bottom: Int,
+    @ColumnInfo(name = "page") var page: Int,
     @ColumnInfo(name = "package_name") var packageName: String,
     @ColumnInfo(name = "activity_name") var activityName: String,   // needed at apps that create multiple icons at install, not just the launcher
     @ColumnInfo(name = "title") var title: String,
@@ -24,6 +25,7 @@ data class HomeScreenGridItem(
     @ColumnInfo(name = "intent") var intent: String,            // used at static and dynamic shortcuts on click
     @ColumnInfo(name = "shortcut_id") var shortcutId: String,   // used at pinned shortcuts at startLauncher call
     @ColumnInfo(name = "icon") var icon: Bitmap? = null,        // store images of pinned shortcuts, those cannot be retrieved after creating
+    @ColumnInfo(name = "docked") var docked: Boolean = false,   // special flag, meaning that page, top and bottom don't matter for this item, it is always at the bottom of the screen
 
     @Ignore var drawable: Drawable? = null,
     @Ignore var providerInfo: AppWidgetProviderInfo? = null,    // used at widgets
@@ -31,7 +33,7 @@ data class HomeScreenGridItem(
     @Ignore var widthCells: Int = 1,
     @Ignore var heightCells: Int = 1
 ) {
-    constructor() : this(null, -1, -1, -1, -1, "", "", "", ITEM_TYPE_ICON, "", -1, "", "", null, null, null, null, 1, 1)
+    constructor() : this(null, -1, -1, -1, -1, 0, "", "", "", ITEM_TYPE_ICON, "", -1, "", "", null, false, null, null, null, 1, 1)
 
     fun getWidthInCells() = if (right == -1 || left == -1) {
         widthCells
@@ -43,6 +45,22 @@ data class HomeScreenGridItem(
         heightCells
     } else {
         bottom - top + 1
+    }
+
+    fun getDockAdjustedTop(rowCount: Int): Int {
+        return if (!docked) {
+            top
+        } else {
+            rowCount - 1
+        }
+    }
+
+    fun getDockAdjustedBottom(rowCount: Int): Int {
+        return if (!docked) {
+            bottom
+        } else {
+            rowCount - 1
+        }
     }
 
     fun getItemIdentifier() = "$packageName/$activityName"

@@ -198,6 +198,7 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             -1,
             -1,
             -1,
+            0,
             appLauncher.packageName,
             appLauncher.activityName,
             appLauncher.title,
@@ -207,6 +208,7 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             "",
             "",
             null,
+            false,
             appLauncher.drawable
         )
 

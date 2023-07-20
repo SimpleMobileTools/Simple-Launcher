@@ -50,6 +50,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.view.*
 import kotlinx.android.synthetic.main.all_apps_fragment.view.*
 import kotlinx.android.synthetic.main.widgets_fragment.view.*
+import kotlin.math.abs
 
 class MainActivity : SimpleActivity(), FlingListener {
     private val ANIMATION_DURATION = 150L
@@ -92,7 +93,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         mScreenHeight = realScreenSize.y
         mAllAppsFragmentY = mScreenHeight
         mWidgetsFragmentY = mScreenHeight
-        mMoveGestureThreshold = resources.getDimension(R.dimen.move_gesture_threshold).toInt()
+        mMoveGestureThreshold = resources.getDimensionPixelSize(R.dimen.move_gesture_threshold)
 
         arrayOf(all_apps_fragment as MyFragment, widgets_fragment as MyFragment).forEach { fragment ->
             fragment.setupFragment(this)
@@ -100,6 +101,25 @@ class MainActivity : SimpleActivity(), FlingListener {
             fragment.beVisible()
         }
 
+        handleIntentAction(intent)
+
+        home_screen_grid.itemClickListener = {
+            performItemClick(it)
+        }
+
+        home_screen_grid.itemLongClickListener = {
+            performItemLongClick(home_screen_grid.getClickableRect(it).left.toFloat(), it)
+        }
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        if (intent != null) {
+            handleIntentAction(intent)
+        }
+    }
+
+    private fun handleIntentAction(intent: Intent) {
         if (intent.action == LauncherApps.ACTION_CONFIRM_PIN_SHORTCUT) {
             val launcherApps = applicationContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
             val item = launcherApps.getPinItemRequest(intent)
@@ -111,13 +131,14 @@ class MainActivity : SimpleActivity(), FlingListener {
                 val shortcutId = item.shortcutInfo?.id!!
                 val label = item.shortcutInfo?.shortLabel?.toString() ?: item.shortcutInfo?.longLabel?.toString() ?: ""
                 val icon = launcherApps.getShortcutIconDrawable(item.shortcutInfo!!, resources.displayMetrics.densityDpi)
-                val rect = findFirstEmptyCell() ?: return@ensureBackgroundThread
+                val (page, rect) = findFirstEmptyCell()
                 val gridItem = HomeScreenGridItem(
                     null,
                     rect.left,
                     rect.top,
                     rect.right,
                     rect.bottom,
+                    page,
                     item.shortcutInfo!!.`package`,
                     "",
                     label,
@@ -127,9 +148,13 @@ class MainActivity : SimpleActivity(), FlingListener {
                     "",
                     shortcutId,
                     icon.toBitmap(),
+                    false,
                     icon
                 )
 
+                runOnUiThread {
+                    home_screen_grid.skipToPage(page)
+                }
                 // delay showing the shortcut both to let the user see adding it in realtime and hackily avoid concurrent modification exception at HomeScreenGrid
                 Thread.sleep(2000)
 
@@ -140,37 +165,32 @@ class MainActivity : SimpleActivity(), FlingListener {
                 }
             }
         }
-
-        home_screen_grid.itemClickListener = {
-            performItemClick(it)
-        }
-
-        home_screen_grid.itemLongClickListener = {
-            performItemLongClick(home_screen_grid.getClickableRect(it).left.toFloat(), it)
-        }
     }
 
-    private fun findFirstEmptyCell(): Rect? {
+    private fun findFirstEmptyCell(): Pair<Int, Rect> {
         val gridItems = homeScreenGridItemsDB.getAllItems() as ArrayList<HomeScreenGridItem>
-        val occupiedCells = ArrayList<Pair<Int, Int>>()
+        val maxPage = gridItems.map { it.page }.max()
+        val occupiedCells = ArrayList<Triple<Int, Int, Int>>()
         gridItems.forEach { item ->
             for (xCell in item.left..item.right) {
                 for (yCell in item.top..item.bottom) {
-                    occupiedCells.add(Pair(xCell, yCell))
+                    occupiedCells.add(Triple(item.page, xCell, yCell))
                 }
             }
         }
 
-        for (checkedYCell in 0 until config.homeColumnCount) {
-            for (checkedXCell in 0 until config.homeRowCount - 1) {
-                val wantedCell = Pair(checkedXCell, checkedYCell)
-                if (!occupiedCells.contains(wantedCell)) {
-                    return Rect(wantedCell.first, wantedCell.second, wantedCell.first, wantedCell.second)
+        for (page in 0 until maxPage) {
+            for (checkedYCell in 0 until config.homeColumnCount) {
+                for (checkedXCell in 0 until config.homeRowCount - 1) {
+                    val wantedCell = Triple(page, checkedXCell, checkedYCell)
+                    if (!occupiedCells.contains(wantedCell)) {
+                        return Pair(page, Rect(wantedCell.second, wantedCell.third, wantedCell.second, wantedCell.third))
+                    }
                 }
             }
         }
 
-        return null
+        return Pair(maxPage + 1, Rect(0, 0, 0, 0))
     }
 
     override fun onStart() {
@@ -318,7 +338,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                     home_screen_grid.draggedItemMoved(event.x.toInt(), event.y.toInt())
                 }
 
-                if (mTouchDownY != -1 && !mIgnoreMoveEvents) {
+                if (hasFingerMoved && !mIgnoreMoveEvents) {
                     val diffY = mTouchDownY - event.y
 
                     if (isWidgetsFragmentExpanded()) {
@@ -364,7 +384,7 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     // some devices ACTION_MOVE keeps triggering for the whole long press duration, but we are interested in real moves only, when coords change
     private fun hasFingerMoved(event: MotionEvent) = mTouchDownX != -1 && mTouchDownY != -1 &&
-        (Math.abs(mTouchDownX - event.x) > mMoveGestureThreshold) || (Math.abs(mTouchDownY - event.y) > mMoveGestureThreshold)
+        ((Math.abs(mTouchDownX - event.x) > mMoveGestureThreshold) || (Math.abs(mTouchDownY - event.y) > mMoveGestureThreshold))
 
     private fun refetchLaunchers() {
         val launchers = getAllAppLaunchers()
@@ -647,11 +667,20 @@ class MainActivity : SimpleActivity(), FlingListener {
                 return true
             }
 
-            if (velocityY > 0) {
-                flingListener.onFlingDown()
-            } else {
-                flingListener.onFlingUp()
+            if (abs(velocityY) > abs(velocityX)) {
+                if (velocityY > 0) {
+                    flingListener.onFlingDown()
+                } else {
+                    flingListener.onFlingUp()
+                }
+            } else if (abs(velocityX) > abs(velocityY)) {
+                if (velocityX > 0) {
+                    flingListener.onFlingRight()
+                } else {
+                    flingListener.onFlingLeft()
+                }
             }
+
             return true
         }
 
@@ -680,6 +709,14 @@ class MainActivity : SimpleActivity(), FlingListener {
             } catch (e: Exception) {
             }
         }
+    }
+
+    override fun onFlingRight() {
+        home_screen_grid.prevPage(redraw = true)
+    }
+
+    override fun onFlingLeft() {
+        home_screen_grid.nextPage(redraw = true)
     }
 
     @SuppressLint("WrongConstant")
@@ -728,7 +765,24 @@ class MainActivity : SimpleActivity(), FlingListener {
             val defaultDialerPackage = (getSystemService(Context.TELECOM_SERVICE) as TelecomManager).defaultDialerPackage
             appLaunchers.firstOrNull { it.packageName == defaultDialerPackage }?.apply {
                 val dialerIcon =
-                    HomeScreenGridItem(null, 0, config.homeRowCount - 1, 0, config.homeRowCount - 1, defaultDialerPackage, "", title, ITEM_TYPE_ICON, "", -1, "", "", null)
+                    HomeScreenGridItem(
+                        null,
+                        0,
+                        config.homeRowCount - 1,
+                        0,
+                        config.homeRowCount - 1,
+                        0,
+                        defaultDialerPackage,
+                        "",
+                        title,
+                        ITEM_TYPE_ICON,
+                        "",
+                        -1,
+                        "",
+                        "",
+                        null,
+                        true
+                    )
                 homeScreenGridItems.add(dialerIcon)
             }
         } catch (e: Exception) {
@@ -738,7 +792,24 @@ class MainActivity : SimpleActivity(), FlingListener {
             val defaultSMSMessengerPackage = Telephony.Sms.getDefaultSmsPackage(this)
             appLaunchers.firstOrNull { it.packageName == defaultSMSMessengerPackage }?.apply {
                 val SMSMessengerIcon =
-                    HomeScreenGridItem(null, 1, config.homeRowCount - 1, 1, config.homeRowCount - 1, defaultSMSMessengerPackage, "", title, ITEM_TYPE_ICON, "", -1, "", "", null)
+                    HomeScreenGridItem(
+                        null,
+                        1,
+                        config.homeRowCount - 1,
+                        1,
+                        config.homeRowCount - 1,
+                        0,
+                        defaultSMSMessengerPackage,
+                        "",
+                        title,
+                        ITEM_TYPE_ICON,
+                        "",
+                        -1,
+                        "",
+                        "",
+                        null,
+                        true
+                    )
                 homeScreenGridItems.add(SMSMessengerIcon)
             }
         } catch (e: Exception) {
@@ -750,7 +821,24 @@ class MainActivity : SimpleActivity(), FlingListener {
             val defaultBrowserPackage = resolveInfo!!.activityInfo.packageName
             appLaunchers.firstOrNull { it.packageName == defaultBrowserPackage }?.apply {
                 val browserIcon =
-                    HomeScreenGridItem(null, 2, config.homeRowCount - 1, 2, config.homeRowCount - 1, defaultBrowserPackage, "", title, ITEM_TYPE_ICON, "", -1, "", "", null)
+                    HomeScreenGridItem(
+                        null,
+                        2,
+                        config.homeRowCount - 1,
+                        2,
+                        config.homeRowCount - 1,
+                        0,
+                        defaultBrowserPackage,
+                        "",
+                        title,
+                        ITEM_TYPE_ICON,
+                        "",
+                        -1,
+                        "",
+                        "",
+                        null,
+                        true
+                    )
                 homeScreenGridItems.add(browserIcon)
             }
         } catch (e: Exception) {
@@ -761,7 +849,24 @@ class MainActivity : SimpleActivity(), FlingListener {
             val storePackage = potentialStores.firstOrNull { isPackageInstalled(it) && appLaunchers.map { it.packageName }.contains(it) }
             if (storePackage != null) {
                 appLaunchers.firstOrNull { it.packageName == storePackage }?.apply {
-                    val storeIcon = HomeScreenGridItem(null, 3, config.homeRowCount - 1, 3, config.homeRowCount - 1, storePackage, "", title, ITEM_TYPE_ICON, "", -1, "", "", null)
+                    val storeIcon = HomeScreenGridItem(
+                        null,
+                        3,
+                        config.homeRowCount - 1,
+                        3,
+                        config.homeRowCount - 1,
+                        0,
+                        storePackage,
+                        "",
+                        title,
+                        ITEM_TYPE_ICON,
+                        "",
+                        -1,
+                        "",
+                        "",
+                        null,
+                        true
+                    )
                     homeScreenGridItems.add(storeIcon)
                 }
             }
@@ -774,7 +879,24 @@ class MainActivity : SimpleActivity(), FlingListener {
             val defaultCameraPackage = resolveInfo!!.activityInfo.packageName
             appLaunchers.firstOrNull { it.packageName == defaultCameraPackage }?.apply {
                 val cameraIcon =
-                    HomeScreenGridItem(null, 4, config.homeRowCount - 1, 4, config.homeRowCount - 1, defaultCameraPackage, "", title, ITEM_TYPE_ICON, "", -1, "", "", null)
+                    HomeScreenGridItem(
+                        null,
+                        4,
+                        config.homeRowCount - 1,
+                        4,
+                        config.homeRowCount - 1,
+                        0,
+                        defaultCameraPackage,
+                        "",
+                        title,
+                        ITEM_TYPE_ICON,
+                        "",
+                        -1,
+                        "",
+                        "",
+                        null,
+                        true
+                    )
                 homeScreenGridItems.add(cameraIcon)
             }
         } catch (e: Exception) {
