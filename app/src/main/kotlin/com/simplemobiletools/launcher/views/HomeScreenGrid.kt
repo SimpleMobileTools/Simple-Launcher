@@ -169,6 +169,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             }
 
             gridItems.removeIf { it.id == item.id }
+            if (currentPage > getMaxPage()) {
+                post {
+                    prevPage()
+                }
+            }
             redrawGrid()
         }
     }
@@ -528,6 +533,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                     }
                 } else {
                     removeItemFromHomeScreen(item)
+                }
+
+                if (currentPage > getMaxPage()) {
+                    prevPage(redraw = true)
                 }
             }
         }
