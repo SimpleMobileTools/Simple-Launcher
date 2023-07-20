@@ -23,6 +23,7 @@ import android.widget.RelativeLayout
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.ViewCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
+import androidx.core.view.postDelayed
 import androidx.customview.widget.ExploreByTouchHelper
 import com.google.android.material.math.MathUtils
 import com.simplemobiletools.commons.extensions.*
@@ -89,6 +90,22 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     var itemClickListener: ((HomeScreenGridItem) -> Unit)? = null
     var itemLongClickListener: ((HomeScreenGridItem) -> Unit)? = null
+
+    private val checkAndExecuteDelayedPageChange: Runnable = Runnable {
+        if (System.currentTimeMillis() - pageChangeLastAreaEntryTime > PAGE_CHANGE_HOLD_THRESHOLD) {
+            when (pageChangeLastArea) {
+                PageChangeArea.RIGHT -> {
+                    nextOrAdditionalPage(true)
+                }
+                PageChangeArea.LEFT -> {
+                    prevPage(true)
+                }
+                else -> {
+                    clearPageChangeFlags()
+                }
+            }
+        }
+    }
 
     init {
         ViewCompat.setAccessibilityDelegate(this, HomeScreenGridTouchHelper(this))
@@ -234,12 +251,18 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private fun clearPageChangeFlags() {
         pageChangeLastArea = PageChangeArea.MIDDLE
         pageChangeLastAreaEntryTime = 0
+        removeCallbacks(checkAndExecuteDelayedPageChange)
+    }
+
+    private fun schedulePageChange() {
+        pageChangeLastAreaEntryTime = System.currentTimeMillis()
+        postDelayed(checkAndExecuteDelayedPageChange, PAGE_CHANGE_HOLD_THRESHOLD)
     }
 
     private fun doWithPageChangeDelay(needed: PageChangeArea, pageChangeFunction: () -> Boolean) {
         if (pageChangeLastArea != needed) {
             pageChangeLastArea = needed
-            pageChangeLastAreaEntryTime = System.currentTimeMillis()
+            schedulePageChange()
         } else if (System.currentTimeMillis() - pageChangeLastAreaEntryTime > PAGE_CHANGE_HOLD_THRESHOLD) {
             if (pageChangeFunction()) {
                 clearPageChangeFlags()
@@ -1051,6 +1074,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         pageChangeAnimLeftPercentage = 0f
                         pageChangeEnabled = true
                         lastPage = currentPage
+                        schedulePageChange()
                         redrawGrid()
                     }
                 })
