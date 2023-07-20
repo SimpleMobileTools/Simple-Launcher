@@ -1039,7 +1039,6 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         if (redraw) {
             redrawGrid()
         }
-        postDelayed({ pageChangeEnabled = true }, PAGE_CHANGE_BLOCKING_DURATION)
         ValueAnimator.ofFloat(1f, 0f)
             .apply {
                 addUpdateListener {
@@ -1050,6 +1049,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                     override fun onAnimationEnd(animation: Animator) {
                         super.onAnimationEnd(animation)
                         pageChangeAnimLeftPercentage = 0f
+                        pageChangeEnabled = true
                         lastPage = currentPage
                         redrawGrid()
                     }
@@ -1059,8 +1059,6 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     }
 
     companion object {
-        private const val ANIMATION_DURATION = 700L
-        private const val PAGE_CHANGE_BLOCKING_DURATION = ANIMATION_DURATION
         private const val PAGE_CHANGE_HOLD_THRESHOLD = 500L
 
         private enum class PageChangeArea {
