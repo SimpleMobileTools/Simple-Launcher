@@ -23,7 +23,6 @@ import android.widget.RelativeLayout
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.ViewCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
-import androidx.core.view.postDelayed
 import androidx.customview.widget.ExploreByTouchHelper
 import com.google.android.material.math.MathUtils
 import com.simplemobiletools.commons.extensions.*
@@ -93,15 +92,9 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private val checkAndExecuteDelayedPageChange: Runnable = Runnable {
         if (System.currentTimeMillis() - pageChangeLastAreaEntryTime > PAGE_CHANGE_HOLD_THRESHOLD) {
             when (pageChangeLastArea) {
-                PageChangeArea.RIGHT -> {
-                    nextOrAdditionalPage(true)
-                }
-                PageChangeArea.LEFT -> {
-                    prevPage(true)
-                }
-                else -> {
-                    clearPageChangeFlags()
-                }
+                PageChangeArea.RIGHT -> nextOrAdditionalPage(true)
+                PageChangeArea.LEFT -> prevPage(true)
+                else -> clearPageChangeFlags()
             }
         }
     }
@@ -203,7 +196,6 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             if (item.type == ITEM_TYPE_WIDGET) {
                 appWidgetHost.deleteAppWidgetId(item.widgetId)
             }
-
         }
     }
 
@@ -715,13 +707,14 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             }
         }
 
-        gridItems.filter { (it.drawable != null && it.type == ITEM_TYPE_ICON || it.type == ITEM_TYPE_SHORTCUT) && it.page == currentPage && !it.docked }.forEach { item ->
-            if (item.outOfBounds()) {
-                return@forEach
-            }
+        gridItems.filter { (it.drawable != null && it.type == ITEM_TYPE_ICON || it.type == ITEM_TYPE_SHORTCUT) && it.page == currentPage && !it.docked }
+            .forEach { item ->
+                if (item.outOfBounds()) {
+                    return@forEach
+                }
 
-            handleItemDrawing(item, currentXFactor)
-        }
+                handleItemDrawing(item, currentXFactor)
+            }
         gridItems.filter { (it.drawable != null && it.type == ITEM_TYPE_ICON || it.type == ITEM_TYPE_SHORTCUT) && it.docked }.forEach { item ->
             if (item.outOfBounds()) {
                 return@forEach
@@ -730,13 +723,14 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             handleItemDrawing(item, 0f)
         }
         if (pageChangeAnimLeftPercentage > 0f && pageChangeAnimLeftPercentage < 1f) {
-            gridItems.filter { (it.drawable != null && it.type == ITEM_TYPE_ICON || it.type == ITEM_TYPE_SHORTCUT) && it.page == lastPage && !it.docked }.forEach { item ->
-                if (item.outOfBounds()) {
-                    return@forEach
-                }
+            gridItems.filter { (it.drawable != null && it.type == ITEM_TYPE_ICON || it.type == ITEM_TYPE_SHORTCUT) && it.page == lastPage && !it.docked }
+                .forEach { item ->
+                    if (item.outOfBounds()) {
+                        return@forEach
+                    }
 
-                handleItemDrawing(item, lastXFactor)
-            }
+                    handleItemDrawing(item, lastXFactor)
+                }
         }
 
         if (isFirstDraw) {
@@ -916,7 +910,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     }
 
     fun isClickingGridItem(x: Int, y: Int): HomeScreenGridItem? {
-        for (gridItem in gridItems.filter { it.page == currentPage  || it.docked }) {
+        for (gridItem in gridItems.filter { it.page == currentPage || it.docked }) {
             if (gridItem.outOfBounds()) {
                 continue
             }
@@ -950,7 +944,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     }
 
     private fun HomeScreenGridItem.outOfBounds(): Boolean {
-        return (left >= cellXCoords.size || right >= cellXCoords.size || (!docked && (top >= cellYCoords.size - 1  || bottom >= cellYCoords.size - 1)))
+        return (left >= cellXCoords.size || right >= cellXCoords.size || (!docked && (top >= cellYCoords.size - 1 || bottom >= cellYCoords.size - 1)))
     }
 
     private inner class HomeScreenGridTouchHelper(host: View) : ExploreByTouchHelper(host) {
