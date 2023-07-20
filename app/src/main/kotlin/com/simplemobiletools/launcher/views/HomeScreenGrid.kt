@@ -74,6 +74,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private var pageChangeLastAreaEntryTime = 0L
     private var pageChangeAnimLeftPercentage = 0f
     private var pageChangeEnabled = true
+    private var pageChangeIndicatorsAlpha = 0f
 
     // apply fake margins at the home screen. Real ones would cause the icons be cut at dragging at screen sides
     var sideMargins = Rect()
@@ -99,6 +100,17 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
     }
 
+    private val startFadingIndicators: Runnable = Runnable {
+        ValueAnimator.ofFloat(1f, 0f)
+            .apply {
+                addUpdateListener {
+                    pageChangeIndicatorsAlpha = it.animatedValue as Float
+                    redrawGrid()
+                }
+                start()
+            }
+    }
+
     init {
         ViewCompat.setAccessibilityDelegate(this, HomeScreenGridTouchHelper(this))
 
@@ -109,7 +121,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         dragShadowCirclePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = context.resources.getColor(R.color.light_grey_stroke)
+            color = context.resources.getColor(R.color.hint_white)
             strokeWidth = context.resources.getDimension(R.dimen.small_margin)
             style = Paint.Style.STROKE
         }
@@ -118,7 +130,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             strokeWidth = context.resources.getDimension(R.dimen.page_indicator_stroke_width)
         }
         currentPageIndicatorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = context.resources.getColor(R.color.hint_white)
+            color = context.resources.getColor(R.color.white)
             style = Paint.Style.FILL
         }
 
@@ -248,6 +260,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private fun schedulePageChange() {
         pageChangeLastAreaEntryTime = System.currentTimeMillis()
         postDelayed(checkAndExecuteDelayedPageChange, PAGE_CHANGE_HOLD_THRESHOLD)
+    }
+
+    private fun scheduleIndicatorsFade() {
+        pageChangeIndicatorsAlpha = 1f
+        postDelayed(startFadingIndicators, PAGE_INDICATORS_FADE_DELAY)
     }
 
     private fun doWithPageChangeDelay(needed: PageChangeArea, pageChangeFunction: () -> Boolean) {
@@ -746,7 +763,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         // Only draw page indicators when there is a need for it
-        if (getMaxPage() > 0 || currentPage > 0) {
+        if (pageChangeAnimLeftPercentage > 0f || pageChangeIndicatorsAlpha != 0f) {
             val pageCount = max(getMaxPage(), currentPage) + 1
             val pageIndicatorsRequiredWidth = pageCount * pageIndicatorRadius * 2 + pageCount * (pageIndicatorMargin - 1)
             val usableWidth = getFakeWidth()
@@ -754,6 +771,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             var currentPageIndicatorLeft = pageIndicatorsStart
             val pageIndicatorY = cellYCoords[rowCount - 1].toFloat() + sideMargins.top + extraYMargin + iconMargin
             val pageIndicatorStep = pageIndicatorRadius * 2 + pageIndicatorMargin
+            if (pageChangeIndicatorsAlpha != 0f) {
+                emptyPageIndicatorPaint.alpha = (pageChangeIndicatorsAlpha * 255.0f).toInt()
+            } else {
+                emptyPageIndicatorPaint.alpha = 255
+            }
             // Draw empty page indicators
             for (page in 0 until pageCount) {
                 canvas.drawCircle(currentPageIndicatorLeft + pageIndicatorRadius, pageIndicatorY, pageIndicatorRadius, emptyPageIndicatorPaint)
@@ -764,6 +786,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             val currentIndicatorRangeStart = pageIndicatorsStart + lastPage * pageIndicatorStep
             val currentIndicatorRangeEnd = pageIndicatorsStart + currentPage * pageIndicatorStep
             val currentIndicatorPosition = MathUtils.lerp(currentIndicatorRangeStart, currentIndicatorRangeEnd, 1 - pageChangeAnimLeftPercentage)
+            if (pageChangeIndicatorsAlpha != 0f) {
+                currentPageIndicatorPaint.alpha = (pageChangeIndicatorsAlpha * 255.0f).toInt()
+            } else {
+                currentPageIndicatorPaint.alpha = 255
+            }
             canvas.drawCircle(currentIndicatorPosition + pageIndicatorRadius, pageIndicatorY, pageIndicatorRadius, currentPageIndicatorPaint)
         }
 
@@ -1052,6 +1079,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     private fun handlePageChange(redraw: Boolean = false) {
         pageChangeEnabled = false
+        pageChangeIndicatorsAlpha = 0f
+        removeCallbacks(startFadingIndicators)
         if (redraw) {
             redrawGrid()
         }
@@ -1068,6 +1097,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         pageChangeEnabled = true
                         lastPage = currentPage
                         schedulePageChange()
+                        scheduleIndicatorsFade()
                         redrawGrid()
                     }
                 })
@@ -1077,6 +1107,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     companion object {
         private const val PAGE_CHANGE_HOLD_THRESHOLD = 500L
+        private const val PAGE_INDICATORS_FADE_DELAY = PAGE_CHANGE_HOLD_THRESHOLD + 300L
 
         private enum class PageChangeArea {
             LEFT,
