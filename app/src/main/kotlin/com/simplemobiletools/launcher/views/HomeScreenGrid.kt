@@ -225,6 +225,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             return
         }
 
+        pageChangeIndicatorsAlpha = 1f
+        removeCallbacks(startFadingIndicators)
         if (draggedItemCurrentCoords.first == -1 && draggedItemCurrentCoords.second == -1 && draggedItem != null) {
             if (draggedItem!!.type == ITEM_TYPE_WIDGET) {
                 val draggedWidgetView = widgetViews.firstOrNull { it.tag == draggedItem?.widgetId }
@@ -288,6 +290,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             return
         }
 
+        scheduleIndicatorsFade()
         when (draggedItem!!.type) {
             ITEM_TYPE_ICON, ITEM_TYPE_SHORTCUT -> addAppIconOrShortcut()
             ITEM_TYPE_WIDGET -> addWidget()
