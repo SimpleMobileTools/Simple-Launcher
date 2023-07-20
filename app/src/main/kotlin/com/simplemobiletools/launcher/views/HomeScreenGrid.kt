@@ -941,7 +941,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
     }
 
-    private fun getMaxPage() = gridItems.map { it.page }.max()
+    private fun getMaxPage() = gridItems.filter { !it.docked && !it.outOfBounds() }.maxOfOrNull { it.page } ?: 0
 
     private fun nextOrAdditionalPage(redraw: Boolean = false): Boolean {
         if (currentPage < getMaxPage() + 1 && pageChangeEnabled) {
