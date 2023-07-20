@@ -742,7 +742,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
             handleItemDrawing(item, 0f)
         }
-        if (pageChangeAnimLeftPercentage > 0f && pageChangeAnimLeftPercentage < 1f) {
+        if (pageChangeAnimLeftPercentage > 0f) {
             gridItems.filter { (it.drawable != null && it.type == ITEM_TYPE_ICON || it.type == ITEM_TYPE_SHORTCUT) && it.page == lastPage && !it.docked }
                 .forEach { item ->
                     if (item.outOfBounds()) {
