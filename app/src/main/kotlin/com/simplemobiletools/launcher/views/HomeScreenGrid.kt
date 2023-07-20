@@ -1060,7 +1060,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     companion object {
         private const val ANIMATION_DURATION = 700L
-        private const val PAGE_CHANGE_BLOCKING_DURATION = ANIMATION_DURATION + 200L
+        private const val PAGE_CHANGE_BLOCKING_DURATION = ANIMATION_DURATION
         private const val PAGE_CHANGE_HOLD_THRESHOLD = 500L
 
         private enum class PageChangeArea {
