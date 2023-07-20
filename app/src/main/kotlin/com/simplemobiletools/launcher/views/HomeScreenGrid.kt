@@ -58,7 +58,6 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private var labelSideMargin = context.resources.getDimension(R.dimen.small_margin).toInt()
     private var roundedCornerRadius = context.resources.getDimension(R.dimen.activity_margin)
     private var pageIndicatorRadius = context.resources.getDimension(R.dimen.page_indicator_dot_radius)
-    private var pageIndicatorStrokeWidth = context.resources.getDimension(R.dimen.page_indicator_stroke_width)
     private var pageIndicatorMargin = context.resources.getDimension(R.dimen.page_indicator_margin)
     private var textPaint: TextPaint
     private var dragShadowCirclePaint: Paint
