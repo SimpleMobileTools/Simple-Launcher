@@ -13,6 +13,8 @@
     <string name="hidden_icons_placeholder">Algumas aplicações não podem ser desinstaladas mas pode ocultar os seus ícones.</string>
     <string name="app_drawer_settings">App drawer</string>
     <string name="always_navigate_to_home_screen">Always navigate to home screen on home button</string>
+    <string name="home_screen_settings">Home screen</string>
+    <string name="widget_too_big">Widget is too big for current home screen size</string>
     <!--
         Haven't found some strings? There's more at
         https://github.com/SimpleMobileTools/Simple-Commons/tree/master/commons/src/main/res

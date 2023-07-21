@@ -13,4 +13,6 @@
     <string name="hidden_icons_placeholder">Niektórych aplikacji nie można odinstalować ze względu na ograniczenia systemowe, ale możesz przynajmniej ukryć ich ikony, aby ich nie widzieć.</string>
     <string name="app_drawer_settings">Szuflada aplikacji</string>
     <string name="always_navigate_to_home_screen">Always navigate to home screen on home button</string>
+    <string name="home_screen_settings">Home screen</string>
+    <string name="widget_too_big">Widget is too big for current home screen size</string>
 </resources>

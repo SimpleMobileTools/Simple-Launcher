@@ -13,4 +13,6 @@
     <string name="hidden_icons_placeholder">Some apps cannot be uninstalled due to system restrictions, but you can at least hide their icons to avoid seeing them.</string>
     <string name="app_drawer_settings">App drawer</string>
     <string name="always_navigate_to_home_screen">Always navigate to home screen on home button</string>
+    <string name="home_screen_settings">Home screen</string>
+    <string name="widget_too_big">Widget is too big for current home screen size</string>
 </resources>
