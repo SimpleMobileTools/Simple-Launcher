@@ -14,5 +14,5 @@
     <string name="app_drawer_settings">Calaix d\'aplicacions</string>
     <string name="always_navigate_to_home_screen">Always navigate to home screen on home button</string>
     <string name="home_screen_settings">Home screen</string>
-    <string name="widget_too_big">Widget is too big for current home screen size</string>
+    <string name="widget_too_big">El giny és massa gran per a la mida actual de la pantalla d\'inici</string>
 </resources>

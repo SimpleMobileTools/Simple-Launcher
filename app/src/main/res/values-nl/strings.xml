@@ -13,6 +13,6 @@
     <string name="hidden_icons_placeholder">Sommige apps kunnen niet worden verwijderd van het systeem, maar hun iconen kunnen wel worden verborgen.</string>
     <string name="app_drawer_settings">App-overzicht</string>
     <string name="always_navigate_to_home_screen">Always navigate to home screen on home button</string>
-    <string name="home_screen_settings">Home screen</string>
-    <string name="widget_too_big">Widget is too big for current home screen size</string>
+    <string name="home_screen_settings">Beginscherm</string>
+    <string name="widget_too_big">Widget is te groot voor de huidige afmetingen van het beginscherm</string>
 </resources>

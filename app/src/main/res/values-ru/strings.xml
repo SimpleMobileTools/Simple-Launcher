@@ -13,6 +13,6 @@
     <string name="hidden_icons_placeholder">Некоторые приложения нельзя удалить из-за системных ограничений, но можно скрыть их значки.</string>
     <string name="app_drawer_settings">Панель приложения</string>
     <string name="always_navigate_to_home_screen">Always navigate to home screen on home button</string>
-    <string name="home_screen_settings">Home screen</string>
-    <string name="widget_too_big">Widget is too big for current home screen size</string>
+    <string name="home_screen_settings">Домашний экран</string>
+    <string name="widget_too_big">Виджет слишком велик для текущего размера домашнего экрана</string>
 </resources>
