@@ -12,7 +12,7 @@
     <string name="hidden_icons">Dolda ikoner</string>
     <string name="hidden_icons_placeholder">Vissa appar kan inte avinstalleras på grund av systembegränsningar, men du kan åtminstone dölja deras ikoner för att slippa se dem.</string>
     <string name="app_drawer_settings">Applåda</string>
-    <string name="always_navigate_to_home_screen">Always navigate to home screen on home button</string>
+    <string name="close_app_drawer_on_app_open">Close app drawer on opening an app</string>
     <string name="home_screen_settings">Startskärm</string>
     <string name="widget_too_big">Widgeten är för stor för startskärmens aktuella storlek</string>
 </resources>

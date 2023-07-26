@@ -12,7 +12,7 @@
     <string name="hidden_icons">Icone nascoste</string>
     <string name="hidden_icons_placeholder">Alcune applicazioni non possono essere disinstallate a causa di restrizioni di sistema, ma è possibile almeno nascondere le loro icone per evitare di vederle.</string>
     <string name="app_drawer_settings">App drawer</string>
-    <string name="always_navigate_to_home_screen">Always navigate to home screen on home button</string>
+    <string name="close_app_drawer_on_app_open">Close app drawer on opening an app</string>
     <string name="home_screen_settings">Home screen</string>
     <string name="widget_too_big">Widget is too big for current home screen size</string>
 </resources>

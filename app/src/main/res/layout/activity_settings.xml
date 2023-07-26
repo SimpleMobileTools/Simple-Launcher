@@ -147,7 +147,7 @@
                     style="@style/SettingsCheckboxStyle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/always_navigate_to_home_screen" />
+                    android:text="@string/close_app_drawer_on_app_open" />
 
             </RelativeLayout>
 
