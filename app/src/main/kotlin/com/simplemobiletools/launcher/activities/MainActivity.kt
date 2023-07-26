@@ -17,6 +17,7 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.Rect
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -69,7 +70,7 @@ class MainActivity : SimpleActivity(), FlingListener {
     private var mLastTouchCoords = Pair(-1f, -1f)
     private var mActionOnCanBindWidget: ((granted: Boolean) -> Unit)? = null
     private var mActionOnWidgetConfiguredWidget: ((granted: Boolean) -> Unit)? = null
-    private var mActionOnAddShortcut: ((label: String, icon: Bitmap?, intent: String) -> Unit)? = null
+    private var mActionOnAddShortcut: ((shortcutId: String, label: String, icon: Drawable) -> Unit)? = null
 
     private lateinit var mDetector: GestureDetectorCompat
 
@@ -279,10 +280,13 @@ class MainActivity : SimpleActivity(), FlingListener {
             REQUEST_CONFIGURE_WIDGET -> mActionOnWidgetConfiguredWidget?.invoke(resultCode == Activity.RESULT_OK)
             REQUEST_CREATE_SHORTCUT -> {
                 if (resultCode == Activity.RESULT_OK && resultData != null) {
-                    val launchIntent = resultData.getParcelableExtra(Intent.EXTRA_SHORTCUT_INTENT) as? Intent
-                    val label = resultData.getStringExtra(Intent.EXTRA_SHORTCUT_NAME) ?: ""
-                    val icon = resultData.getParcelableExtra(Intent.EXTRA_SHORTCUT_ICON) as? Bitmap
-                    mActionOnAddShortcut?.invoke(label, icon, launchIntent?.toUri(0).toString())
+                    val launcherApps = applicationContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+                    val item = launcherApps.getPinItemRequest(resultData)
+                    item.accept()
+                    val shortcutId = item.shortcutInfo?.id!!
+                    val label = item.shortcutInfo?.shortLabel?.toString() ?: item.shortcutInfo?.longLabel?.toString() ?: ""
+                    val icon = launcherApps.getShortcutIconDrawable(item.shortcutInfo!!, resources.displayMetrics.densityDpi)
+                    mActionOnAddShortcut?.invoke(shortcutId, label, icon)
                 }
             }
         }
@@ -490,17 +494,12 @@ class MainActivity : SimpleActivity(), FlingListener {
         if (clickedGridItem.type == ITEM_TYPE_ICON) {
             launchApp(clickedGridItem.packageName, clickedGridItem.activityName)
         } else if (clickedGridItem.type == ITEM_TYPE_SHORTCUT) {
-            if (clickedGridItem.intent.isNotEmpty()) {
-                launchShortcutIntent(clickedGridItem)
-            } else {
-                // launch pinned shortcuts
-                val id = clickedGridItem.shortcutId
-                val packageName = clickedGridItem.packageName
-                val userHandle = android.os.Process.myUserHandle()
-                val shortcutBounds = home_screen_grid.getClickableRect(clickedGridItem)
-                val launcherApps = applicationContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
-                launcherApps.startShortcut(packageName, id, shortcutBounds, null, userHandle)
-            }
+            val id = clickedGridItem.shortcutId
+            val packageName = clickedGridItem.packageName
+            val userHandle = android.os.Process.myUserHandle()
+            val shortcutBounds = home_screen_grid.getClickableRect(clickedGridItem)
+            val launcherApps = applicationContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+            launcherApps.startShortcut(packageName, id, shortcutBounds, null, userHandle)
         }
     }
 
@@ -938,7 +937,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         )
     }
 
-    fun handleShorcutCreation(activityInfo: ActivityInfo, callback: (label: String, icon: Bitmap?, intent: String) -> Unit) {
+    fun handleShorcutCreation(activityInfo: ActivityInfo, callback: (shortcutId: String, label: String, icon: Drawable) -> Unit) {
         mActionOnAddShortcut = callback
         val componentName = ComponentName(activityInfo.packageName, activityInfo.name)
         Intent(Intent.ACTION_CREATE_SHORTCUT).apply {
