@@ -146,7 +146,6 @@ class MainActivity : SimpleActivity(), FlingListener {
                     ITEM_TYPE_SHORTCUT,
                     "",
                     -1,
-                    "",
                     shortcutId,
                     icon.toBitmap(),
                     false,
@@ -780,7 +779,6 @@ class MainActivity : SimpleActivity(), FlingListener {
                         "",
                         -1,
                         "",
-                        "",
                         null,
                         true
                     )
@@ -806,7 +804,6 @@ class MainActivity : SimpleActivity(), FlingListener {
                         ITEM_TYPE_ICON,
                         "",
                         -1,
-                        "",
                         "",
                         null,
                         true
@@ -836,7 +833,6 @@ class MainActivity : SimpleActivity(), FlingListener {
                         "",
                         -1,
                         "",
-                        "",
                         null,
                         true
                     )
@@ -863,7 +859,6 @@ class MainActivity : SimpleActivity(), FlingListener {
                         ITEM_TYPE_ICON,
                         "",
                         -1,
-                        "",
                         "",
                         null,
                         true
@@ -893,7 +888,6 @@ class MainActivity : SimpleActivity(), FlingListener {
                         ITEM_TYPE_ICON,
                         "",
                         -1,
-                        "",
                         "",
                         null,
                         true

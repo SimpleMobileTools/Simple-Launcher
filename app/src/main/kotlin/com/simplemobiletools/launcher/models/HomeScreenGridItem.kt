@@ -22,7 +22,6 @@ data class HomeScreenGridItem(
     @ColumnInfo(name = "type") var type: Int,
     @ColumnInfo(name = "class_name") var className: String,
     @ColumnInfo(name = "widget_id") var widgetId: Int,
-    @ColumnInfo(name = "intent") var intent: String,            // used at static and dynamic shortcuts on click
     @ColumnInfo(name = "shortcut_id") var shortcutId: String,   // used at pinned shortcuts at startLauncher call
     @ColumnInfo(name = "icon") var icon: Bitmap? = null,        // store images of pinned shortcuts, those cannot be retrieved after creating
     @ColumnInfo(name = "docked") var docked: Boolean = false,   // special flag, meaning that page, top and bottom don't matter for this item, it is always at the bottom of the screen
@@ -33,7 +32,7 @@ data class HomeScreenGridItem(
     @Ignore var widthCells: Int = 1,
     @Ignore var heightCells: Int = 1
 ) {
-    constructor() : this(null, -1, -1, -1, -1, 0, "", "", "", ITEM_TYPE_ICON, "", -1, "", "", null, false, null, null, null, 1, 1)
+    constructor() : this(null, -1, -1, -1, -1, 0, "", "", "", ITEM_TYPE_ICON, "", -1, "", null, false, null, null, null, 1, 1)
 
     fun getWidthInCells() = if (right == -1 || left == -1) {
         widthCells
