@@ -195,16 +195,6 @@ class MainActivity : SimpleActivity(), FlingListener {
         home_screen_grid.appWidgetHost.startListening()
     }
 
-    override fun onTopResumedActivityChanged(isTopResumedActivity: Boolean) {
-        super.onTopResumedActivityChanged(isTopResumedActivity)
-        if (!isTopResumedActivity && config.alwaysNavigateToHomeScreen) {
-            Handler(mainLooper).postDelayed({
-                hideFragment(all_apps_fragment)
-                hideFragment(widgets_fragment)
-            }, 1000L)
-        }
-    }
-
     override fun onResume() {
         super.onResume()
         updateStatusbarColor(Color.TRANSPARENT)
@@ -490,6 +480,12 @@ class MainActivity : SimpleActivity(), FlingListener {
         val clickedGridItem = home_screen_grid.isClickingGridItem(x.toInt(), y.toInt())
         if (clickedGridItem != null) {
             performItemClick(clickedGridItem)
+        }
+    }
+
+    fun closeAppDrawer() {
+        if (isAllAppsFragmentExpanded()) {
+            hideFragment(all_apps_fragment)
         }
     }
 

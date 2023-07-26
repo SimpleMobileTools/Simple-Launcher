@@ -120,6 +120,7 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             if (currAdapter == null) {
                 LaunchersAdapter(activity!!, launchers, this) {
                     activity?.launchApp((it as AppLauncher).packageName, it.activityName)
+                    activity?.closeAppDrawer()
                     ignoreTouches = false
                     touchDownY = -1
                 }.apply {

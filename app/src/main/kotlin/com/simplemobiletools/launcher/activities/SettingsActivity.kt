@@ -38,7 +38,7 @@ class SettingsActivity : SimpleActivity() {
         setupPurchaseThankYou()
         setupCustomizeColors()
         setupUseEnglish()
-        setupAlwaysNavigateToHomeScreen()
+        setupCloseAppDrawerOnOtherAppOpen()
         setupDrawerColumnCount()
         setupDrawerSearchBar()
         setupHomeRowCount()
@@ -47,7 +47,12 @@ class SettingsActivity : SimpleActivity() {
         setupManageHiddenIcons()
         updateTextColors(settings_holder)
 
-        arrayOf(settings_color_customization_section_label, settings_general_settings_label, settings_drawer_settings_label, settings_home_screen_label).forEach {
+        arrayOf(
+            settings_color_customization_section_label,
+            settings_general_settings_label,
+            settings_drawer_settings_label,
+            settings_home_screen_label
+        ).forEach {
             it.setTextColor(getProperPrimaryColor())
         }
     }
@@ -93,11 +98,11 @@ class SettingsActivity : SimpleActivity() {
         }
     }
 
-    private fun setupAlwaysNavigateToHomeScreen() {
-        settings_navigate_to_home_grid_on_home.isChecked = config.alwaysNavigateToHomeScreen
-        settings_navigate_to_home_grid_on_home_holder.setOnClickListener {
-            settings_navigate_to_home_grid_on_home.toggle()
-            config.alwaysNavigateToHomeScreen = settings_navigate_to_home_grid_on_home.isChecked
+    private fun setupCloseAppDrawerOnOtherAppOpen() {
+        settings_close_app_drawer_on_other_app.isChecked = config.closeAppDrawer
+        settings_close_app_drawer_on_other_app_holder.setOnClickListener {
+            settings_close_app_drawer_on_other_app.toggle()
+            config.closeAppDrawer = settings_close_app_drawer_on_other_app.isChecked
         }
     }
 

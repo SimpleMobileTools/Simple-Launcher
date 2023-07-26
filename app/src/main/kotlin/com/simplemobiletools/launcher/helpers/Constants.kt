@@ -9,7 +9,7 @@ const val HOME_ROW_COUNT = "home_row_count"
 const val HOME_COLUMN_COUNT = "home_column_count"
 const val DRAWER_COLUMN_COUNT = "drawer_column_count"
 const val SHOW_SEARCH_BAR = "show_search_bar"
-const val ALWAYS_NAVIGATE_TO_HOME_SCREEN = "always_navigate_to_home_screen"
+const val CLOSE_APP_DRAWER = "close_app_drawer"
 
 // default home screen grid size
 const val ROW_COUNT = 6
