@@ -11,9 +11,9 @@
     <string name="manage_hidden_icons">Gerir ícones ocultos</string>
     <string name="hidden_icons">Ícones ocultos</string>
     <string name="hidden_icons_placeholder">Algumas aplicações não podem ser desinstaladas mas pode ocultar os seus ícones.</string>
-    <string name="app_drawer_settings">App drawer</string>
+    <string name="app_drawer_settings">Menu de aplicações</string>
     <string name="home_screen_settings">Home screen</string>
-    <string name="widget_too_big">Widget is too big for current home screen size</string>
+    <string name="widget_too_big">O Widget é muito grande para o ecrã disponível</string>
     <!--
         Haven't found some strings? There's more at
         https://github.com/SimpleMobileTools/Simple-Commons/tree/master/commons/src/main/res
