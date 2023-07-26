@@ -8,7 +8,6 @@ import android.provider.Settings
 import com.simplemobiletools.commons.extensions.showErrorToast
 import com.simplemobiletools.launcher.activities.SettingsActivity
 import com.simplemobiletools.launcher.helpers.UNINSTALL_APP_REQUEST_CODE
-import com.simplemobiletools.launcher.models.HomeScreenGridItem
 
 fun Activity.launchApp(packageName: String, activityName: String) {
     // if this is true, launch the app settings
@@ -46,15 +45,5 @@ fun Activity.uninstallApp(packageName: String) {
     Intent(Intent.ACTION_DELETE).apply {
         data = Uri.fromParts("package", packageName, null)
         startActivityForResult(this, UNINSTALL_APP_REQUEST_CODE)
-    }
-}
-
-// launch static or dynamic shortcuts that have intents as string
-fun Activity.launchShortcutIntent(item: HomeScreenGridItem) {
-    try {
-        val intent = Intent.parseUri(item.intent, 0)
-        startActivity(intent)
-    } catch (e: Exception) {
-        showErrorToast(e)
     }
 }

@@ -20,6 +20,7 @@ import android.util.Size
 import android.util.SizeF
 import android.view.View
 import android.widget.RelativeLayout
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.ViewCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
@@ -426,12 +427,12 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                             storeAndShowGridItem(newHomeScreenGridItem)
                         }
                     } else if (newHomeScreenGridItem.type == ITEM_TYPE_SHORTCUT) {
-                        (context as? MainActivity)?.handleShorcutCreation(newHomeScreenGridItem.activityInfo!!) { label, icon, intent ->
+                        (context as? MainActivity)?.handleShorcutCreation(newHomeScreenGridItem.activityInfo!!) { shortcutId, label, icon ->
                             ensureBackgroundThread {
+                                newHomeScreenGridItem.shortcutId = shortcutId
                                 newHomeScreenGridItem.title = label
-                                newHomeScreenGridItem.icon = icon
-                                newHomeScreenGridItem.intent = intent
-                                newHomeScreenGridItem.drawable = BitmapDrawable(icon)
+                                newHomeScreenGridItem.icon = icon.toBitmap()
+                                newHomeScreenGridItem.drawable = icon
                                 storeAndShowGridItem(newHomeScreenGridItem)
                             }
                         }
