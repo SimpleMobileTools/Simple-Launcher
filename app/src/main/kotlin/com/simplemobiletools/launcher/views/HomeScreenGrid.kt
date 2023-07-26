@@ -414,7 +414,6 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         "",
                         -1,
                         "",
-                        "",
                         draggedItem!!.icon,
                         yIndex == rowCount - 1,
                         draggedItem!!.drawable,
