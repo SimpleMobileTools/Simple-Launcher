@@ -485,7 +485,9 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     fun closeAppDrawer() {
         if (isAllAppsFragmentExpanded()) {
-            hideFragment(all_apps_fragment)
+            all_apps_fragment.y = mScreenHeight.toFloat()
+            all_apps_fragment.all_apps_grid.scrollToPosition(0)
+            home_screen_grid.fragmentCollapsed()
         }
     }
 
