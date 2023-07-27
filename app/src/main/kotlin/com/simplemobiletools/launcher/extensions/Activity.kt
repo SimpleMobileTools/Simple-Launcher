@@ -42,7 +42,7 @@ fun Activity.launchAppInfo(packageName: String) {
     }
 }
 
-fun Activity.isUninstallable(packageName: String): Boolean {
+fun Activity.canAppBeUninstalled(packageName: String): Boolean {
     return try {
         (packageManager.getApplicationInfo(packageName, 0).flags and ApplicationInfo.FLAG_SYSTEM) == 0
     } catch (ignored: Exception) {
