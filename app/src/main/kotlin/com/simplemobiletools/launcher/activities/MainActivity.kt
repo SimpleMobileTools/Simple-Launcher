@@ -29,12 +29,12 @@ import android.view.animation.DecelerateInterpolator
 import android.widget.PopupMenu
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.GestureDetectorCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.isVisible
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.isPiePlus
 import com.simplemobiletools.commons.helpers.isQPlus
-import com.simplemobiletools.commons.helpers.isRPlus
 import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.dialogs.RenameItemDialog
@@ -87,9 +87,7 @@ class MainActivity : SimpleActivity(), FlingListener {
 
         mDetector = GestureDetectorCompat(this, MyGestureListener(this))
 
-        if (isRPlus()) {
-            window.setDecorFitsSystemWindows(false)
-        }
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
 
