@@ -20,6 +20,7 @@ import android.graphics.Rect
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.provider.Telephony
 import android.telecom.TelecomManager
 import android.view.*
@@ -50,8 +51,6 @@ import kotlinx.android.synthetic.main.widgets_fragment.view.*
 import kotlin.math.abs
 
 class MainActivity : SimpleActivity(), FlingListener {
-    private val ANIMATION_DURATION = 150L
-
     private var mTouchDownX = -1
     private var mTouchDownY = -1
     private var mAllAppsFragmentY = 0
@@ -72,6 +71,8 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     companion object {
         private var mLastUpEvent = 0L
+        private const val ANIMATION_DURATION = 150L
+        private const val APP_DRAWER_CLOSE_DELAY = 300L
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -485,9 +486,11 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     fun closeAppDrawer() {
         if (isAllAppsFragmentExpanded()) {
-            all_apps_fragment.y = mScreenHeight.toFloat()
-            all_apps_fragment.all_apps_grid.scrollToPosition(0)
-            home_screen_grid.fragmentCollapsed()
+            Handler(Looper.getMainLooper()).postDelayed({
+                all_apps_fragment.y = mScreenHeight.toFloat()
+                all_apps_fragment.all_apps_grid.scrollToPosition(0)
+                home_screen_grid.fragmentCollapsed()
+            }, APP_DRAWER_CLOSE_DELAY)
         }
     }
 
