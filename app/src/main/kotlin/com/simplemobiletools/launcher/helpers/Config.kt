@@ -30,6 +30,6 @@ class Config(context: Context) : BaseConfig(context) {
         set(showSearchBar) = prefs.edit().putBoolean(SHOW_SEARCH_BAR, showSearchBar).apply()
 
     var closeAppDrawer: Boolean
-        get() = prefs.getBoolean(CLOSE_APP_DRAWER, true)
+        get() = prefs.getBoolean(CLOSE_APP_DRAWER, false)
         set(closeAppDrawer) = prefs.edit().putBoolean(CLOSE_APP_DRAWER, closeAppDrawer).apply()
 }
