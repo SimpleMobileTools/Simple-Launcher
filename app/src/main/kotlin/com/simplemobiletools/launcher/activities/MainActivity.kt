@@ -21,6 +21,7 @@ import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.provider.Telephony
 import android.telecom.TelecomManager
 import android.view.*
@@ -31,10 +32,7 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.isVisible
 import com.simplemobiletools.commons.extensions.*
-import com.simplemobiletools.commons.helpers.ensureBackgroundThread
-import com.simplemobiletools.commons.helpers.isPiePlus
-import com.simplemobiletools.commons.helpers.isQPlus
-import com.simplemobiletools.commons.helpers.isRPlus
+import com.simplemobiletools.commons.helpers.*
 import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.dialogs.RenameItemDialog
@@ -54,8 +52,6 @@ import kotlinx.android.synthetic.main.widgets_fragment.view.*
 import kotlin.math.abs
 
 class MainActivity : SimpleActivity(), FlingListener {
-    private val ANIMATION_DURATION = 150L
-
     private var mTouchDownX = -1
     private var mTouchDownY = -1
     private var mAllAppsFragmentY = 0
@@ -76,6 +72,8 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     companion object {
         private var mLastUpEvent = 0L
+        private const val ANIMATION_DURATION = 150L
+        private const val APP_DRAWER_CLOSE_DELAY = 300L
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -486,6 +484,16 @@ class MainActivity : SimpleActivity(), FlingListener {
         val clickedGridItem = home_screen_grid.isClickingGridItem(x.toInt(), y.toInt())
         if (clickedGridItem != null) {
             performItemClick(clickedGridItem)
+        }
+    }
+
+    fun closeAppDrawer() {
+        if (isAllAppsFragmentExpanded()) {
+            Handler(Looper.getMainLooper()).postDelayed({
+                all_apps_fragment.y = mScreenHeight.toFloat()
+                all_apps_fragment.all_apps_grid.scrollToPosition(0)
+                home_screen_grid.fragmentCollapsed()
+            }, APP_DRAWER_CLOSE_DELAY)
         }
     }
 

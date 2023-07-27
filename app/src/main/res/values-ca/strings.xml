@@ -12,6 +12,7 @@
     <string name="hidden_icons">Icones ocultes</string>
     <string name="hidden_icons_placeholder">Algunes aplicacions no es poden desinstal·lar a causa de les restriccions del sistema, però almenys podeu ocultar les seves icones per evitar que es vegin.</string>
     <string name="app_drawer_settings">Calaix d\'aplicacions</string>
+    <string name="close_app_drawer_on_app_open">Close app drawer on opening an app</string>
     <string name="home_screen_settings">Home screen</string>
-    <string name="widget_too_big">El giny és massa gran per a la mida actual de la pantalla d\'inici</string>
+    <string name="widget_too_big">Widget is too big for current home screen size</string>
 </resources>

@@ -173,7 +173,7 @@
 
             <RelativeLayout
                 android:id="@+id/settings_drawer_search_holder"
-                style="@style/SettingsHolderTextViewOneLinerStyle"
+                style="@style/SettingsHolderCheckboxStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/ripple_background">
@@ -184,6 +184,22 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/show_search" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/settings_close_app_drawer_on_other_app_holder"
+                style="@style/SettingsHolderCheckboxStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/ripple_background">
+
+                <com.simplemobiletools.commons.views.MyAppCompatCheckbox
+                    android:id="@+id/settings_close_app_drawer_on_other_app"
+                    style="@style/SettingsCheckboxStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/close_app_drawer_on_app_open" />
 
             </RelativeLayout>
 

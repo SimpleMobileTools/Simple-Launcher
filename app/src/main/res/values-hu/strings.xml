@@ -12,6 +12,7 @@
     <string name="hidden_icons">Rejtett ikonok</string>
     <string name="hidden_icons_placeholder">Egyes alkalmazások rendszerkorlátozások miatt nem távolíthatók el, de legalább elrejtheti az ikonjaikat, hogy ne lássa őket.</string>
     <string name="app_drawer_settings">App drawer</string>
+    <string name="close_app_drawer_on_app_open">Close app drawer on opening an app</string>
     <string name="home_screen_settings">Home screen</string>
     <string name="widget_too_big">Widget is too big for current home screen size</string>
 </resources>
