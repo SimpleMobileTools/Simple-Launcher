@@ -118,6 +118,14 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
     }
 
+    override fun onTopResumedActivityChanged(isTopResumedActivity: Boolean) {
+        super.onTopResumedActivityChanged(isTopResumedActivity)
+        if (!isTopResumedActivity && config.closeAppDrawerOnHome) {
+            closeAppDrawer()
+            closeWidgetsFragment()
+        }
+    }
+
     private fun handleIntentAction(intent: Intent) {
         if (intent.action == LauncherApps.ACTION_CONFIRM_PIN_SHORTCUT) {
             val launcherApps = applicationContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
@@ -492,6 +500,18 @@ class MainActivity : SimpleActivity(), FlingListener {
             Handler(Looper.getMainLooper()).postDelayed({
                 all_apps_fragment.y = mScreenHeight.toFloat()
                 all_apps_fragment.all_apps_grid.scrollToPosition(0)
+                (all_apps_fragment as AllAppsFragment).touchDownY = -1
+                home_screen_grid.fragmentCollapsed()
+            }, APP_DRAWER_CLOSE_DELAY)
+        }
+    }
+
+    fun closeWidgetsFragment() {
+        if (isWidgetsFragmentExpanded()) {
+            Handler(Looper.getMainLooper()).postDelayed({
+                widgets_fragment.y = mScreenHeight.toFloat()
+                widgets_fragment.widgets_list.scrollToPosition(0)
+                (widgets_fragment as WidgetsFragment).touchDownY = -1
                 home_screen_grid.fragmentCollapsed()
             }, APP_DRAWER_CLOSE_DELAY)
         }
