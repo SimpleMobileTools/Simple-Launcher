@@ -91,6 +91,8 @@ class MainActivity : SimpleActivity(), FlingListener {
             window.setDecorFitsSystemWindows(false)
         }
 
+        window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
+
         mScreenHeight = realScreenSize.y
         mAllAppsFragmentY = mScreenHeight
         mWidgetsFragmentY = mScreenHeight
