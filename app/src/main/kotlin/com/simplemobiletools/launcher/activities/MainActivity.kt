@@ -584,7 +584,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             menu.findItem(R.id.hide_icon).isVisible = gridItem.type == ITEM_TYPE_ICON && isOnAllAppsFragment
             menu.findItem(R.id.resize).isVisible = gridItem.type == ITEM_TYPE_WIDGET
             menu.findItem(R.id.app_info).isVisible = gridItem.type == ITEM_TYPE_ICON
-            menu.findItem(R.id.uninstall).isVisible = gridItem.type == ITEM_TYPE_ICON
+            menu.findItem(R.id.uninstall).isVisible = gridItem.type == ITEM_TYPE_ICON && isUninstallable(gridItem.packageName)
             menu.findItem(R.id.remove).isVisible = !isOnAllAppsFragment
             setOnMenuItemClickListener { item ->
                 resetFragmentTouches()
