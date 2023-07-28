@@ -31,6 +31,7 @@ import android.widget.PopupMenu
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.isVisible
+import androidx.core.view.iterator
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.*
 import com.simplemobiletools.launcher.BuildConfig
@@ -563,23 +564,6 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     private fun handleGridItemPopupMenu(anchorView: View, gridItem: HomeScreenGridItem, isOnAllAppsFragment: Boolean): PopupMenu {
-        var visibleMenuButtons = 6
-        visibleMenuButtons -= when (gridItem.type) {
-            ITEM_TYPE_ICON -> 1
-            ITEM_TYPE_WIDGET -> 3
-            else -> 4
-        }
-
-        if (isOnAllAppsFragment) {
-            visibleMenuButtons--
-        }
-
-        if (gridItem.type != ITEM_TYPE_WIDGET) {
-            visibleMenuButtons--
-        }
-
-        val yOffset = resources.getDimension(R.dimen.long_press_anchor_button_offset_y) * (visibleMenuButtons - 1)
-        anchorView.y -= yOffset
 
         val contextTheme = ContextThemeWrapper(this, getPopupMenuTheme())
         return PopupMenu(contextTheme, anchorView, Gravity.TOP or Gravity.END).apply {
@@ -611,6 +595,15 @@ class MainActivity : SimpleActivity(), FlingListener {
                 mOpenPopupMenu = null
                 resetFragmentTouches()
             }
+
+            var visibleMenuItems = 0
+            for (item in menu.iterator()) {
+                if (item.isVisible) {
+                    visibleMenuItems++
+                }
+            }
+            val yOffset = resources.getDimension(R.dimen.long_press_anchor_button_offset_y) * (visibleMenuItems - 1)
+            anchorView.y -= yOffset
 
             show()
         }
