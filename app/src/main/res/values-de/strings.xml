@@ -12,6 +12,7 @@
     <string name="hidden_icons">Ausgeblendete Symbole</string>
     <string name="hidden_icons_placeholder">Einige Apps können aufgrund von Systemeinschränkungen nicht deinstalliert werden, aber du kannst zumindest ihre Symbole ausblenden, um sie nicht zu sehen.</string>
     <string name="app_drawer_settings">App-Schublade</string>
+    <string name="close_app_drawer_on_app_open">Close app drawer on opening an app</string>
     <string name="home_screen_settings">Startbildschirm</string>
     <string name="widget_too_big">Das Widget ist zu groß für den aktuellen Startbildschirm</string>
 </resources>

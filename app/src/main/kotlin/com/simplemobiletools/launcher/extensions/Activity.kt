@@ -3,6 +3,7 @@ package com.simplemobiletools.launcher.extensions
 import android.app.Activity
 import android.content.ComponentName
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.net.Uri
 import android.provider.Settings
 import com.simplemobiletools.commons.extensions.showErrorToast
@@ -38,6 +39,14 @@ fun Activity.launchAppInfo(packageName: String) {
     Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
         data = Uri.fromParts("package", packageName, null)
         startActivity(this)
+    }
+}
+
+fun Activity.canAppBeUninstalled(packageName: String): Boolean {
+    return try {
+        (packageManager.getApplicationInfo(packageName, 0).flags and ApplicationInfo.FLAG_SYSTEM) == 0
+    } catch (ignored: Exception) {
+        false
     }
 }
 

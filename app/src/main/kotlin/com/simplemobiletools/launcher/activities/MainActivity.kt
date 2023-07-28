@@ -21,6 +21,7 @@ import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.provider.Telephony
 import android.telecom.TelecomManager
 import android.view.*
@@ -32,9 +33,7 @@ import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.isVisible
 import com.simplemobiletools.commons.extensions.*
-import com.simplemobiletools.commons.helpers.ensureBackgroundThread
-import com.simplemobiletools.commons.helpers.isPiePlus
-import com.simplemobiletools.commons.helpers.isQPlus
+import com.simplemobiletools.commons.helpers.*
 import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.dialogs.RenameItemDialog
@@ -54,8 +53,6 @@ import kotlinx.android.synthetic.main.widgets_fragment.view.*
 import kotlin.math.abs
 
 class MainActivity : SimpleActivity(), FlingListener {
-    private val ANIMATION_DURATION = 150L
-
     private var mTouchDownX = -1
     private var mTouchDownY = -1
     private var mAllAppsFragmentY = 0
@@ -76,6 +73,8 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     companion object {
         private var mLastUpEvent = 0L
+        private const val ANIMATION_DURATION = 150L
+        private const val APP_DRAWER_CLOSE_DELAY = 300L
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -490,6 +489,16 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
     }
 
+    fun closeAppDrawer() {
+        if (isAllAppsFragmentExpanded()) {
+            Handler(Looper.getMainLooper()).postDelayed({
+                all_apps_fragment.y = mScreenHeight.toFloat()
+                all_apps_fragment.all_apps_grid.scrollToPosition(0)
+                home_screen_grid.fragmentCollapsed()
+            }, APP_DRAWER_CLOSE_DELAY)
+        }
+    }
+
     private fun performItemClick(clickedGridItem: HomeScreenGridItem) {
         if (clickedGridItem.type == ITEM_TYPE_ICON) {
             launchApp(clickedGridItem.packageName, clickedGridItem.activityName)
@@ -585,7 +594,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             menu.findItem(R.id.hide_icon).isVisible = gridItem.type == ITEM_TYPE_ICON && isOnAllAppsFragment
             menu.findItem(R.id.resize).isVisible = gridItem.type == ITEM_TYPE_WIDGET
             menu.findItem(R.id.app_info).isVisible = gridItem.type == ITEM_TYPE_ICON
-            menu.findItem(R.id.uninstall).isVisible = gridItem.type == ITEM_TYPE_ICON
+            menu.findItem(R.id.uninstall).isVisible = gridItem.type == ITEM_TYPE_ICON && canAppBeUninstalled(gridItem.packageName)
             menu.findItem(R.id.remove).isVisible = !isOnAllAppsFragment
             setOnMenuItemClickListener { item ->
                 resetFragmentTouches()
