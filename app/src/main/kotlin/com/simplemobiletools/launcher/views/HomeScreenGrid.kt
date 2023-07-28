@@ -67,7 +67,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private var resizedWidget: HomeScreenGridItem? = null
     private var isFirstDraw = true
     private var redrawWidgets = false
-    private var iconSize = 0
+    var iconSize = 0
+        private set
 
     private var lastPage = 0
     private var currentPage = 0

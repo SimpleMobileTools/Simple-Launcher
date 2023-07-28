@@ -120,7 +120,9 @@ class LaunchersAdapter(
 
                 setOnClickListener { itemClick(launcher) }
                 setOnLongClickListener { view ->
-                    allAppsListener.onAppLauncherLongPressed(view.x + width / 2, view.y, launcher)
+                    val location = IntArray(2)
+                    getLocationOnScreen(location)
+                    allAppsListener.onAppLauncherLongPressed((location[0] + width / 2).toFloat(), location[1].toFloat(), launcher)
                     true
                 }
             }

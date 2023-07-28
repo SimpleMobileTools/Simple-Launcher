@@ -523,11 +523,11 @@ class MainActivity : SimpleActivity(), FlingListener {
         home_screen_grid.hideResizeLines()
         mLongPressedIcon = gridItem
         val anchorY = if (isOnAllAppsFragment || gridItem.type == ITEM_TYPE_WIDGET) {
-            y
-        } else if (gridItem.top == config.homeRowCount - 1) {
-            home_screen_grid.sideMargins.top + (gridItem.top * home_screen_grid.cellHeight.toFloat())
+            val iconSize = realScreenSize.x / config.drawerColumnCount
+            y - iconSize / 2f
         } else {
-            (gridItem.top * home_screen_grid.cellHeight.toFloat())
+            val clickableRect = home_screen_grid.getClickableRect(gridItem)
+            clickableRect.top.toFloat() - home_screen_grid.iconSize / 2f
         }
 
         home_screen_popup_menu_anchor.x = x
