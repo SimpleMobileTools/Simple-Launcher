@@ -12,7 +12,7 @@
     <string name="hidden_icons">Ukryte ikony</string>
     <string name="hidden_icons_placeholder">Niektórych aplikacji nie można odinstalować ze względu na ograniczenia systemowe, ale możesz przynajmniej ukryć ich ikony, aby ich nie widzieć.</string>
     <string name="app_drawer_settings">Szuflada aplikacji</string>
-    <string name="close_app_drawer_on_app_open">Close app drawer on opening an app</string>
+    <string name="close_app_drawer_on_app_open">Zamykaj szufladę aplikacji przy uruchomieniu aplikacji</string>
     <string name="home_screen_settings">Ekran główny</string>
     <string name="widget_too_big">Widżet jest za duży dla aktualnego rozmiaru ekranu głównego</string>
 </resources>
