@@ -108,7 +108,7 @@ class SettingsActivity : SimpleActivity() {
     }
 
     private fun setupCloseAppDrawerOnHome() {
-        settings_close_app_drawer_on_home.isChecked = config.closeAppDrawer
+        settings_close_app_drawer_on_home.isChecked = config.closeAppDrawerOnHome
         settings_close_app_drawer_on_home_holder.setOnClickListener {
             settings_close_app_drawer_on_home.toggle()
             config.closeAppDrawerOnHome = settings_close_app_drawer_on_home.isChecked
