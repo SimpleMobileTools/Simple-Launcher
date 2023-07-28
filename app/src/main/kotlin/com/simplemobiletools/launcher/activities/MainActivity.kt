@@ -207,6 +207,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                 val addTopPadding = main_holder.rootWindowInsets?.displayCutout != null
                 (all_apps_fragment as AllAppsFragment).setupViews(addTopPadding)
                 (widgets_fragment as WidgetsFragment).setupViews(addTopPadding)
+                updateStatusbarColor(Color.TRANSPARENT)
             }
         }
 
