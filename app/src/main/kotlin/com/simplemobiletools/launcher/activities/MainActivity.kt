@@ -667,7 +667,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             return super.onSingleTapUp(event)
         }
 
-        override fun onFling(event1: MotionEvent, event2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
+        override fun onFling(event1: MotionEvent?, event2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
             // ignore fling events just after releasing an icon from dragging
             if (System.currentTimeMillis() - mLastUpEvent < 500L) {
                 return true
