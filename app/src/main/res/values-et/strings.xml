@@ -12,7 +12,7 @@
     <string name="hidden_icons">Peidetud ikoonid</string>
     <string name="hidden_icons_placeholder">Mõnda rakendust ei saa süsteemipiirangute tõttu eemaldada. Selleks, et neid mitte näha, võid vähemalt nende ikoonid ära peita.</string>
     <string name="app_drawer_settings">Rakenduste kaust</string>
-    <string name="close_app_drawer_on_app_open">Close app drawer on opening an app</string>
+    <string name="close_app_drawer_on_app_open">Rakenduse avamisel sulge rakenduste kausta vaade</string>
     <string name="home_screen_settings">Avaleht</string>
     <string name="widget_too_big">Vidin on liiga suur praeguse ekraanimõõdu jaoks</string>
 </resources>
