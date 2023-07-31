@@ -13,7 +13,7 @@
     <string name="hidden_icons_placeholder">لا يمكن إلغاء تثبيت بعض التطبيقات بسبب قيود النظام، ولكن يمكن إخفاء أيقوناتها لتجنب ظهورها.</string>
     <string name="app_drawer_settings">درج التطبيق</string>
     <string name="close_app_drawer_on_app_open">إغلاق درج التطبيق عند فتح تطبيق</string>
-    <string name="close_app_drawer_on_home">Close app drawer when home button is used</string>
+    <string name="close_app_drawer_on_home">Close app drawer on pressing Home</string>
     <string name="home_screen_settings">Home screen</string>
     <string name="widget_too_big">الأداة كبيرة جدًا بالنسبة لحجم الشاشة الرئيسية الحالي</string>
     <!--

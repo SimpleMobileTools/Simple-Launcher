@@ -13,7 +13,7 @@
     <string name="hidden_icons_placeholder">Niektoré apky nemôžu byť odinštalované kvôli systémovým obmedzeniam, viete ich ale aspoň skryť, aby ste ich nevideli.</string>
     <string name="app_drawer_settings">Zoznam apiek</string>
     <string name="close_app_drawer_on_app_open">Close app drawer on opening an app</string>
-    <string name="close_app_drawer_on_home">Close app drawer when home button is used</string>
+    <string name="close_app_drawer_on_home">Close app drawer on pressing Home</string>
     <string name="home_screen_settings">Domáca obrazovka</string>
     <string name="widget_too_big">Widget je príliš veľký pre súčasnú domácu obrazovku</string>
     <!--

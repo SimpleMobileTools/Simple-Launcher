@@ -13,7 +13,7 @@
     <string name="hidden_icons_placeholder">某些应用因系统限制而无法卸载， 但你至少可以隐藏它们的图标避免看见它们。</string>
     <string name="app_drawer_settings">应用抽屉</string>
     <string name="close_app_drawer_on_app_open">打开抽屉内应用时关闭抽屉</string>
-    <string name="close_app_drawer_on_home">Close app drawer when home button is used</string>
+    <string name="close_app_drawer_on_home">Close app drawer on pressing Home</string>
     <string name="home_screen_settings">主屏幕</string>
     <string name="widget_too_big">小部件对当前屏幕尺寸而言太大了</string>
 </resources>
