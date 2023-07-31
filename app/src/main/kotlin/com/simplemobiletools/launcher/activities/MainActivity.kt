@@ -30,6 +30,7 @@ import android.view.animation.DecelerateInterpolator
 import android.widget.PopupMenu
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.GestureDetectorCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.isVisible
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.*
@@ -85,9 +86,7 @@ class MainActivity : SimpleActivity(), FlingListener {
 
         mDetector = GestureDetectorCompat(this, MyGestureListener(this))
 
-        if (isRPlus()) {
-            window.setDecorFitsSystemWindows(false)
-        }
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         mScreenHeight = realScreenSize.y
         mAllAppsFragmentY = mScreenHeight
@@ -213,6 +212,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                 val addTopPadding = main_holder.rootWindowInsets?.displayCutout != null
                 (all_apps_fragment as AllAppsFragment).setupViews(addTopPadding)
                 (widgets_fragment as WidgetsFragment).setupViews(addTopPadding)
+                updateStatusbarColor(Color.TRANSPARENT)
             }
         }
 
@@ -687,7 +687,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             return super.onSingleTapUp(event)
         }
 
-        override fun onFling(event1: MotionEvent, event2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
+        override fun onFling(event1: MotionEvent?, event2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
             // ignore fling events just after releasing an icon from dragging
             if (System.currentTimeMillis() - mLastUpEvent < 500L) {
                 return true
