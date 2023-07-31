@@ -67,8 +67,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private var resizedWidget: HomeScreenGridItem? = null
     private var isFirstDraw = true
     private var redrawWidgets = false
-    var iconSize = 0
-        private set
+    private var iconSize = 0
 
     private var lastPage = 0
     private var currentPage = 0
@@ -1080,6 +1079,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
         return false
     }
+
+    fun getCurrentIconSize(): Int = iconSize
 
     private fun handlePageChange(redraw: Boolean = false) {
         pageChangeEnabled = false

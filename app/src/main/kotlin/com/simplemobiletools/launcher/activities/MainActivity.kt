@@ -528,7 +528,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             y - iconSize / 2f
         } else {
             val clickableRect = home_screen_grid.getClickableRect(gridItem)
-            clickableRect.top.toFloat() - home_screen_grid.iconSize / 2f
+            clickableRect.top.toFloat() - home_screen_grid.getCurrentIconSize() / 2f
         }
 
         home_screen_popup_menu_anchor.x = x
