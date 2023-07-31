@@ -32,8 +32,4 @@ class Config(context: Context) : BaseConfig(context) {
     var closeAppDrawer: Boolean
         get() = prefs.getBoolean(CLOSE_APP_DRAWER, false)
         set(closeAppDrawer) = prefs.edit().putBoolean(CLOSE_APP_DRAWER, closeAppDrawer).apply()
-
-    var closeAppDrawerOnHome: Boolean
-        get() = prefs.getBoolean(CLOSE_APP_DRAWER_ON_HOME, false)
-        set(closeAppDrawerOnHome) = prefs.edit().putBoolean(CLOSE_APP_DRAWER_ON_HOME, closeAppDrawerOnHome).apply()
 }

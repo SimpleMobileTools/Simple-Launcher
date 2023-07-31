@@ -39,7 +39,6 @@ class SettingsActivity : SimpleActivity() {
         setupCustomizeColors()
         setupUseEnglish()
         setupCloseAppDrawerOnOtherAppOpen()
-        setupCloseAppDrawerOnHome()
         setupDrawerColumnCount()
         setupDrawerSearchBar()
         setupHomeRowCount()
@@ -104,14 +103,6 @@ class SettingsActivity : SimpleActivity() {
         settings_close_app_drawer_on_other_app_holder.setOnClickListener {
             settings_close_app_drawer_on_other_app.toggle()
             config.closeAppDrawer = settings_close_app_drawer_on_other_app.isChecked
-        }
-    }
-
-    private fun setupCloseAppDrawerOnHome() {
-        settings_close_app_drawer_on_home.isChecked = config.closeAppDrawerOnHome
-        settings_close_app_drawer_on_home_holder.setOnClickListener {
-            settings_close_app_drawer_on_home.toggle()
-            config.closeAppDrawerOnHome = settings_close_app_drawer_on_home.isChecked
         }
     }
 

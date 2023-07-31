@@ -203,22 +203,6 @@
 
             </RelativeLayout>
 
-            <RelativeLayout
-                android:id="@+id/settings_close_app_drawer_on_home_holder"
-                style="@style/SettingsHolderCheckboxStyle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/ripple_background">
-
-                <com.simplemobiletools.commons.views.MyAppCompatCheckbox
-                    android:id="@+id/settings_close_app_drawer_on_home"
-                    style="@style/SettingsCheckboxStyle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/close_app_drawer_on_home" />
-
-            </RelativeLayout>
-
             <include
                 android:id="@+id/settings_drawer_settings_divider"
                 layout="@layout/divider" />
