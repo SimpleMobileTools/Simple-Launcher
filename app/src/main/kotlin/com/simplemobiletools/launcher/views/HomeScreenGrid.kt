@@ -1076,6 +1076,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         return false
     }
 
+    fun getCurrentIconSize(): Int = iconSize
+
     private fun handlePageChange(redraw: Boolean = false) {
         pageChangeEnabled = false
         pageChangeIndicatorsAlpha = 0f
