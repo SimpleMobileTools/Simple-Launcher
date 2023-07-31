@@ -24,6 +24,7 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.Telephony
 import android.telecom.TelecomManager
+import android.util.Log
 import android.view.*
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.animation.DecelerateInterpolator
@@ -112,16 +113,10 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
+        closeAppDrawer()
+        closeWidgetsFragment()
         if (intent != null) {
             handleIntentAction(intent)
-        }
-    }
-
-    override fun onTopResumedActivityChanged(isTopResumedActivity: Boolean) {
-        super.onTopResumedActivityChanged(isTopResumedActivity)
-        if (!isTopResumedActivity && config.closeAppDrawerOnHome) {
-            closeAppDrawer()
-            closeWidgetsFragment()
         }
     }
 
@@ -495,25 +490,35 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
     }
 
-    fun closeAppDrawer() {
+    fun closeAppDrawer(delayed: Boolean = false) {
         if (isAllAppsFragmentExpanded()) {
-            Handler(Looper.getMainLooper()).postDelayed({
+            val close = {
                 all_apps_fragment.y = mScreenHeight.toFloat()
                 all_apps_fragment.all_apps_grid.scrollToPosition(0)
                 (all_apps_fragment as AllAppsFragment).touchDownY = -1
                 home_screen_grid.fragmentCollapsed()
-            }, APP_DRAWER_CLOSE_DELAY)
+            }
+            if (delayed) {
+                Handler(Looper.getMainLooper()).postDelayed(close, APP_DRAWER_CLOSE_DELAY)
+            } else {
+                close()
+            }
         }
     }
 
-    fun closeWidgetsFragment() {
+    fun closeWidgetsFragment(delayed: Boolean = false) {
         if (isWidgetsFragmentExpanded()) {
-            Handler(Looper.getMainLooper()).postDelayed({
+            val close = {
                 widgets_fragment.y = mScreenHeight.toFloat()
                 widgets_fragment.widgets_list.scrollToPosition(0)
                 (widgets_fragment as WidgetsFragment).touchDownY = -1
                 home_screen_grid.fragmentCollapsed()
-            }, APP_DRAWER_CLOSE_DELAY)
+            }
+            if (delayed) {
+                Handler(Looper.getMainLooper()).postDelayed(close, APP_DRAWER_CLOSE_DELAY)
+            } else {
+                close()
+            }
         }
     }
 
