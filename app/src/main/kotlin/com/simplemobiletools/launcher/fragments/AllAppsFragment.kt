@@ -211,6 +211,7 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             "",
             null,
             false,
+            null,
             appLauncher.drawable
         )
 

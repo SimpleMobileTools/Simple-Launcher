@@ -1,9 +1,6 @@
 package com.simplemobiletools.launcher.interfaces
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room.*
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
 
 @Dao
@@ -23,12 +20,30 @@ interface HomeScreenGridItemsDao {
     @Query("UPDATE home_screen_grid_items SET title = :title WHERE id = :id")
     fun updateItemTitle(title: String, id: Long): Int
 
-    @Query("UPDATE home_screen_grid_items SET `left` = :left, `top` = :top, `right` = :right, `bottom` = :bottom, `page` = :page, `docked` = :docked WHERE id = :id")
-    fun updateItemPosition(left: Int, top: Int, right: Int, bottom: Int, page: Int, docked: Boolean, id: Long)
+    @Query("UPDATE home_screen_grid_items SET `left` = :left, `top` = :top, `right` = :right, `bottom` = :bottom, `page` = :page, `docked` = :docked , `parent_id` = :parentId WHERE id = :id")
+    fun updateItemPosition(left: Int, top: Int, right: Int, bottom: Int, page: Int, docked: Boolean, parentId: Long?, id: Long)
 
     @Query("DELETE FROM home_screen_grid_items WHERE id = :id")
-    fun deleteById(id: Long)
+    fun deleteItemById(id: Long)
+
+    @Query("DELETE FROM home_screen_grid_items WHERE parent_id = :id")
+    fun deleteItemsWithParentId(id: Long)
+
+    @Transaction
+    fun deleteById(id: Long) {
+        deleteItemById(id)
+        deleteItemsWithParentId(id)
+    }
 
     @Query("DELETE FROM home_screen_grid_items WHERE package_name = :packageName")
-    fun deleteByPackageName(packageName: String)
+    fun deleteItemByPackageName(packageName: String)
+
+    @Query("DELETE FROM home_screen_grid_items WHERE parent_id IN (SELECT id FROM home_screen_grid_items WHERE package_name = :packageName)")
+    fun deleteItemsByParentPackageName(packageName: String)
+
+    @Transaction
+    fun deleteByPackageName(packageName: String) {
+        deleteItemByPackageName(packageName)
+        deleteItemsByParentPackageName(packageName)
+    }
 }

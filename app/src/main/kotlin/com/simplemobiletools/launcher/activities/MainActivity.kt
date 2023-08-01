@@ -147,6 +147,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                     shortcutId,
                     icon.toBitmap(),
                     false,
+                    null,
                     icon
                 )
 
@@ -781,7 +782,8 @@ class MainActivity : SimpleActivity(), FlingListener {
                         -1,
                         "",
                         null,
-                        true
+                        true,
+                        null
                     )
                 homeScreenGridItems.add(dialerIcon)
             }
@@ -807,7 +809,8 @@ class MainActivity : SimpleActivity(), FlingListener {
                         -1,
                         "",
                         null,
-                        true
+                        true,
+                        null
                     )
                 homeScreenGridItems.add(SMSMessengerIcon)
             }
@@ -835,7 +838,8 @@ class MainActivity : SimpleActivity(), FlingListener {
                         -1,
                         "",
                         null,
-                        true
+                        true,
+                        null
                     )
                 homeScreenGridItems.add(browserIcon)
             }
@@ -862,7 +866,8 @@ class MainActivity : SimpleActivity(), FlingListener {
                         -1,
                         "",
                         null,
-                        true
+                        true,
+                        null
                     )
                     homeScreenGridItems.add(storeIcon)
                 }
@@ -891,7 +896,8 @@ class MainActivity : SimpleActivity(), FlingListener {
                         -1,
                         "",
                         null,
-                        true
+                        true,
+                        null
                     )
                 homeScreenGridItems.add(cameraIcon)
             }
