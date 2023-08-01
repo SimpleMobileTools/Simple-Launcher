@@ -33,6 +33,7 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.*
 import com.simplemobiletools.launcher.BuildConfig
@@ -69,6 +70,7 @@ class MainActivity : SimpleActivity(), FlingListener {
     private var mActionOnCanBindWidget: ((granted: Boolean) -> Unit)? = null
     private var mActionOnWidgetConfiguredWidget: ((granted: Boolean) -> Unit)? = null
     private var mActionOnAddShortcut: ((shortcutId: String, label: String, icon: Drawable) -> Unit)? = null
+    private var wasJustPaused: Boolean = false
 
     private lateinit var mDetector: GestureDetectorCompat
 
@@ -113,8 +115,17 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-        closeAppDrawer()
-        closeWidgetsFragment()
+        if (wasJustPaused) {
+            if (isAllAppsFragmentExpanded()) {
+                hideFragment(all_apps_fragment)
+            }
+            if (isWidgetsFragmentExpanded()) {
+                hideFragment(widgets_fragment)
+            }
+        } else {
+            closeAppDrawer()
+            closeWidgetsFragment()
+        }
         if (intent != null) {
             handleIntentAction(intent)
         }
@@ -200,6 +211,7 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     override fun onResume() {
         super.onResume()
+        wasJustPaused = false
         updateStatusbarColor(Color.TRANSPARENT)
 
         main_holder.onGlobalLayout {
@@ -249,6 +261,12 @@ class MainActivity : SimpleActivity(), FlingListener {
     override fun onStop() {
         super.onStop()
         home_screen_grid?.appWidgetHost?.stopListening()
+        wasJustPaused = false
+    }
+
+    override fun onPause() {
+        super.onPause()
+        wasJustPaused = true
     }
 
     override fun onBackPressed() {
