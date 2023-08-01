@@ -20,7 +20,6 @@ import android.util.Size
 import android.util.SizeF
 import android.view.View
 import android.widget.RelativeLayout
-import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.ViewCompat
@@ -1185,6 +1184,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     }
 
     fun getCurrentIconSize(): Int = iconSize
+
+    fun getCurrentCellSize(): Int = cellWidth
+
+    fun getCurrentCellMargin(): Int = iconMargin
 
     private fun handlePageChange(redraw: Boolean = false) {
         pageChangeEnabled = false

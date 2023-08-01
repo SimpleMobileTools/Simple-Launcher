@@ -8,6 +8,9 @@ interface HomeScreenGridItemsDao {
     @Query("SELECT * FROM home_screen_grid_items")
     fun getAllItems(): List<HomeScreenGridItem>
 
+    @Query("SELECT * FROM home_screen_grid_items WHERE parent_id = :folderId")
+    fun getFolderItems(folderId: Long): List<HomeScreenGridItem>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(item: HomeScreenGridItem): Long
 

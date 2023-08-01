@@ -37,6 +37,7 @@ import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.*
 import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
+import com.simplemobiletools.launcher.dialogs.FolderIconsDialog
 import com.simplemobiletools.launcher.dialogs.RenameItemDialog
 import com.simplemobiletools.launcher.extensions.*
 import com.simplemobiletools.launcher.fragments.AllAppsFragment
@@ -44,6 +45,7 @@ import com.simplemobiletools.launcher.fragments.MyFragment
 import com.simplemobiletools.launcher.fragments.WidgetsFragment
 import com.simplemobiletools.launcher.helpers.*
 import com.simplemobiletools.launcher.interfaces.FlingListener
+import com.simplemobiletools.launcher.interfaces.ItemMenuListener
 import com.simplemobiletools.launcher.models.AppLauncher
 import com.simplemobiletools.launcher.models.HiddenIcon
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
@@ -64,6 +66,7 @@ class MainActivity : SimpleActivity(), FlingListener {
     private var mIgnoreMoveEvents = false
     private var mLongPressedIcon: HomeScreenGridItem? = null
     private var mOpenPopupMenu: PopupMenu? = null
+    private var mOpenFolderDialog: FolderIconsDialog? = null
     private var mCachedLaunchers = ArrayList<AppLauncher>()
     private var mLastTouchCoords = Pair(-1f, -1f)
     private var mActionOnCanBindWidget: ((granted: Boolean) -> Unit)? = null
@@ -71,6 +74,52 @@ class MainActivity : SimpleActivity(), FlingListener {
     private var mActionOnAddShortcut: ((shortcutId: String, label: String, icon: Drawable) -> Unit)? = null
 
     private lateinit var mDetector: GestureDetectorCompat
+
+    val menuListener: ItemMenuListener = object : ItemMenuListener {
+        override fun onAnyClick() {
+            resetFragmentTouches()
+        }
+
+        override fun hide(gridItem: HomeScreenGridItem) {
+            hideIcon(gridItem)
+        }
+
+        override fun rename(gridItem: HomeScreenGridItem) {
+            renameItem(gridItem)
+        }
+
+        override fun resize(gridItem: HomeScreenGridItem) {
+            home_screen_grid.widgetLongPressed(gridItem)
+        }
+
+        override fun appInfo(gridItem: HomeScreenGridItem) {
+            launchAppInfo(gridItem.packageName)
+        }
+
+        override fun remove(gridItem: HomeScreenGridItem) {
+            home_screen_grid.removeAppIcon(gridItem)
+        }
+
+        override fun uninstall(gridItem: HomeScreenGridItem) {
+            uninstallApp(gridItem.packageName)
+        }
+
+        override fun onDismiss() {
+            mOpenPopupMenu = null
+            resetFragmentTouches()
+        }
+
+        override fun beforeShow(menu: Menu) {
+            var visibleMenuItems = 0
+            for (item in menu.iterator()) {
+                if (item.isVisible) {
+                    visibleMenuItems++
+                }
+            }
+            val yOffset = resources.getDimension(R.dimen.long_press_anchor_button_offset_y) * (visibleMenuItems - 1)
+            home_screen_popup_menu_anchor.y -= yOffset
+        }
+    }
 
     companion object {
         private var mLastUpEvent = 0L
@@ -330,11 +379,12 @@ class MainActivity : SimpleActivity(), FlingListener {
                     hasFingerMoved(event)
                 }
 
-                if (mLongPressedIcon != null && mOpenPopupMenu != null && hasFingerMoved) {
+                if (mLongPressedIcon != null && (mOpenPopupMenu != null || mOpenFolderDialog != null) && hasFingerMoved) {
                     mOpenPopupMenu?.dismiss()
                     mOpenPopupMenu = null
                     home_screen_grid.itemDraggingStarted(mLongPressedIcon!!)
                     hideFragment(all_apps_fragment)
+                    mOpenFolderDialog?.dismiss()
                 }
 
                 if (mLongPressedIcon != null && hasFingerMoved) {
@@ -385,6 +435,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         return true
     }
 
+
     // some devices ACTION_MOVE keeps triggering for the whole long press duration, but we are interested in real moves only, when coords change
     private fun hasFingerMoved(event: MotionEvent) = mTouchDownX != -1 && mTouchDownY != -1 &&
         ((Math.abs(mTouchDownX - event.x) > mMoveGestureThreshold) || (Math.abs(mTouchDownY - event.y) > mMoveGestureThreshold))
@@ -405,6 +456,7 @@ class MainActivity : SimpleActivity(), FlingListener {
 
         if (hasDeletedAnything) {
             home_screen_grid.fetchGridItems()
+            mOpenFolderDialog?.fetchItems()
         }
 
         mCachedLaunchers = launchers
@@ -500,16 +552,33 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     private fun performItemClick(clickedGridItem: HomeScreenGridItem) {
-        if (clickedGridItem.type == ITEM_TYPE_ICON) {
-            launchApp(clickedGridItem.packageName, clickedGridItem.activityName)
-        } else if (clickedGridItem.type == ITEM_TYPE_SHORTCUT) {
-            val id = clickedGridItem.shortcutId
-            val packageName = clickedGridItem.packageName
-            val userHandle = android.os.Process.myUserHandle()
-            val shortcutBounds = home_screen_grid.getClickableRect(clickedGridItem)
-            val launcherApps = applicationContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
-            launcherApps.startShortcut(packageName, id, shortcutBounds, null, userHandle)
+        when (clickedGridItem.type) {
+            ITEM_TYPE_ICON -> launchApp(clickedGridItem.packageName, clickedGridItem.activityName)
+            ITEM_TYPE_FOLDER -> showFolderDialog(clickedGridItem)
+            ITEM_TYPE_SHORTCUT -> {
+                val id = clickedGridItem.shortcutId
+                val packageName = clickedGridItem.packageName
+                val userHandle = android.os.Process.myUserHandle()
+                val shortcutBounds = home_screen_grid.getClickableRect(clickedGridItem)
+                val launcherApps = applicationContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+                launcherApps.startShortcut(packageName, id, shortcutBounds, null, userHandle)
+            }
         }
+    }
+
+    private fun showFolderDialog(folder: HomeScreenGridItem) {
+        mOpenFolderDialog = FolderIconsDialog(
+            activity = this,
+            folder = folder,
+            iconWidth = home_screen_grid.getCurrentCellSize(),
+            iconPadding = home_screen_grid.getCurrentCellMargin(),
+            dismissListener = {
+                mOpenFolderDialog = null
+            },
+            itemClick = {
+                performItemClick(it)
+            }
+        )
     }
 
     private fun performItemLongClick(x: Float, clickedGridItem: HomeScreenGridItem) {
@@ -519,6 +588,11 @@ class MainActivity : SimpleActivity(), FlingListener {
 
         val anchorY = home_screen_grid.sideMargins.top + (clickedGridItem.top * home_screen_grid.cellHeight.toFloat())
         showHomeIconMenu(x, anchorY, clickedGridItem, false)
+    }
+
+    fun startHandlingItem(gridItem: HomeScreenGridItem) {
+        mLongPressedIcon = gridItem
+        mOpenFolderDialog?.dismiss()
     }
 
     fun showHomeIconMenu(x: Float, y: Float, gridItem: HomeScreenGridItem, isOnAllAppsFragment: Boolean) {
@@ -536,7 +610,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         home_screen_popup_menu_anchor.y = anchorY
 
         if (mOpenPopupMenu == null) {
-            mOpenPopupMenu = handleGridItemPopupMenu(home_screen_popup_menu_anchor, gridItem, isOnAllAppsFragment)
+            mOpenPopupMenu = handleGridItemPopupMenu(home_screen_popup_menu_anchor, gridItem, isOnAllAppsFragment, menuListener)
         }
     }
 
@@ -560,52 +634,6 @@ class MainActivity : SimpleActivity(), FlingListener {
                 }
                 true
             }
-            show()
-        }
-    }
-
-    private fun handleGridItemPopupMenu(anchorView: View, gridItem: HomeScreenGridItem, isOnAllAppsFragment: Boolean): PopupMenu {
-
-        val contextTheme = ContextThemeWrapper(this, getPopupMenuTheme())
-        return PopupMenu(contextTheme, anchorView, Gravity.TOP or Gravity.END).apply {
-            if (isQPlus()) {
-                setForceShowIcon(true)
-            }
-
-            inflate(R.menu.menu_app_icon)
-            menu.findItem(R.id.rename).isVisible = gridItem.type == ITEM_TYPE_ICON && !isOnAllAppsFragment
-            menu.findItem(R.id.hide_icon).isVisible = gridItem.type == ITEM_TYPE_ICON && isOnAllAppsFragment
-            menu.findItem(R.id.resize).isVisible = gridItem.type == ITEM_TYPE_WIDGET
-            menu.findItem(R.id.app_info).isVisible = gridItem.type == ITEM_TYPE_ICON
-            menu.findItem(R.id.uninstall).isVisible = gridItem.type == ITEM_TYPE_ICON && canAppBeUninstalled(gridItem.packageName)
-            menu.findItem(R.id.remove).isVisible = !isOnAllAppsFragment
-            setOnMenuItemClickListener { item ->
-                resetFragmentTouches()
-                when (item.itemId) {
-                    R.id.hide_icon -> hideIcon(gridItem)
-                    R.id.rename -> renameItem(gridItem)
-                    R.id.resize -> home_screen_grid.widgetLongPressed(gridItem)
-                    R.id.app_info -> launchAppInfo(gridItem.packageName)
-                    R.id.remove -> home_screen_grid.removeAppIcon(gridItem)
-                    R.id.uninstall -> uninstallApp(gridItem.packageName)
-                }
-                true
-            }
-
-            setOnDismissListener {
-                mOpenPopupMenu = null
-                resetFragmentTouches()
-            }
-
-            var visibleMenuItems = 0
-            for (item in menu.iterator()) {
-                if (item.isVisible) {
-                    visibleMenuItems++
-                }
-            }
-            val yOffset = resources.getDimension(R.dimen.long_press_anchor_button_offset_y) * (visibleMenuItems - 1)
-            anchorView.y -= yOffset
-
             show()
         }
     }
