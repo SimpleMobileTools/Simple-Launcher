@@ -24,7 +24,6 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.Telephony
 import android.telecom.TelecomManager
-import android.util.Log
 import android.view.*
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.animation.DecelerateInterpolator
@@ -33,7 +32,6 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.isVisible
-import androidx.lifecycle.Lifecycle
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.*
 import com.simplemobiletools.launcher.BuildConfig
