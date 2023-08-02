@@ -69,6 +69,7 @@ class MainActivity : SimpleActivity(), FlingListener {
     private var mActionOnCanBindWidget: ((granted: Boolean) -> Unit)? = null
     private var mActionOnWidgetConfiguredWidget: ((granted: Boolean) -> Unit)? = null
     private var mActionOnAddShortcut: ((shortcutId: String, label: String, icon: Drawable) -> Unit)? = null
+    private var wasJustPaused: Boolean = false
 
     private lateinit var mDetector: GestureDetectorCompat
 
@@ -113,6 +114,17 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
+        if (wasJustPaused) {
+            if (isAllAppsFragmentExpanded()) {
+                hideFragment(all_apps_fragment)
+            }
+            if (isWidgetsFragmentExpanded()) {
+                hideFragment(widgets_fragment)
+            }
+        } else {
+            closeAppDrawer()
+            closeWidgetsFragment()
+        }
         if (intent != null) {
             handleIntentAction(intent)
         }
@@ -198,6 +210,7 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     override fun onResume() {
         super.onResume()
+        wasJustPaused = false
         updateStatusbarColor(Color.TRANSPARENT)
 
         main_holder.onGlobalLayout {
@@ -247,6 +260,12 @@ class MainActivity : SimpleActivity(), FlingListener {
     override fun onStop() {
         super.onStop()
         home_screen_grid?.appWidgetHost?.stopListening()
+        wasJustPaused = false
+    }
+
+    override fun onPause() {
+        super.onPause()
+        wasJustPaused = true
     }
 
     override fun onBackPressed() {
@@ -488,13 +507,35 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
     }
 
-    fun closeAppDrawer() {
+    fun closeAppDrawer(delayed: Boolean = false) {
         if (isAllAppsFragmentExpanded()) {
-            Handler(Looper.getMainLooper()).postDelayed({
+            val close = {
                 all_apps_fragment.y = mScreenHeight.toFloat()
                 all_apps_fragment.all_apps_grid.scrollToPosition(0)
+                (all_apps_fragment as AllAppsFragment).touchDownY = -1
                 home_screen_grid.fragmentCollapsed()
-            }, APP_DRAWER_CLOSE_DELAY)
+            }
+            if (delayed) {
+                Handler(Looper.getMainLooper()).postDelayed(close, APP_DRAWER_CLOSE_DELAY)
+            } else {
+                close()
+            }
+        }
+    }
+
+    fun closeWidgetsFragment(delayed: Boolean = false) {
+        if (isWidgetsFragmentExpanded()) {
+            val close = {
+                widgets_fragment.y = mScreenHeight.toFloat()
+                widgets_fragment.widgets_list.scrollToPosition(0)
+                (widgets_fragment as WidgetsFragment).touchDownY = -1
+                home_screen_grid.fragmentCollapsed()
+            }
+            if (delayed) {
+                Handler(Looper.getMainLooper()).postDelayed(close, APP_DRAWER_CLOSE_DELAY)
+            } else {
+                close()
+            }
         }
     }
 

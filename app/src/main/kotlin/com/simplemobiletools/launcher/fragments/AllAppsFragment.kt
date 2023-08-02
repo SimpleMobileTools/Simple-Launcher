@@ -121,7 +121,7 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
                 LaunchersAdapter(activity!!, launchers, this) {
                     activity?.launchApp((it as AppLauncher).packageName, it.activityName)
                     if (activity?.config?.closeAppDrawer == true) {
-                        activity?.closeAppDrawer()
+                        activity?.closeAppDrawer(delayed = true)
                     }
                     ignoreTouches = false
                     touchDownY = -1
