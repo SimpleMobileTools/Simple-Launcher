@@ -4,7 +4,6 @@ import android.app.Activity
 import android.app.AlertDialog
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
-import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.databinding.DialogRenameItemBinding
 import com.simplemobiletools.launcher.extensions.homeScreenGridItemsDB
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
