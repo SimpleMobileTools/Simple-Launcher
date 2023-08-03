@@ -13,4 +13,4 @@ dependencyResolutionManagement {
         maven { setUrl("https://jitpack.io") }
     }
 }
-include ':app'
+include(":app")
