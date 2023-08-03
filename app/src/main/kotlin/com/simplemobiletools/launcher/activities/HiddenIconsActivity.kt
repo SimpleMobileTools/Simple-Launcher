@@ -26,7 +26,12 @@ class HiddenIconsActivity : SimpleActivity(), RefreshRecyclerViewListener {
         setContentView(binding.root)
         updateIcons()
 
-        updateMaterialActivityViews(binding.manageHiddenIconsCoordinator, binding.manageHiddenIconsList, useTransparentNavigation = true, useTopSearchMenu = false)
+        updateMaterialActivityViews(
+            binding.manageHiddenIconsCoordinator,
+            binding.manageHiddenIconsList,
+            useTransparentNavigation = true,
+            useTopSearchMenu = false
+        )
         setupMaterialScrollListener(binding.manageHiddenIconsList, binding.manageHiddenIconsToolbar)
 
         val layoutManager = binding.manageHiddenIconsList.layoutManager as MyGridLayoutManager
