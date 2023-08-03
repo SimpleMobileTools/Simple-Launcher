@@ -10,18 +10,18 @@ import android.view.WindowManager
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.isRPlus
 import com.simplemobiletools.commons.views.MyGridLayoutManager
-import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.adapters.LaunchersAdapter
+import com.simplemobiletools.launcher.databinding.AllAppsFragmentBinding
 import com.simplemobiletools.launcher.extensions.config
 import com.simplemobiletools.launcher.extensions.launchApp
 import com.simplemobiletools.launcher.helpers.ITEM_TYPE_ICON
 import com.simplemobiletools.launcher.interfaces.AllAppsListener
 import com.simplemobiletools.launcher.models.AppLauncher
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
-import kotlinx.android.synthetic.main.all_apps_fragment.view.*
+import com.simplemobiletools.commons.R as CommonsR
 
-class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment(context, attributeSet), AllAppsListener {
+class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment<AllAppsFragmentBinding>(context, attributeSet), AllAppsListener {
     private var lastTouchCoords = Pair(0f, 0f)
     var touchDownY = -1
     var ignoreTouches = false
@@ -30,8 +30,9 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
     @SuppressLint("ClickableViewAccessibility")
     override fun setupFragment(activity: MainActivity) {
         this.activity = activity
+        this.binding = AllAppsFragmentBinding.bind(this)
 
-        all_apps_grid.setOnTouchListener { v, event ->
+        binding.allAppsGrid.setOnTouchListener { v, event ->
             if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
                 touchDownY = -1
             }
@@ -42,30 +43,26 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
 
     @SuppressLint("NotifyDataSetChanged")
     fun onResume() {
-        if (all_apps_grid?.layoutManager == null || all_apps_grid?.adapter == null) {
+        if (binding.allAppsGrid.layoutManager == null || binding.allAppsGrid.adapter == null) {
             return
         }
 
-        val layoutManager = all_apps_grid.layoutManager as MyGridLayoutManager
+        val layoutManager = binding.allAppsGrid.layoutManager as MyGridLayoutManager
         if (layoutManager.spanCount != context.config.drawerColumnCount) {
             onConfigurationChanged()
             // Force redraw due to changed item size
-            (all_apps_grid.adapter as LaunchersAdapter).notifyDataSetChanged()
+            (binding.allAppsGrid.adapter as LaunchersAdapter).notifyDataSetChanged()
         }
     }
 
     fun onConfigurationChanged() {
-        if (all_apps_grid == null) {
-            return
-        }
-
-        all_apps_grid.scrollToPosition(0)
-        all_apps_fastscroller.resetManualScrolling()
+        binding.allAppsGrid.scrollToPosition(0)
+        binding.allAppsFastscroller.resetManualScrolling()
         setupViews()
 
-        val layoutManager = all_apps_grid.layoutManager as MyGridLayoutManager
+        val layoutManager = binding.allAppsGrid.layoutManager as MyGridLayoutManager
         layoutManager.spanCount = context.config.drawerColumnCount
-        val launchers = (all_apps_grid.adapter as LaunchersAdapter).launchers
+        val launchers = (binding.allAppsGrid.adapter as LaunchersAdapter).launchers
         setupAdapter(launchers)
     }
 
@@ -87,7 +84,7 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
 
         // pull the whole fragment down if it is scrolled way to the top and the users pulls it even further
         if (touchDownY != -1) {
-            shouldIntercept = touchDownY - event.y.toInt() < 0 && all_apps_grid.computeVerticalScrollOffset() == 0
+            shouldIntercept = touchDownY - event.y.toInt() < 0 && binding.allAppsGrid.computeVerticalScrollOffset() == 0
             if (shouldIntercept) {
                 activity?.startHandlingTouches(touchDownY)
                 touchDownY = -1
@@ -113,10 +110,10 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
 
     private fun setupAdapter(launchers: ArrayList<AppLauncher>) {
         activity?.runOnUiThread {
-            val layoutManager = all_apps_grid.layoutManager as MyGridLayoutManager
+            val layoutManager = binding.allAppsGrid.layoutManager as MyGridLayoutManager
             layoutManager.spanCount = context.config.drawerColumnCount
 
-            val currAdapter = all_apps_grid.adapter
+            val currAdapter = binding.allAppsGrid.adapter
             if (currAdapter == null) {
                 LaunchersAdapter(activity!!, launchers, this) {
                     activity?.launchApp((it as AppLauncher).packageName, it.activityName)
@@ -126,7 +123,7 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
                     ignoreTouches = false
                     touchDownY = -1
                 }.apply {
-                    all_apps_grid.adapter = this
+                    binding.allAppsGrid.adapter = this
                 }
             } else {
                 (currAdapter as LaunchersAdapter).updateItems(launchers)
@@ -135,7 +132,7 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
     }
 
     fun hideIcon(item: HomeScreenGridItem) {
-        (all_apps_grid.adapter as? LaunchersAdapter)?.hideIcon(item)
+        (binding.allAppsGrid.adapter as? LaunchersAdapter)?.hideIcon(item)
     }
 
     fun setupViews(addTopPadding: Boolean = hasTopPadding) {
@@ -143,7 +140,7 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             return
         }
 
-        all_apps_fastscroller.updateColors(context.getProperPrimaryColor())
+        binding.allAppsFastscroller.updateColors(context.getProperPrimaryColor())
 
         var bottomListPadding = 0
         var leftListPadding = 0
@@ -169,29 +166,29 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             }
         }
 
-        all_apps_grid.setPadding(0, 0, resources.getDimension(R.dimen.medium_margin).toInt(), bottomListPadding)
-        all_apps_fastscroller.setPadding(leftListPadding, 0, rightListPadding, 0)
+        binding.allAppsGrid.setPadding(0, 0, resources.getDimension(CommonsR.dimen.medium_margin).toInt(), bottomListPadding)
+        binding.allAppsFastscroller.setPadding(leftListPadding, 0, rightListPadding, 0)
 
         hasTopPadding = addTopPadding
         val topPadding = if (addTopPadding) activity!!.statusBarHeight else 0
         setPadding(0, topPadding, 0, 0)
         background = ColorDrawable(context.getProperBackgroundColor())
-        (all_apps_grid.adapter as? LaunchersAdapter)?.updateTextColor(context.getProperTextColor())
+        (binding.allAppsGrid.adapter as? LaunchersAdapter)?.updateTextColor(context.getProperTextColor())
 
-        search_bar.beVisibleIf(context.config.showSearchBar)
-        search_bar.getToolbar()?.beGone()
-        search_bar.updateColors()
-        search_bar.setupMenu()
+        binding.searchBar.beVisibleIf(context.config.showSearchBar)
+        binding.searchBar.getToolbar()?.beGone()
+        binding.searchBar.updateColors()
+        binding.searchBar.setupMenu()
 
-        search_bar.onSearchTextChangedListener = {
-            (all_apps_grid.adapter as? LaunchersAdapter)?.updateSearchQuery(it)
+        binding.searchBar.onSearchTextChangedListener = {
+            (binding.allAppsGrid.adapter as? LaunchersAdapter)?.updateSearchQuery(it)
             showNoResultsPlaceholderIfNeeded()
         }
     }
 
     private fun showNoResultsPlaceholderIfNeeded() {
-        val itemCount = all_apps_grid.adapter?.itemCount
-        no_results_placeholder.beVisibleIf(itemCount != null && itemCount == 0)
+        val itemCount = binding.allAppsGrid.adapter?.itemCount
+        binding.noResultsPlaceholder.beVisibleIf(itemCount != null && itemCount == 0)
     }
 
     override fun onAppLauncherLongPressed(x: Float, y: Float, appLauncher: AppLauncher) {
@@ -217,12 +214,12 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
         activity?.showHomeIconMenu(x, y, gridItem, true)
         ignoreTouches = true
 
-        search_bar.closeSearch()
+        binding.searchBar.closeSearch()
     }
 
     fun onBackPressed(): Boolean {
-        if (search_bar.isSearchOpen) {
-            search_bar.closeSearch()
+        if (binding.searchBar.isSearchOpen) {
+            binding.searchBar.closeSearch()
             return true
         }
 

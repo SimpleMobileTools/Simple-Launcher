@@ -13,6 +13,7 @@ import com.simplemobiletools.launcher.extensions.config
 import com.simplemobiletools.launcher.extensions.getCellCount
 import com.simplemobiletools.launcher.helpers.MAX_CLICK_DURATION
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
+import com.simplemobiletools.commons.R as CommonsR
 
 @SuppressLint("ViewConstructor")
 class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: Int) : RelativeLayout(context, attrs, defStyle) {
@@ -48,7 +49,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
 
         resizeWidgetLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
-            strokeWidth = context.resources.getDimension(R.dimen.tiny_margin)
+            strokeWidth = context.resources.getDimension(CommonsR.dimen.tiny_margin)
             style = Paint.Style.STROKE
         }
 

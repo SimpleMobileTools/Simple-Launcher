@@ -18,15 +18,15 @@ import com.simplemobiletools.commons.helpers.isRPlus
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.MainActivity
 import com.simplemobiletools.launcher.adapters.WidgetsAdapter
+import com.simplemobiletools.launcher.databinding.WidgetsFragmentBinding
 import com.simplemobiletools.launcher.extensions.config
 import com.simplemobiletools.launcher.extensions.getInitialCellSize
 import com.simplemobiletools.launcher.helpers.ITEM_TYPE_SHORTCUT
 import com.simplemobiletools.launcher.helpers.ITEM_TYPE_WIDGET
 import com.simplemobiletools.launcher.interfaces.WidgetsFragmentListener
 import com.simplemobiletools.launcher.models.*
-import kotlinx.android.synthetic.main.widgets_fragment.view.*
 
-class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment(context, attributeSet), WidgetsFragmentListener {
+class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment<WidgetsFragmentBinding>(context, attributeSet), WidgetsFragmentListener {
     private var lastTouchCoords = Pair(0f, 0f)
     var touchDownY = -1
     var ignoreTouches = false
@@ -35,9 +35,10 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
     @SuppressLint("ClickableViewAccessibility")
     override fun setupFragment(activity: MainActivity) {
         this.activity = activity
+        this.binding = WidgetsFragmentBinding.bind(this)
         getAppWidgets()
 
-        widgets_list.setOnTouchListener { v, event ->
+        binding.widgetsList.setOnTouchListener { v, event ->
             if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
                 touchDownY = -1
             }
@@ -47,14 +48,14 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
     }
 
     fun onConfigurationChanged() {
-        if (widgets_list == null) {
+        if (binding.widgetsList == null) {
             return
         }
 
-        widgets_list.scrollToPosition(0)
+        binding.widgetsList.scrollToPosition(0)
         setupViews()
 
-        val appWidgets = (widgets_list.adapter as WidgetsAdapter).widgetListItems
+        val appWidgets = (binding.widgetsList.adapter as WidgetsAdapter).widgetListItems
         setupAdapter(appWidgets)
     }
 
@@ -76,7 +77,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
 
         // pull the whole fragment down if it is scrolled way to the top and the users pulls it even further
         if (touchDownY != -1) {
-            shouldIntercept = touchDownY - event.y.toInt() < 0 && widgets_list.computeVerticalScrollOffset() == 0
+            shouldIntercept = touchDownY - event.y.toInt() < 0 && binding.widgetsList.computeVerticalScrollOffset() == 0
             if (shouldIntercept) {
                 activity?.startHandlingTouches(touchDownY)
                 touchDownY = -1
@@ -159,14 +160,14 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
 
     private fun setupAdapter(widgetsListItems: ArrayList<WidgetsListItem>) {
         activity?.runOnUiThread {
-            val currAdapter = widgets_list.adapter
+            val currAdapter = binding.widgetsList.adapter
             if (currAdapter == null) {
                 WidgetsAdapter(activity!!, widgetsListItems, this) {
                     context.toast(R.string.touch_hold_widget)
                     ignoreTouches = false
                     touchDownY = -1
                 }.apply {
-                    widgets_list.adapter = this
+                    binding.widgetsList.adapter = this
                 }
             } else {
                 (currAdapter as WidgetsAdapter).updateItems(widgetsListItems)
@@ -179,7 +180,7 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             return
         }
 
-        widgets_fastscroller.updateColors(context.getProperPrimaryColor())
+        binding.widgetsFastscroller.updateColors(context.getProperPrimaryColor())
 
         var bottomListPadding = 0
         var leftListPadding = 0
@@ -205,14 +206,14 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             }
         }
 
-        widgets_list.setPadding(0, 0, 0, bottomListPadding)
-        widgets_fastscroller.setPadding(leftListPadding, 0, rightListPadding, 0)
+        binding.widgetsList.setPadding(0, 0, 0, bottomListPadding)
+        binding.widgetsFastscroller.setPadding(leftListPadding, 0, rightListPadding, 0)
 
         hasTopPadding = addTopPadding
         val topPadding = if (addTopPadding) activity!!.statusBarHeight else 0
         setPadding(0, topPadding, 0, 0)
         background = ColorDrawable(context.getProperBackgroundColor())
-        (widgets_list.adapter as? WidgetsAdapter)?.updateTextColor(context.getProperTextColor())
+        (binding.widgetsList.adapter as? WidgetsAdapter)?.updateTextColor(context.getProperTextColor())
     }
 
     private fun getAppMetadataFromPackage(packageName: String): WidgetsListSection? {

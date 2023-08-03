@@ -9,15 +9,16 @@ import com.bumptech.glide.Glide
 import com.simplemobiletools.commons.extensions.getProperTextColor
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.SimpleActivity
+import com.simplemobiletools.launcher.databinding.ItemWidgetListItemsHolderBinding
+import com.simplemobiletools.launcher.databinding.ItemWidgetListSectionBinding
+import com.simplemobiletools.launcher.databinding.ItemWidgetPreviewBinding
 import com.simplemobiletools.launcher.helpers.WIDGET_LIST_ITEMS_HOLDER
 import com.simplemobiletools.launcher.helpers.WIDGET_LIST_SECTION
 import com.simplemobiletools.launcher.interfaces.WidgetsFragmentListener
 import com.simplemobiletools.launcher.models.WidgetsListItem
 import com.simplemobiletools.launcher.models.WidgetsListItemsHolder
 import com.simplemobiletools.launcher.models.WidgetsListSection
-import kotlinx.android.synthetic.main.item_widget_list_items_holder.view.*
-import kotlinx.android.synthetic.main.item_widget_list_section.view.*
-import kotlinx.android.synthetic.main.item_widget_preview.view.*
+import com.simplemobiletools.commons.R as CommonsR
 
 class WidgetsAdapter(
     val activity: SimpleActivity,
@@ -29,13 +30,13 @@ class WidgetsAdapter(
     private var textColor = activity.getProperTextColor()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val layoutId = when (viewType) {
-            WIDGET_LIST_SECTION -> R.layout.item_widget_list_section
-            else -> R.layout.item_widget_list_items_holder
+        val inflater = LayoutInflater.from(parent.context)
+        val binding = when (viewType) {
+            WIDGET_LIST_SECTION -> ItemWidgetListSectionBinding.inflate(inflater, parent, false)
+            else -> ItemWidgetListItemsHolderBinding.inflate(inflater, parent, false)
         }
 
-        val view = LayoutInflater.from(parent.context).inflate(layoutId, parent, false)
-        return ViewHolder(view)
+        return ViewHolder(binding.root)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -56,43 +57,44 @@ class WidgetsAdapter(
     }
 
     private fun setupListSection(view: View, section: WidgetsListSection) {
-        view.apply {
-            widget_app_title.text = section.appTitle
-            widget_app_title.setTextColor(textColor)
-            widget_app_icon.setImageDrawable(section.appIcon)
+        ItemWidgetListSectionBinding.bind(view).apply {
+            widgetAppTitle.text = section.appTitle
+            widgetAppTitle.setTextColor(textColor)
+            widgetAppIcon.setImageDrawable(section.appIcon)
         }
     }
 
     private fun setupListItemsHolder(view: View, listItem: WidgetsListItemsHolder) {
-        view.widget_list_items_holder.removeAllViews()
-        view.widget_list_items_scroll_view.scrollX = 0
+        val binding = ItemWidgetListItemsHolderBinding.bind(view)
+        binding.widgetListItemsHolder.removeAllViews()
+        binding.widgetListItemsScrollView.scrollX = 0
         listItem.widgets.forEachIndexed { index, widget ->
             val imageSize = activity.resources.getDimension(R.dimen.widget_preview_size).toInt()
-            val widgetPreview = LayoutInflater.from(activity).inflate(R.layout.item_widget_preview, null)
-            view.widget_list_items_holder.addView(widgetPreview)
+            val widgetPreview = ItemWidgetPreviewBinding.inflate(LayoutInflater.from(activity))
+            binding.widgetListItemsHolder.addView(widgetPreview.root)
 
             val endMargin = if (index == listItem.widgets.size - 1) {
-                activity.resources.getDimension(R.dimen.medium_margin).toInt()
+                activity.resources.getDimension(CommonsR.dimen.medium_margin).toInt()
             } else {
                 0
             }
 
-            widgetPreview.widget_title.apply {
+            widgetPreview.widgetTitle.apply {
                 text = widget.widgetTitle
                 setTextColor(textColor)
             }
 
-            widgetPreview.widget_size.apply {
+            widgetPreview.widgetSize.apply {
                 text = if (widget.isShortcut) {
-                    activity.getString(R.string.shortcut)
+                    activity.getString(CommonsR.string.shortcut)
                 } else {
                     "${widget.widthCells} x ${widget.heightCells}"
                 }
                 setTextColor(textColor)
             }
 
-            (widgetPreview.widget_image.layoutParams as RelativeLayout.LayoutParams).apply {
-                marginStart = activity.resources.getDimension(R.dimen.activity_margin).toInt()
+            (widgetPreview.widgetImage.layoutParams as RelativeLayout.LayoutParams).apply {
+                marginStart = activity.resources.getDimension(CommonsR.dimen.activity_margin).toInt()
                 marginEnd = endMargin
                 width = imageSize
                 height = imageSize
@@ -100,11 +102,11 @@ class WidgetsAdapter(
 
             Glide.with(activity)
                 .load(widget.widgetPreviewImage)
-                .into(widgetPreview.widget_image)
+                .into(widgetPreview.widgetImage)
 
-            widgetPreview.setOnClickListener { itemClick() }
+            widgetPreview.root.setOnClickListener { itemClick() }
 
-            widgetPreview.setOnLongClickListener { view ->
+            widgetPreview.root.setOnLongClickListener { view ->
                 widgetsFragmentListener.onWidgetLongPressed(widget)
                 true
             }
