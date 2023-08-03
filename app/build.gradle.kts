@@ -24,7 +24,6 @@ android {
         versionName = project.libs.versions.app.version.versionName.get()
         versionCode = project.libs.versions.app.version.versionCode.get().toInt()
         setProperty("archivesBaseName", "launcher")
-        vectorDrawables.useSupportLibrary = true
     }
 
     signingConfigs {
