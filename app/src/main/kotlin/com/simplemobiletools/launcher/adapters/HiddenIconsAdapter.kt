@@ -15,9 +15,9 @@ import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.interfaces.RefreshRecyclerViewListener
 import com.simplemobiletools.commons.views.MyRecyclerView
 import com.simplemobiletools.launcher.R
+import com.simplemobiletools.launcher.databinding.ItemHiddenIconBinding
 import com.simplemobiletools.launcher.extensions.hiddenIconsDB
 import com.simplemobiletools.launcher.models.HiddenIcon
-import kotlinx.android.synthetic.main.item_hidden_icon.view.*
 
 class HiddenIconsAdapter(
     activity: BaseSimpleActivity,
@@ -56,7 +56,9 @@ class HiddenIconsAdapter(
 
     override fun onActionModeDestroyed() {}
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = createViewHolder(R.layout.item_hidden_icon, parent)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        return createViewHolder(ItemHiddenIconBinding.inflate(layoutInflater, parent, false).root)
+    }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val folder = hiddenIcons[position]
@@ -101,11 +103,11 @@ class HiddenIconsAdapter(
     }
 
     private fun setupView(view: View, icon: HiddenIcon) {
-        view.apply {
-            hidden_icon_holder?.isSelected = selectedKeys.contains(icon.hashCode())
-            hidden_icon_label.text = icon.title
-            hidden_icon_label.setTextColor(textColor)
-            hidden_icon.setPadding(iconPadding, iconPadding, iconPadding, 0)
+        ItemHiddenIconBinding.bind(view).apply {
+            hiddenIconHolder.isSelected = selectedKeys.contains(icon.hashCode())
+            hiddenIconLabel.text = icon.title
+            hiddenIconLabel.setTextColor(textColor)
+            hiddenIcon.setPadding(iconPadding, iconPadding, iconPadding, 0)
 
             val factory = DrawableCrossFadeFactory.Builder(150).setCrossFadeEnabled(true).build()
 
@@ -113,7 +115,7 @@ class HiddenIconsAdapter(
                 .load(icon.drawable)
                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                 .transition(DrawableTransitionOptions.withCrossFade(factory))
-                .into(hidden_icon)
+                .into(hiddenIcon)
         }
     }
 }

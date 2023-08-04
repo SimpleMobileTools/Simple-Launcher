@@ -14,11 +14,11 @@ import com.simplemobiletools.commons.extensions.getProperTextColor
 import com.simplemobiletools.commons.extensions.realScreenSize
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.SimpleActivity
+import com.simplemobiletools.launcher.databinding.ItemLauncherLabelBinding
 import com.simplemobiletools.launcher.extensions.config
 import com.simplemobiletools.launcher.interfaces.AllAppsListener
 import com.simplemobiletools.launcher.models.AppLauncher
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
-import kotlinx.android.synthetic.main.item_launcher_label.view.*
 
 class LaunchersAdapter(
     val activity: SimpleActivity,
@@ -44,8 +44,8 @@ class LaunchersAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_launcher_label, parent, false)
-        return ViewHolder(view)
+        val binding = ItemLauncherLabelBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ViewHolder(binding.root)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -103,10 +103,11 @@ class LaunchersAdapter(
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         fun bindView(launcher: AppLauncher): View {
+            val binding = ItemLauncherLabelBinding.bind(itemView)
             itemView.apply {
-                launcher_label.text = launcher.title
-                launcher_label.setTextColor(textColor)
-                launcher_icon.setPadding(iconPadding, iconPadding, iconPadding, 0)
+                binding.launcherLabel.text = launcher.title
+                binding.launcherLabel.setTextColor(textColor)
+                binding.launcherIcon.setPadding(iconPadding, iconPadding, iconPadding, 0)
 
                 val factory = DrawableCrossFadeFactory.Builder(150).setCrossFadeEnabled(true).build()
                 val placeholderDrawable = activity.resources.getColoredDrawableWithColor(R.drawable.placeholder_drawable, launcher.thumbnailColor)
@@ -116,7 +117,7 @@ class LaunchersAdapter(
                     .placeholder(placeholderDrawable)
                     .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                     .transition(DrawableTransitionOptions.withCrossFade(factory))
-                    .into(launcher_icon)
+                    .into(binding.launcherIcon)
 
                 setOnClickListener { itemClick(launcher) }
                 setOnLongClickListener { view ->
