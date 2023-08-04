@@ -7,7 +7,6 @@ import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.launcher.databinding.DialogRenameItemBinding
 import com.simplemobiletools.launcher.extensions.homeScreenGridItemsDB
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
-import com.simplemobiletools.commons.R as CommonsR
 
 class RenameItemDialog(val activity: Activity, val item: HomeScreenGridItem, val callback: () -> Unit) {
 
@@ -17,10 +16,10 @@ class RenameItemDialog(val activity: Activity, val item: HomeScreenGridItem, val
         binding.renameItemEdittext.setText(item.title)
 
         activity.getAlertDialogBuilder()
-            .setPositiveButton(CommonsR.string.ok, null)
-            .setNegativeButton(CommonsR.string.cancel, null)
+            .setPositiveButton(com.simplemobiletools.commons.R.string.ok, null)
+            .setNegativeButton(com.simplemobiletools.commons.R.string.cancel, null)
             .apply {
-                activity.setupDialogStuff(view, this, CommonsR.string.rename) { alertDialog ->
+                activity.setupDialogStuff(view, this, com.simplemobiletools.commons.R.string.rename) { alertDialog ->
                     alertDialog.showKeyboard(binding.renameItemEdittext)
                     alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                         val newTitle = binding.renameItemEdittext.value
@@ -31,11 +30,11 @@ class RenameItemDialog(val activity: Activity, val item: HomeScreenGridItem, val
                                     callback()
                                     alertDialog.dismiss()
                                 } else {
-                                    activity.toast(CommonsR.string.unknown_error_occurred)
+                                    activity.toast(com.simplemobiletools.commons.R.string.unknown_error_occurred)
                                 }
                             }
                         } else {
-                            activity.toast(CommonsR.string.value_cannot_be_empty)
+                            activity.toast(com.simplemobiletools.commons.R.string.value_cannot_be_empty)
                         }
                     }
                 }

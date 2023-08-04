@@ -18,7 +18,6 @@ import com.simplemobiletools.launcher.interfaces.WidgetsFragmentListener
 import com.simplemobiletools.launcher.models.WidgetsListItem
 import com.simplemobiletools.launcher.models.WidgetsListItemsHolder
 import com.simplemobiletools.launcher.models.WidgetsListSection
-import com.simplemobiletools.commons.R as CommonsR
 
 class WidgetsAdapter(
     val activity: SimpleActivity,
@@ -74,7 +73,7 @@ class WidgetsAdapter(
             binding.widgetListItemsHolder.addView(widgetPreview.root)
 
             val endMargin = if (index == listItem.widgets.size - 1) {
-                activity.resources.getDimension(CommonsR.dimen.medium_margin).toInt()
+                activity.resources.getDimension(com.simplemobiletools.commons.R.dimen.medium_margin).toInt()
             } else {
                 0
             }
@@ -86,7 +85,7 @@ class WidgetsAdapter(
 
             widgetPreview.widgetSize.apply {
                 text = if (widget.isShortcut) {
-                    activity.getString(CommonsR.string.shortcut)
+                    activity.getString(com.simplemobiletools.commons.R.string.shortcut)
                 } else {
                     "${widget.widthCells} x ${widget.heightCells}"
                 }
@@ -94,7 +93,7 @@ class WidgetsAdapter(
             }
 
             (widgetPreview.widgetImage.layoutParams as RelativeLayout.LayoutParams).apply {
-                marginStart = activity.resources.getDimension(CommonsR.dimen.activity_margin).toInt()
+                marginStart = activity.resources.getDimension(com.simplemobiletools.commons.R.dimen.activity_margin).toInt()
                 marginEnd = endMargin
                 width = imageSize
                 height = imageSize

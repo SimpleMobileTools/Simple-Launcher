@@ -18,7 +18,6 @@ import com.simplemobiletools.launcher.helpers.MIN_COLUMN_COUNT
 import com.simplemobiletools.launcher.helpers.MIN_ROW_COUNT
 import java.util.Locale
 import kotlin.system.exitProcess
-import com.simplemobiletools.commons.R as CommonsR
 
 class SettingsActivity : SimpleActivity() {
 
@@ -74,7 +73,7 @@ class SettingsActivity : SimpleActivity() {
 
     private fun refreshMenuItems() {
         binding.settingsToolbar.menu.apply {
-            findItem(R.id.more_apps_from_us).isVisible = !resources.getBoolean(CommonsR.bool.hide_google_relations)
+            findItem(R.id.more_apps_from_us).isVisible = !resources.getBoolean(com.simplemobiletools.commons.R.bool.hide_google_relations)
         }
     }
 
@@ -116,7 +115,7 @@ class SettingsActivity : SimpleActivity() {
         binding.settingsDrawerColumnCountHolder.setOnClickListener {
             val items = ArrayList<RadioItem>()
             for (i in 1..MAX_COLUMN_COUNT) {
-                items.add(RadioItem(i, resources.getQuantityString(CommonsR.plurals.column_counts, i, i)))
+                items.add(RadioItem(i, resources.getQuantityString(com.simplemobiletools.commons.R.plurals.column_counts, i, i)))
             }
 
             RadioGroupDialog(this, items, currentColumnCount) {
@@ -144,7 +143,7 @@ class SettingsActivity : SimpleActivity() {
         binding.settingsHomeScreenRowCountHolder.setOnClickListener {
             val items = ArrayList<RadioItem>()
             for (i in MIN_ROW_COUNT..MAX_ROW_COUNT) {
-                items.add(RadioItem(i, resources.getQuantityString(CommonsR.plurals.row_counts, i, i)))
+                items.add(RadioItem(i, resources.getQuantityString(com.simplemobiletools.commons.R.plurals.row_counts, i, i)))
             }
 
             RadioGroupDialog(this, items, currentRowCount) {
@@ -163,7 +162,7 @@ class SettingsActivity : SimpleActivity() {
         binding.settingsHomeScreenColumnCountHolder.setOnClickListener {
             val items = ArrayList<RadioItem>()
             for (i in MIN_COLUMN_COUNT..MAX_COLUMN_COUNT) {
-                items.add(RadioItem(i, resources.getQuantityString(CommonsR.plurals.column_counts, i, i)))
+                items.add(RadioItem(i, resources.getQuantityString(com.simplemobiletools.commons.R.plurals.column_counts, i, i)))
             }
 
             RadioGroupDialog(this, items, currentColumnCount) {
@@ -194,9 +193,9 @@ class SettingsActivity : SimpleActivity() {
         val licenses = 0L
         val faqItems = ArrayList<FAQItem>()
 
-        if (!resources.getBoolean(CommonsR.bool.hide_google_relations)) {
-            faqItems.add(FAQItem(CommonsR.string.faq_2_title_commons, CommonsR.string.faq_2_text_commons))
-            faqItems.add(FAQItem(CommonsR.string.faq_6_title_commons, CommonsR.string.faq_6_text_commons))
+        if (!resources.getBoolean(com.simplemobiletools.commons.R.bool.hide_google_relations)) {
+            faqItems.add(FAQItem(com.simplemobiletools.commons.R.string.faq_2_title_commons, com.simplemobiletools.commons.R.string.faq_2_text_commons))
+            faqItems.add(FAQItem(com.simplemobiletools.commons.R.string.faq_6_title_commons, com.simplemobiletools.commons.R.string.faq_6_text_commons))
         }
 
         startAboutActivity(R.string.app_name, licenses, BuildConfig.VERSION_NAME, faqItems, true)

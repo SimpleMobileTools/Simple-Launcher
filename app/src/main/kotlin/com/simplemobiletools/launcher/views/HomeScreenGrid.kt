@@ -41,7 +41,6 @@ import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
-import com.simplemobiletools.commons.R as CommonsR
 
 class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : RelativeLayout(context, attrs, defStyle) {
     constructor(context: Context, attrs: AttributeSet) : this(context, attrs, 0)
@@ -57,8 +56,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private var extraYMargin = 0
 
     private var iconMargin = (context.resources.getDimension(R.dimen.icon_side_margin) * 5 / columnCount).toInt()
-    private var labelSideMargin = context.resources.getDimension(CommonsR.dimen.small_margin).toInt()
-    private var roundedCornerRadius = context.resources.getDimension(CommonsR.dimen.activity_margin)
+    private var labelSideMargin = context.resources.getDimension(com.simplemobiletools.commons.R.dimen.small_margin).toInt()
+    private var roundedCornerRadius = context.resources.getDimension(com.simplemobiletools.commons.R.dimen.activity_margin)
     private var pageIndicatorRadius = context.resources.getDimension(R.dimen.page_indicator_dot_radius)
     private var pageIndicatorMargin = context.resources.getDimension(R.dimen.page_indicator_margin)
     private var textPaint: TextPaint
@@ -119,13 +118,13 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
         textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
-            textSize = context.resources.getDimension(CommonsR.dimen.smaller_text_size)
+            textSize = context.resources.getDimension(com.simplemobiletools.commons.R.dimen.smaller_text_size)
             setShadowLayer(2f, 0f, 0f, Color.BLACK)
         }
 
         dragShadowCirclePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = context.resources.getColor(CommonsR.color.hint_white)
-            strokeWidth = context.resources.getDimension(CommonsR.dimen.small_margin)
+            color = context.resources.getColor(com.simplemobiletools.commons.R.color.hint_white)
+            strokeWidth = context.resources.getDimension(com.simplemobiletools.commons.R.dimen.small_margin)
             style = Paint.Style.STROKE
         }
 
@@ -137,7 +136,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             style = Paint.Style.FILL
         }
 
-        val sideMargin = context.resources.getDimension(CommonsR.dimen.normal_margin).toInt()
+        val sideMargin = context.resources.getDimension(com.simplemobiletools.commons.R.dimen.normal_margin).toInt()
         sideMargins.apply {
             top = context.statusBarHeight
             bottom = context.navigationBarHeight

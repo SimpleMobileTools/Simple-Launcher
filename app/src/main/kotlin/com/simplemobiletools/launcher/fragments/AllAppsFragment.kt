@@ -19,7 +19,6 @@ import com.simplemobiletools.launcher.helpers.ITEM_TYPE_ICON
 import com.simplemobiletools.launcher.interfaces.AllAppsListener
 import com.simplemobiletools.launcher.models.AppLauncher
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
-import com.simplemobiletools.commons.R as CommonsR
 
 class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment<AllAppsFragmentBinding>(context, attributeSet), AllAppsListener {
     private var lastTouchCoords = Pair(0f, 0f)
@@ -166,7 +165,7 @@ class AllAppsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
             }
         }
 
-        binding.allAppsGrid.setPadding(0, 0, resources.getDimension(CommonsR.dimen.medium_margin).toInt(), bottomListPadding)
+        binding.allAppsGrid.setPadding(0, 0, resources.getDimension(com.simplemobiletools.commons.R.dimen.medium_margin).toInt(), bottomListPadding)
         binding.allAppsFastscroller.setPadding(leftListPadding, 0, rightListPadding, 0)
 
         hasTopPadding = addTopPadding

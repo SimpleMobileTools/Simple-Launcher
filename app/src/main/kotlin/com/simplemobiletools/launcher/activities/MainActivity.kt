@@ -50,7 +50,6 @@ import com.simplemobiletools.launcher.models.AppLauncher
 import com.simplemobiletools.launcher.models.HiddenIcon
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
 import kotlin.math.abs
-import com.simplemobiletools.commons.R as CommonsR
 
 class MainActivity : SimpleActivity(), FlingListener {
     private var mTouchDownX = -1
@@ -691,7 +690,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                 startActivity(this)
             }
         } catch (e: ActivityNotFoundException) {
-            toast(CommonsR.string.no_app_found)
+            toast(com.simplemobiletools.commons.R.string.no_app_found)
         } catch (e: Exception) {
             showErrorToast(e)
         }
