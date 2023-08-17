@@ -73,7 +73,7 @@ class MainActivity : SimpleActivity(), FlingListener {
     private var wasJustPaused: Boolean = false
 
     private lateinit var mDetector: GestureDetectorCompat
-    private lateinit var binding: ActivityMainBinding
+    private val binding by viewBinding(ActivityMainBinding::inflate)
 
     val menuListener: ItemMenuListener = object : ItemMenuListener {
         override fun onAnyClick() {
@@ -131,7 +131,6 @@ class MainActivity : SimpleActivity(), FlingListener {
         useDynamicTheme = false
 
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         appLaunched(BuildConfig.APPLICATION_ID)
 
