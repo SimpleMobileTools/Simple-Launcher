@@ -47,10 +47,12 @@ class MyAppWidgetHostView(context: Context) : AppWidgetHostView(context) {
                 currentCoords.y = event.rawY
                 actionDownMS = System.currentTimeMillis()
             }
+
             MotionEvent.ACTION_MOVE -> {
                 currentCoords.x = event.rawX
                 currentCoords.y = event.rawY
             }
+
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 longPressHandler.removeCallbacksAndMessages(null)
             }

@@ -33,26 +33,24 @@ import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.isVisible
 import androidx.core.view.iterator
+import androidx.viewbinding.ViewBinding
 import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.*
 import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.dialogs.FolderIconsDialog
+import com.simplemobiletools.launcher.databinding.ActivityMainBinding
+import com.simplemobiletools.launcher.databinding.AllAppsFragmentBinding
+import com.simplemobiletools.launcher.databinding.WidgetsFragmentBinding
 import com.simplemobiletools.launcher.dialogs.RenameItemDialog
 import com.simplemobiletools.launcher.extensions.*
-import com.simplemobiletools.launcher.fragments.AllAppsFragment
 import com.simplemobiletools.launcher.fragments.MyFragment
-import com.simplemobiletools.launcher.fragments.WidgetsFragment
 import com.simplemobiletools.launcher.helpers.*
 import com.simplemobiletools.launcher.interfaces.FlingListener
 import com.simplemobiletools.launcher.interfaces.ItemMenuListener
 import com.simplemobiletools.launcher.models.AppLauncher
 import com.simplemobiletools.launcher.models.HiddenIcon
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.activity_main.view.*
-import kotlinx.android.synthetic.main.all_apps_fragment.view.*
-import kotlinx.android.synthetic.main.widgets_fragment.view.*
 import kotlin.math.abs
 
 class MainActivity : SimpleActivity(), FlingListener {
@@ -72,8 +70,10 @@ class MainActivity : SimpleActivity(), FlingListener {
     private var mActionOnCanBindWidget: ((granted: Boolean) -> Unit)? = null
     private var mActionOnWidgetConfiguredWidget: ((granted: Boolean) -> Unit)? = null
     private var mActionOnAddShortcut: ((shortcutId: String, label: String, icon: Drawable) -> Unit)? = null
+    private var wasJustPaused: Boolean = false
 
     private lateinit var mDetector: GestureDetectorCompat
+    private lateinit var binding: ActivityMainBinding
 
     val menuListener: ItemMenuListener = object : ItemMenuListener {
         override fun onAnyClick() {
@@ -89,7 +89,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
 
         override fun resize(gridItem: HomeScreenGridItem) {
-            home_screen_grid.widgetLongPressed(gridItem)
+            binding.homeScreenGrid.root.widgetLongPressed(gridItem)
         }
 
         override fun appInfo(gridItem: HomeScreenGridItem) {
@@ -97,7 +97,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
 
         override fun remove(gridItem: HomeScreenGridItem) {
-            home_screen_grid.removeAppIcon(gridItem)
+            binding.homeScreenGrid.root.removeAppIcon(gridItem)
         }
 
         override fun uninstall(gridItem: HomeScreenGridItem) {
@@ -117,7 +117,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                 }
             }
             val yOffset = resources.getDimension(R.dimen.long_press_anchor_button_offset_y) * (visibleMenuItems - 1)
-            home_screen_popup_menu_anchor.y -= yOffset
+            binding.homeScreenPopupMenuAnchor.y -= yOffset
         }
     }
 
@@ -131,7 +131,8 @@ class MainActivity : SimpleActivity(), FlingListener {
         useDynamicTheme = false
 
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         appLaunched(BuildConfig.APPLICATION_ID)
 
         mDetector = GestureDetectorCompat(this, MyGestureListener(this))
@@ -143,7 +144,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         mWidgetsFragmentY = mScreenHeight
         mMoveGestureThreshold = resources.getDimensionPixelSize(R.dimen.move_gesture_threshold)
 
-        arrayOf(all_apps_fragment as MyFragment, widgets_fragment as MyFragment).forEach { fragment ->
+        arrayOf(binding.allAppsFragment.root as MyFragment<*>, binding.widgetsFragment.root as MyFragment<*>).forEach { fragment ->
             fragment.setupFragment(this)
             fragment.y = mScreenHeight.toFloat()
             fragment.beVisible()
@@ -151,17 +152,28 @@ class MainActivity : SimpleActivity(), FlingListener {
 
         handleIntentAction(intent)
 
-        home_screen_grid.itemClickListener = {
+        binding.homeScreenGrid.root.itemClickListener = {
             performItemClick(it)
         }
 
-        home_screen_grid.itemLongClickListener = {
-            performItemLongClick(home_screen_grid.getClickableRect(it).left.toFloat(), it)
+        binding.homeScreenGrid.root.itemLongClickListener = {
+            performItemLongClick(binding.homeScreenGrid.root.getClickableRect(it).left.toFloat(), it)
         }
     }
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
+        if (wasJustPaused) {
+            if (isAllAppsFragmentExpanded()) {
+                hideFragment(binding.allAppsFragment)
+            }
+            if (isWidgetsFragmentExpanded()) {
+                hideFragment(binding.widgetsFragment)
+            }
+        } else {
+            closeAppDrawer()
+            closeWidgetsFragment()
+        }
         if (intent != null) {
             handleIntentAction(intent)
         }
@@ -201,14 +213,14 @@ class MainActivity : SimpleActivity(), FlingListener {
                 )
 
                 runOnUiThread {
-                    home_screen_grid.skipToPage(page)
+                    binding.homeScreenGrid.root.skipToPage(page)
                 }
                 // delay showing the shortcut both to let the user see adding it in realtime and hackily avoid concurrent modification exception at HomeScreenGrid
                 Thread.sleep(2000)
 
                 try {
                     item.accept()
-                    home_screen_grid.storeAndShowGridItem(gridItem)
+                    binding.homeScreenGrid.root.storeAndShowGridItem(gridItem)
                 } catch (ignored: IllegalStateException) {
                 }
             }
@@ -243,18 +255,19 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     override fun onStart() {
         super.onStart()
-        home_screen_grid.appWidgetHost.startListening()
+        binding.homeScreenGrid.root.appWidgetHost.startListening()
     }
 
     override fun onResume() {
         super.onResume()
+        wasJustPaused = false
         updateStatusbarColor(Color.TRANSPARENT)
 
-        main_holder.onGlobalLayout {
+        binding.mainHolder.onGlobalLayout {
             if (isPiePlus()) {
-                val addTopPadding = main_holder.rootWindowInsets?.displayCutout != null
-                (all_apps_fragment as AllAppsFragment).setupViews(addTopPadding)
-                (widgets_fragment as WidgetsFragment).setupViews(addTopPadding)
+                val addTopPadding = binding.mainHolder.rootWindowInsets?.displayCutout != null
+                binding.allAppsFragment.root.setupViews(addTopPadding)
+                binding.widgetsFragment.root.setupViews(addTopPadding)
                 updateStatusbarColor(Color.TRANSPARENT)
             }
         }
@@ -276,7 +289,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                     showIcon
                 }.toMutableList() as ArrayList<AppLauncher>
 
-                (all_apps_fragment as AllAppsFragment).gotLaunchers(mCachedLaunchers)
+                binding.allAppsFragment.root.gotLaunchers(mCachedLaunchers)
             }
 
             refetchLaunchers()
@@ -287,27 +300,34 @@ class MainActivity : SimpleActivity(), FlingListener {
             window.navigationBarColor = Color.TRANSPARENT
         }
 
-        home_screen_grid?.resizeGrid(
+        binding.homeScreenGrid.root.resizeGrid(
             newRowCount = config.homeRowCount,
             newColumnCount = config.homeColumnCount
         )
-        (all_apps_fragment as? AllAppsFragment)?.onResume()
+        binding.allAppsFragment.root.onResume()
     }
 
     override fun onStop() {
         super.onStop()
-        home_screen_grid?.appWidgetHost?.stopListening()
+        binding.homeScreenGrid.root.appWidgetHost?.stopListening()
+        wasJustPaused = false
     }
 
+    override fun onPause() {
+        super.onPause()
+        wasJustPaused = true
+    }
+
+    @SuppressLint("MissingSuperCall")
     override fun onBackPressed() {
         if (isAllAppsFragmentExpanded()) {
-            if ((all_apps_fragment as? AllAppsFragment)?.onBackPressed() == false) {
-                hideFragment(all_apps_fragment)
+            if (!binding.allAppsFragment.root.onBackPressed()) {
+                hideFragment(binding.allAppsFragment)
             }
         } else if (isWidgetsFragmentExpanded()) {
-            hideFragment(widgets_fragment)
-        } else if (home_screen_grid.resize_frame.isVisible) {
-            home_screen_grid.hideResizeLines()
+            hideFragment(binding.widgetsFragment)
+        } else if (binding.homeScreenGrid.resizeFrame.isVisible) {
+            binding.homeScreenGrid.root.hideResizeLines()
         } else {
             // this is a home launcher app, avoid glitching by pressing Back
             //super.onBackPressed()
@@ -342,8 +362,8 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        (all_apps_fragment as? AllAppsFragment)?.onConfigurationChanged()
-        (widgets_fragment as? WidgetsFragment)?.onConfigurationChanged()
+        binding.allAppsFragment.root.onConfigurationChanged()
+        binding.widgetsFragment.root.onConfigurationChanged()
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
@@ -364,8 +384,8 @@ class MainActivity : SimpleActivity(), FlingListener {
             MotionEvent.ACTION_DOWN -> {
                 mTouchDownX = event.x.toInt()
                 mTouchDownY = event.y.toInt()
-                mAllAppsFragmentY = all_apps_fragment.y.toInt()
-                mWidgetsFragmentY = widgets_fragment.y.toInt()
+                mAllAppsFragmentY = binding.allAppsFragment.root.y.toInt()
+                mWidgetsFragmentY = binding.widgetsFragment.root.y.toInt()
                 mIgnoreUpEvent = false
             }
 
@@ -382,13 +402,13 @@ class MainActivity : SimpleActivity(), FlingListener {
                 if (mLongPressedIcon != null && (mOpenPopupMenu != null || mOpenFolderDialog != null) && hasFingerMoved) {
                     mOpenPopupMenu?.dismiss()
                     mOpenPopupMenu = null
-                    home_screen_grid.itemDraggingStarted(mLongPressedIcon!!)
-                    hideFragment(all_apps_fragment)
+                    binding.homeScreenGrid.root.itemDraggingStarted(mLongPressedIcon!!)
+                    hideFragment(binding.allAppsFragment)
                     mOpenFolderDialog?.dismiss()
                 }
 
                 if (mLongPressedIcon != null && hasFingerMoved) {
-                    home_screen_grid.draggedItemMoved(event.x.toInt(), event.y.toInt())
+                    binding.homeScreenGrid.root.draggedItemMoved(event.x.toInt(), event.y.toInt())
                 }
 
                 if (hasFingerMoved && !mIgnoreMoveEvents) {
@@ -396,10 +416,10 @@ class MainActivity : SimpleActivity(), FlingListener {
 
                     if (isWidgetsFragmentExpanded()) {
                         val newY = mWidgetsFragmentY - diffY
-                        widgets_fragment.y = Math.min(Math.max(0f, newY), mScreenHeight.toFloat())
+                        binding.widgetsFragment.root.y = Math.min(Math.max(0f, newY), mScreenHeight.toFloat())
                     } else if (mLongPressedIcon == null) {
                         val newY = mAllAppsFragmentY - diffY
-                        all_apps_fragment.y = Math.min(Math.max(0f, newY), mScreenHeight.toFloat())
+                        binding.allAppsFragment.root.y = Math.min(Math.max(0f, newY), mScreenHeight.toFloat())
                     }
                 }
 
@@ -414,19 +434,19 @@ class MainActivity : SimpleActivity(), FlingListener {
                 mLongPressedIcon = null
                 mLastTouchCoords = Pair(-1f, -1f)
                 resetFragmentTouches()
-                home_screen_grid.itemDraggingStopped()
+                binding.homeScreenGrid.root.itemDraggingStopped()
 
                 if (!mIgnoreUpEvent) {
-                    if (all_apps_fragment.y < mScreenHeight * 0.5) {
-                        showFragment(all_apps_fragment)
+                    if (binding.allAppsFragment.root.y < mScreenHeight * 0.5) {
+                        showFragment(binding.allAppsFragment)
                     } else if (isAllAppsFragmentExpanded()) {
-                        hideFragment(all_apps_fragment)
+                        hideFragment(binding.allAppsFragment)
                     }
 
-                    if (widgets_fragment.y < mScreenHeight * 0.5) {
-                        showFragment(widgets_fragment)
+                    if (binding.widgetsFragment.root.y < mScreenHeight * 0.5) {
+                        showFragment(binding.widgetsFragment)
                     } else if (isWidgetsFragmentExpanded()) {
-                        hideFragment(widgets_fragment)
+                        hideFragment(binding.widgetsFragment)
                     }
                 }
             }
@@ -442,8 +462,8 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     private fun refetchLaunchers() {
         val launchers = getAllAppLaunchers()
-        (all_apps_fragment as AllAppsFragment).gotLaunchers(launchers)
-        (widgets_fragment as WidgetsFragment).getAppWidgets()
+        binding.allAppsFragment.root.gotLaunchers(launchers)
+        binding.widgetsFragment.root.getAppWidgets()
 
         var hasDeletedAnything = false
         mCachedLaunchers.map { it.packageName }.forEach { packageName ->
@@ -455,7 +475,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
 
         if (hasDeletedAnything) {
-            home_screen_grid.fetchGridItems()
+            binding.homeScreenGrid.root.fetchGridItems()
             mOpenFolderDialog?.fetchItems()
         }
 
@@ -465,52 +485,52 @@ class MainActivity : SimpleActivity(), FlingListener {
             ensureBackgroundThread {
                 getDefaultAppPackages(launchers)
                 config.wasHomeScreenInit = true
-                home_screen_grid.fetchGridItems()
+                binding.homeScreenGrid.root.fetchGridItems()
             }
         }
     }
 
-    fun isAllAppsFragmentExpanded() = all_apps_fragment.y != mScreenHeight.toFloat()
+    fun isAllAppsFragmentExpanded() = binding.allAppsFragment.root.y != mScreenHeight.toFloat()
 
-    private fun isWidgetsFragmentExpanded() = widgets_fragment.y != mScreenHeight.toFloat()
+    private fun isWidgetsFragmentExpanded() = binding.widgetsFragment.root.y != mScreenHeight.toFloat()
 
     fun startHandlingTouches(touchDownY: Int) {
         mLongPressedIcon = null
         mTouchDownY = touchDownY
-        mAllAppsFragmentY = all_apps_fragment.y.toInt()
-        mWidgetsFragmentY = widgets_fragment.y.toInt()
+        mAllAppsFragmentY = binding.allAppsFragment.root.y.toInt()
+        mWidgetsFragmentY = binding.widgetsFragment.root.y.toInt()
         mIgnoreUpEvent = false
     }
 
-    private fun showFragment(fragment: View) {
-        ObjectAnimator.ofFloat(fragment, "y", 0f).apply {
+    private fun showFragment(fragment: ViewBinding) {
+        ObjectAnimator.ofFloat(fragment.root, "y", 0f).apply {
             duration = ANIMATION_DURATION
             interpolator = DecelerateInterpolator()
             start()
         }
 
         window.navigationBarColor = resources.getColor(R.color.semitransparent_navigation)
-        home_screen_grid.fragmentExpanded()
-        home_screen_grid.hideResizeLines()
-        fragment.performAccessibilityAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null)
+        binding.homeScreenGrid.root.fragmentExpanded()
+        binding.homeScreenGrid.root.hideResizeLines()
+        fragment.root.performAccessibilityAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null)
     }
 
-    private fun hideFragment(fragment: View) {
-        ObjectAnimator.ofFloat(fragment, "y", mScreenHeight.toFloat()).apply {
+    private fun hideFragment(fragment: ViewBinding) {
+        ObjectAnimator.ofFloat(fragment.root, "y", mScreenHeight.toFloat()).apply {
             duration = ANIMATION_DURATION
             interpolator = DecelerateInterpolator()
             start()
         }
 
         window.navigationBarColor = Color.TRANSPARENT
-        home_screen_grid.fragmentCollapsed()
-        Handler().postDelayed({
-            if (fragment is AllAppsFragment) {
-                fragment.all_apps_grid.scrollToPosition(0)
-                fragment.touchDownY = -1
-            } else if (fragment is WidgetsFragment) {
-                fragment.widgets_list.scrollToPosition(0)
-                fragment.touchDownY = -1
+        binding.homeScreenGrid.root.fragmentCollapsed()
+        Handler(Looper.getMainLooper()).postDelayed({
+            if (fragment is AllAppsFragmentBinding) {
+                fragment.allAppsGrid.scrollToPosition(0)
+                fragment.root.touchDownY = -1
+            } else if (fragment is WidgetsFragmentBinding) {
+                fragment.widgetsList.scrollToPosition(0)
+                fragment.root.touchDownY = -1
             }
         }, ANIMATION_DURATION)
     }
@@ -520,34 +540,56 @@ class MainActivity : SimpleActivity(), FlingListener {
             return
         }
 
-        val (x, y) = home_screen_grid.intoViewSpaceCoords(eventX, eventY)
+        val (x, y) = binding.homeScreenGrid.root.intoViewSpaceCoords(eventX, eventY)
         mIgnoreMoveEvents = true
-        val clickedGridItem = home_screen_grid.isClickingGridItem(x.toInt(), y.toInt())
+        val clickedGridItem = binding.homeScreenGrid.root.isClickingGridItem(x.toInt(), y.toInt())
         if (clickedGridItem != null) {
             performItemLongClick(x, clickedGridItem)
             return
         }
 
-        main_holder.performHapticFeedback()
+        binding.mainHolder.performHapticFeedback()
         showMainLongPressMenu(x, y)
     }
 
     fun homeScreenClicked(eventX: Float, eventY: Float) {
-        home_screen_grid.hideResizeLines()
-        val (x, y) = home_screen_grid.intoViewSpaceCoords(eventX, eventY)
-        val clickedGridItem = home_screen_grid.isClickingGridItem(x.toInt(), y.toInt())
+        binding.homeScreenGrid.root.hideResizeLines()
+        val (x, y) = binding.homeScreenGrid.root.intoViewSpaceCoords(eventX, eventY)
+        val clickedGridItem = binding.homeScreenGrid.root.isClickingGridItem(x.toInt(), y.toInt())
         if (clickedGridItem != null) {
             performItemClick(clickedGridItem)
         }
     }
 
-    fun closeAppDrawer() {
+    fun closeAppDrawer(delayed: Boolean = false) {
         if (isAllAppsFragmentExpanded()) {
-            Handler(Looper.getMainLooper()).postDelayed({
-                all_apps_fragment.y = mScreenHeight.toFloat()
-                all_apps_fragment.all_apps_grid.scrollToPosition(0)
-                home_screen_grid.fragmentCollapsed()
-            }, APP_DRAWER_CLOSE_DELAY)
+            val close = {
+                binding.allAppsFragment.root.y = mScreenHeight.toFloat()
+                binding.allAppsFragment.allAppsGrid.scrollToPosition(0)
+                binding.allAppsFragment.root.touchDownY = -1
+                binding.homeScreenGrid.root.fragmentCollapsed()
+            }
+            if (delayed) {
+                Handler(Looper.getMainLooper()).postDelayed(close, APP_DRAWER_CLOSE_DELAY)
+            } else {
+                close()
+            }
+        }
+    }
+
+    fun closeWidgetsFragment(delayed: Boolean = false) {
+        if (isWidgetsFragmentExpanded()) {
+            val close = {
+                binding.widgetsFragment.root.y = mScreenHeight.toFloat()
+                binding.widgetsFragment.widgetsList.scrollToPosition(0)
+                binding.widgetsFragment.root.touchDownY = -1
+                binding.homeScreenGrid.root.fragmentCollapsed()
+            }
+            if (delayed) {
+                Handler(Looper.getMainLooper()).postDelayed(close, APP_DRAWER_CLOSE_DELAY)
+            } else {
+                close()
+            }
         }
     }
 
@@ -559,7 +601,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                 val id = clickedGridItem.shortcutId
                 val packageName = clickedGridItem.packageName
                 val userHandle = android.os.Process.myUserHandle()
-                val shortcutBounds = home_screen_grid.getClickableRect(clickedGridItem)
+                val shortcutBounds = binding.homeScreenGrid.root.getClickableRect(clickedGridItem)
                 val launcherApps = applicationContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
                 launcherApps.startShortcut(packageName, id, shortcutBounds, null, userHandle)
             }
@@ -570,8 +612,8 @@ class MainActivity : SimpleActivity(), FlingListener {
         mOpenFolderDialog = FolderIconsDialog(
             activity = this,
             folder = folder,
-            iconWidth = home_screen_grid.getCurrentCellSize(),
-            iconPadding = home_screen_grid.getCurrentCellMargin(),
+            iconWidth = binding.homeScreenGrid.root.getCurrentCellSize(),
+            iconPadding = binding.homeScreenGrid.root.getCurrentCellMargin(),
             dismissListener = {
                 mOpenFolderDialog = null
             },
@@ -583,10 +625,10 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     private fun performItemLongClick(x: Float, clickedGridItem: HomeScreenGridItem) {
         if (clickedGridItem.type == ITEM_TYPE_ICON || clickedGridItem.type == ITEM_TYPE_SHORTCUT) {
-            main_holder.performHapticFeedback()
+            binding.mainHolder.performHapticFeedback()
         }
 
-        val anchorY = home_screen_grid.sideMargins.top + (clickedGridItem.top * home_screen_grid.cellHeight.toFloat())
+        val anchorY = binding.homeScreenGrid.root.sideMargins.top + (clickedGridItem.top * binding.homeScreenGrid.root.cellHeight.toFloat())
         showHomeIconMenu(x, anchorY, clickedGridItem, false)
     }
 
@@ -596,36 +638,36 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     fun showHomeIconMenu(x: Float, y: Float, gridItem: HomeScreenGridItem, isOnAllAppsFragment: Boolean) {
-        home_screen_grid.hideResizeLines()
+        binding.homeScreenGrid.root.hideResizeLines()
         mLongPressedIcon = gridItem
         val anchorY = if (isOnAllAppsFragment || gridItem.type == ITEM_TYPE_WIDGET) {
             val iconSize = realScreenSize.x / config.drawerColumnCount
             y - iconSize / 2f
         } else {
-            val clickableRect = home_screen_grid.getClickableRect(gridItem)
-            clickableRect.top.toFloat() - home_screen_grid.getCurrentIconSize() / 2f
+            val clickableRect = binding.homeScreenGrid.root.getClickableRect(gridItem)
+            clickableRect.top.toFloat() - binding.homeScreenGrid.root.getCurrentIconSize() / 2f
         }
 
-        home_screen_popup_menu_anchor.x = x
-        home_screen_popup_menu_anchor.y = anchorY
+        binding.homeScreenPopupMenuAnchor.x = x
+        binding.homeScreenPopupMenuAnchor.y = anchorY
 
         if (mOpenPopupMenu == null) {
-            mOpenPopupMenu = handleGridItemPopupMenu(home_screen_popup_menu_anchor, gridItem, isOnAllAppsFragment, menuListener)
+            mOpenPopupMenu = handleGridItemPopupMenu(binding.homeScreenPopupMenuAnchor, gridItem, isOnAllAppsFragment, menuListener)
         }
     }
 
     fun widgetLongPressedOnList(gridItem: HomeScreenGridItem) {
         mLongPressedIcon = gridItem
-        hideFragment(widgets_fragment)
-        home_screen_grid.itemDraggingStarted(mLongPressedIcon!!)
+        hideFragment(binding.widgetsFragment)
+        binding.homeScreenGrid.root.itemDraggingStarted(mLongPressedIcon!!)
     }
 
     private fun showMainLongPressMenu(x: Float, y: Float) {
-        home_screen_grid.hideResizeLines()
-        home_screen_popup_menu_anchor.x = x
-        home_screen_popup_menu_anchor.y = y - resources.getDimension(R.dimen.long_press_anchor_button_offset_y) * 2
+        binding.homeScreenGrid.root.hideResizeLines()
+        binding.homeScreenPopupMenuAnchor.x = x
+        binding.homeScreenPopupMenuAnchor.y = y - resources.getDimension(R.dimen.long_press_anchor_button_offset_y) * 2
         val contextTheme = ContextThemeWrapper(this, getPopupMenuTheme())
-        PopupMenu(contextTheme, home_screen_popup_menu_anchor, Gravity.TOP or Gravity.END).apply {
+        PopupMenu(contextTheme, binding.homeScreenPopupMenuAnchor, Gravity.TOP or Gravity.END).apply {
             inflate(R.menu.menu_home_screen)
             setOnMenuItemClickListener { item ->
                 when (item.itemId) {
@@ -639,19 +681,19 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     private fun resetFragmentTouches() {
-        (widgets_fragment as WidgetsFragment).apply {
+        binding.widgetsFragment.root.apply {
             touchDownY = -1
             ignoreTouches = false
         }
 
-        (all_apps_fragment as AllAppsFragment).apply {
+        binding.allAppsFragment.root.apply {
             touchDownY = -1
             ignoreTouches = false
         }
     }
 
     private fun showWidgetsFragment() {
-        showFragment(widgets_fragment)
+        showFragment(binding.widgetsFragment)
     }
 
     private fun hideIcon(item: HomeScreenGridItem) {
@@ -660,14 +702,14 @@ class MainActivity : SimpleActivity(), FlingListener {
             hiddenIconsDB.insert(hiddenIcon)
 
             runOnUiThread {
-                (all_apps_fragment as AllAppsFragment).hideIcon(item)
+                binding.allAppsFragment.root.hideIcon(item)
             }
         }
     }
 
     private fun renameItem(homeScreenGridItem: HomeScreenGridItem) {
         RenameItemDialog(this, homeScreenGridItem) {
-            home_screen_grid.fetchGridItems()
+            binding.homeScreenGrid.root.fetchGridItems()
         }
     }
 
@@ -677,7 +719,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                 startActivity(this)
             }
         } catch (e: ActivityNotFoundException) {
-            toast(R.string.no_app_found)
+            toast(com.simplemobiletools.commons.R.string.no_app_found)
         } catch (e: Exception) {
             showErrorToast(e)
         }
@@ -720,7 +762,7 @@ class MainActivity : SimpleActivity(), FlingListener {
     override fun onFlingUp() {
         if (!isWidgetsFragmentExpanded()) {
             mIgnoreUpEvent = true
-            showFragment(all_apps_fragment)
+            showFragment(binding.allAppsFragment)
         }
     }
 
@@ -728,9 +770,9 @@ class MainActivity : SimpleActivity(), FlingListener {
     override fun onFlingDown() {
         mIgnoreUpEvent = true
         if (isAllAppsFragmentExpanded()) {
-            hideFragment(all_apps_fragment)
+            hideFragment(binding.allAppsFragment)
         } else if (isWidgetsFragmentExpanded()) {
-            hideFragment(widgets_fragment)
+            hideFragment(binding.widgetsFragment)
         } else {
             try {
                 Class.forName("android.app.StatusBarManager").getMethod("expandNotificationsPanel").invoke(getSystemService("statusbar"))
@@ -741,12 +783,12 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     override fun onFlingRight() {
         mIgnoreUpEvent = true
-        home_screen_grid.prevPage(redraw = true)
+        binding.homeScreenGrid.root.prevPage(redraw = true)
     }
 
     override fun onFlingLeft() {
         mIgnoreUpEvent = true
-        home_screen_grid.nextPage(redraw = true)
+        binding.homeScreenGrid.root.nextPage(redraw = true)
     }
 
     @SuppressLint("WrongConstant")

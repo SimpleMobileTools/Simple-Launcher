@@ -48,7 +48,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
 
         resizeWidgetLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
-            strokeWidth = context.resources.getDimension(R.dimen.tiny_margin)
+            strokeWidth = context.resources.getDimension(com.simplemobiletools.commons.R.dimen.tiny_margin)
             style = Paint.Style.STROKE
         }
 
@@ -122,6 +122,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                     dragDirection = DRAGGING_BOTTOM
                 }
             }
+
             MotionEvent.ACTION_MOVE -> {
                 val minWidth = minResizeWidthCells * cellWidth
                 val minHeight = minResizeHeightCells * cellHeight
@@ -152,6 +153,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
 
                         frameRect.left = wantedLeft
                     }
+
                     DRAGGING_TOP -> {
                         val newHeight = frameRect.bottom - event.rawY.toInt()
                         val wantedTop = if (newHeight >= minHeight) {
@@ -178,6 +180,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
 
                         frameRect.top = wantedTop
                     }
+
                     DRAGGING_RIGHT -> {
                         val newWidth = event.rawX.toInt() - frameRect.left
                         val wantedRight = if (newWidth >= minWidth) {
@@ -204,6 +207,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
 
                         frameRect.right = wantedRight
                     }
+
                     DRAGGING_BOTTOM -> {
                         val newHeight = event.rawY.toInt() - frameRect.top
                         val wantedBottom = if (newHeight >= minHeight) {
@@ -240,6 +244,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                     redrawFrame()
                 }
             }
+
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 if (dragDirection == DRAGGING_NONE) {
                     onClickListener?.invoke()
@@ -268,6 +273,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                                 frameRect.left = cellsRect.left * cellWidth + sideMargins.left
                             }
                         }
+
                         DRAGGING_TOP -> {
                             val wantedTop = roundToClosestMultiplyOfNumber(frameRect.top - sideMargins.top, cellHeight)
                             val wantedTopCellY = wantedTop / cellHeight
@@ -288,6 +294,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                                 frameRect.top = cellsRect.top * cellHeight + sideMargins.top
                             }
                         }
+
                         DRAGGING_RIGHT -> {
                             val wantedRight = roundToClosestMultiplyOfNumber(frameRect.right - sideMargins.left, cellWidth)
                             val wantedRightCellX = wantedRight / cellWidth - 1
@@ -308,6 +315,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
                                 frameRect.right = (cellsRect.right + 1) * cellWidth + sideMargins.left
                             }
                         }
+
                         DRAGGING_BOTTOM -> {
                             val wantedBottom = roundToClosestMultiplyOfNumber(frameRect.bottom - sideMargins.top, cellHeight)
                             val wantedBottomCellY = wantedBottom / cellHeight - 1

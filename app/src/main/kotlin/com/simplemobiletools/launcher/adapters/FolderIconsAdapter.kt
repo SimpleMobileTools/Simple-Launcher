@@ -9,12 +9,10 @@ import com.simplemobiletools.commons.adapters.MyRecyclerViewAdapter
 import com.simplemobiletools.commons.views.MyRecyclerView
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.MainActivity
+import com.simplemobiletools.launcher.databinding.ItemLauncherLabelBinding
 import com.simplemobiletools.launcher.extensions.handleGridItemPopupMenu
 import com.simplemobiletools.launcher.interfaces.ItemMenuListenerAdapter
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
-import kotlinx.android.synthetic.main.item_launcher_label.view.launcher_icon
-import kotlinx.android.synthetic.main.item_launcher_label.view.launcher_label
-import kotlinx.android.synthetic.main.item_launcher_label.view.popup_anchor
 
 class FolderIconsAdapter(
     activity: BaseSimpleActivity, var items: MutableList<HomeScreenGridItem>, private val iconPadding: Int,
@@ -40,7 +38,7 @@ class FolderIconsAdapter(
     override fun prepareActionMode(menu: Menu) {}
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return createViewHolder(R.layout.item_launcher_label, parent)
+        return createViewHolder(ItemLauncherLabelBinding.inflate(layoutInflater, parent, false).root)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -58,18 +56,18 @@ class FolderIconsAdapter(
     }
 
     private fun setupView(view: View, item: HomeScreenGridItem) {
-        view.apply {
-            launcher_label.text = item.title
-            launcher_label.setTextColor(textColor)
-            launcher_icon.setPadding(iconPadding, iconPadding, iconPadding, 0)
-            launcher_icon.setImageDrawable(item.drawable)
+        ItemLauncherLabelBinding.bind(view).apply {
+            launcherLabel.text = item.title
+            launcherLabel.setTextColor(textColor)
+            launcherIcon.setPadding(iconPadding, iconPadding, iconPadding, 0)
+            launcherIcon.setImageDrawable(item.drawable)
 
             val mainListener = (activity as? MainActivity)?.menuListener
 
-            setOnClickListener { itemClick(item) }
-            setOnLongClickListener {
-                popup_anchor.y = launcher_icon.y
-                activity.handleGridItemPopupMenu(popup_anchor, item, false, object : ItemMenuListenerAdapter() {
+            root.setOnClickListener { itemClick(item) }
+            root.setOnLongClickListener {
+                popupAnchor.y = launcherIcon.y
+                activity.handleGridItemPopupMenu(popupAnchor, item, false, object : ItemMenuListenerAdapter() {
                     override fun appInfo(gridItem: HomeScreenGridItem) {
                         mainListener?.appInfo(gridItem)
                     }
@@ -95,7 +93,7 @@ class FolderIconsAdapter(
                             }
                         }
                         val yOffset = resources.getDimension(R.dimen.long_press_anchor_button_offset_y) * (visibleMenuItems - 1)
-                        popup_anchor.y -= yOffset
+                        popupAnchor.y -= yOffset
                     }
                 })
                 true

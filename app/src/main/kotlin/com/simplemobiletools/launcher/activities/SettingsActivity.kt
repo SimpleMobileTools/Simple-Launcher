@@ -10,29 +10,32 @@ import com.simplemobiletools.commons.models.FAQItem
 import com.simplemobiletools.commons.models.RadioItem
 import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
+import com.simplemobiletools.launcher.databinding.ActivitySettingsBinding
 import com.simplemobiletools.launcher.extensions.config
 import com.simplemobiletools.launcher.helpers.MAX_COLUMN_COUNT
 import com.simplemobiletools.launcher.helpers.MAX_ROW_COUNT
 import com.simplemobiletools.launcher.helpers.MIN_COLUMN_COUNT
 import com.simplemobiletools.launcher.helpers.MIN_ROW_COUNT
-import kotlinx.android.synthetic.main.activity_settings.*
 import java.util.Locale
 import kotlin.system.exitProcess
 
 class SettingsActivity : SimpleActivity() {
+
+    private lateinit var binding: ActivitySettingsBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         isMaterialActivity = true
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_settings)
+        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        updateMaterialActivityViews(settings_coordinator, settings_holder, useTransparentNavigation = true, useTopSearchMenu = false)
-        setupMaterialScrollListener(settings_nested_scrollview, settings_toolbar)
+        updateMaterialActivityViews(binding.settingsCoordinator, binding.settingsHolder, useTransparentNavigation = true, useTopSearchMenu = false)
+        setupMaterialScrollListener(binding.settingsNestedScrollview, binding.settingsToolbar)
         setupOptionsMenu()
     }
 
     override fun onResume() {
         super.onResume()
-        setupToolbar(settings_toolbar, NavigationIcon.Arrow)
+        setupToolbar(binding.settingsToolbar, NavigationIcon.Arrow)
         refreshMenuItems()
 
         setupPurchaseThankYou()
@@ -45,20 +48,20 @@ class SettingsActivity : SimpleActivity() {
         setupHomeColumnCount()
         setupLanguage()
         setupManageHiddenIcons()
-        updateTextColors(settings_holder)
+        updateTextColors(binding.settingsHolder)
 
         arrayOf(
-            settings_color_customization_section_label,
-            settings_general_settings_label,
-            settings_drawer_settings_label,
-            settings_home_screen_label
+            binding.settingsColorCustomizationSectionLabel,
+            binding.settingsGeneralSettingsLabel,
+            binding.settingsDrawerSettingsLabel,
+            binding.settingsHomeScreenLabel
         ).forEach {
             it.setTextColor(getProperPrimaryColor())
         }
     }
 
     private fun setupOptionsMenu() {
-        settings_toolbar.setOnMenuItemClickListener { menuItem ->
+        binding.settingsToolbar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.about -> launchAbout()
                 R.id.more_apps_from_us -> launchMoreAppsFromUsIntent()
@@ -69,50 +72,50 @@ class SettingsActivity : SimpleActivity() {
     }
 
     private fun refreshMenuItems() {
-        settings_toolbar.menu.apply {
-            findItem(R.id.more_apps_from_us).isVisible = !resources.getBoolean(R.bool.hide_google_relations)
+        binding.settingsToolbar.menu.apply {
+            findItem(R.id.more_apps_from_us).isVisible = !resources.getBoolean(com.simplemobiletools.commons.R.bool.hide_google_relations)
         }
     }
 
     private fun setupPurchaseThankYou() {
-        settings_purchase_thank_you_holder.beGoneIf(isOrWasThankYouInstalled())
-        settings_purchase_thank_you_holder.setOnClickListener {
+        binding.settingsPurchaseThankYouHolder.beGoneIf(isOrWasThankYouInstalled())
+        binding.settingsPurchaseThankYouHolder.setOnClickListener {
             launchPurchaseThankYouIntent()
         }
     }
 
     private fun setupCustomizeColors() {
-        settings_color_customization_label.text = getCustomizeColorsString()
-        settings_color_customization_holder.setOnClickListener {
+        binding.settingsColorCustomizationLabel.text = getCustomizeColorsString()
+        binding.settingsColorCustomizationHolder.setOnClickListener {
             startCustomizationActivity()
         }
     }
 
     private fun setupUseEnglish() {
-        settings_use_english_holder.beVisibleIf((config.wasUseEnglishToggled || Locale.getDefault().language != "en") && !isTiramisuPlus())
-        settings_use_english.isChecked = config.useEnglish
-        settings_use_english_holder.setOnClickListener {
-            settings_use_english.toggle()
-            config.useEnglish = settings_use_english.isChecked
+        binding.settingsUseEnglishHolder.beVisibleIf((config.wasUseEnglishToggled || Locale.getDefault().language != "en") && !isTiramisuPlus())
+        binding.settingsUseEnglish.isChecked = config.useEnglish
+        binding.settingsUseEnglishHolder.setOnClickListener {
+            binding.settingsUseEnglish.toggle()
+            config.useEnglish = binding.settingsUseEnglish.isChecked
             exitProcess(0)
         }
     }
 
     private fun setupCloseAppDrawerOnOtherAppOpen() {
-        settings_close_app_drawer_on_other_app.isChecked = config.closeAppDrawer
-        settings_close_app_drawer_on_other_app_holder.setOnClickListener {
-            settings_close_app_drawer_on_other_app.toggle()
-            config.closeAppDrawer = settings_close_app_drawer_on_other_app.isChecked
+        binding.settingsCloseAppDrawerOnOtherApp.isChecked = config.closeAppDrawer
+        binding.settingsCloseAppDrawerOnOtherAppHolder.setOnClickListener {
+            binding.settingsCloseAppDrawerOnOtherApp.toggle()
+            config.closeAppDrawer = binding.settingsCloseAppDrawerOnOtherApp.isChecked
         }
     }
 
     private fun setupDrawerColumnCount() {
         val currentColumnCount = config.drawerColumnCount
-        settings_drawer_column_count.text = currentColumnCount.toString()
-        settings_drawer_column_count_holder.setOnClickListener {
+        binding.settingsDrawerColumnCount.text = currentColumnCount.toString()
+        binding.settingsDrawerColumnCountHolder.setOnClickListener {
             val items = ArrayList<RadioItem>()
             for (i in 1..MAX_COLUMN_COUNT) {
-                items.add(RadioItem(i, resources.getQuantityString(R.plurals.column_counts, i, i)))
+                items.add(RadioItem(i, resources.getQuantityString(com.simplemobiletools.commons.R.plurals.column_counts, i, i)))
             }
 
             RadioGroupDialog(this, items, currentColumnCount) {
@@ -127,20 +130,20 @@ class SettingsActivity : SimpleActivity() {
 
     private fun setupDrawerSearchBar() {
         val showSearchBar = config.showSearchBar
-        settings_show_search_bar.isChecked = showSearchBar
-        settings_drawer_search_holder.setOnClickListener {
-            settings_show_search_bar.toggle()
-            config.showSearchBar = settings_show_search_bar.isChecked
+        binding.settingsShowSearchBar.isChecked = showSearchBar
+        binding.settingsDrawerSearchHolder.setOnClickListener {
+            binding.settingsShowSearchBar.toggle()
+            config.showSearchBar = binding.settingsShowSearchBar.isChecked
         }
     }
 
     private fun setupHomeRowCount() {
         val currentRowCount = config.homeRowCount
-        settings_home_screen_row_count.text = currentRowCount.toString()
-        settings_home_screen_row_count_holder.setOnClickListener {
+        binding.settingsHomeScreenRowCount.text = currentRowCount.toString()
+        binding.settingsHomeScreenRowCountHolder.setOnClickListener {
             val items = ArrayList<RadioItem>()
             for (i in MIN_ROW_COUNT..MAX_ROW_COUNT) {
-                items.add(RadioItem(i, resources.getQuantityString(R.plurals.row_counts, i, i)))
+                items.add(RadioItem(i, resources.getQuantityString(com.simplemobiletools.commons.R.plurals.row_counts, i, i)))
             }
 
             RadioGroupDialog(this, items, currentRowCount) {
@@ -155,11 +158,11 @@ class SettingsActivity : SimpleActivity() {
 
     private fun setupHomeColumnCount() {
         val currentColumnCount = config.homeColumnCount
-        settings_home_screen_column_count.text = currentColumnCount.toString()
-        settings_home_screen_column_count_holder.setOnClickListener {
+        binding.settingsHomeScreenColumnCount.text = currentColumnCount.toString()
+        binding.settingsHomeScreenColumnCountHolder.setOnClickListener {
             val items = ArrayList<RadioItem>()
             for (i in MIN_COLUMN_COUNT..MAX_COLUMN_COUNT) {
-                items.add(RadioItem(i, resources.getQuantityString(R.plurals.column_counts, i, i)))
+                items.add(RadioItem(i, resources.getQuantityString(com.simplemobiletools.commons.R.plurals.column_counts, i, i)))
             }
 
             RadioGroupDialog(this, items, currentColumnCount) {
@@ -173,15 +176,15 @@ class SettingsActivity : SimpleActivity() {
     }
 
     private fun setupLanguage() {
-        settings_language.text = Locale.getDefault().displayLanguage
-        settings_language_holder.beVisibleIf(isTiramisuPlus())
-        settings_language_holder.setOnClickListener {
+        binding.settingsLanguage.text = Locale.getDefault().displayLanguage
+        binding.settingsLanguageHolder.beVisibleIf(isTiramisuPlus())
+        binding.settingsLanguageHolder.setOnClickListener {
             launchChangeAppLanguageIntent()
         }
     }
 
     private fun setupManageHiddenIcons() {
-        settings_manage_hidden_icons_holder.setOnClickListener {
+        binding.settingsManageHiddenIconsHolder.setOnClickListener {
             startActivity(Intent(this, HiddenIconsActivity::class.java))
         }
     }
@@ -190,9 +193,9 @@ class SettingsActivity : SimpleActivity() {
         val licenses = 0L
         val faqItems = ArrayList<FAQItem>()
 
-        if (!resources.getBoolean(R.bool.hide_google_relations)) {
-            faqItems.add(FAQItem(R.string.faq_2_title_commons, R.string.faq_2_text_commons))
-            faqItems.add(FAQItem(R.string.faq_6_title_commons, R.string.faq_6_text_commons))
+        if (!resources.getBoolean(com.simplemobiletools.commons.R.bool.hide_google_relations)) {
+            faqItems.add(FAQItem(com.simplemobiletools.commons.R.string.faq_2_title_commons, com.simplemobiletools.commons.R.string.faq_2_text_commons))
+            faqItems.add(FAQItem(com.simplemobiletools.commons.R.string.faq_6_title_commons, com.simplemobiletools.commons.R.string.faq_6_text_commons))
         }
 
         startAboutActivity(R.string.app_name, licenses, BuildConfig.VERSION_NAME, faqItems, true)

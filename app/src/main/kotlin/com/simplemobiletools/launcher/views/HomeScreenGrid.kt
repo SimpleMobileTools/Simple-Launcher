@@ -31,12 +31,12 @@ import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.helpers.isSPlus
 import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.activities.MainActivity
+import com.simplemobiletools.launcher.databinding.HomeScreenGridBinding
 import com.simplemobiletools.launcher.extensions.config
 import com.simplemobiletools.launcher.extensions.getDrawableForPackageName
 import com.simplemobiletools.launcher.extensions.homeScreenGridItemsDB
 import com.simplemobiletools.launcher.helpers.*
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
-import kotlinx.android.synthetic.main.activity_main.view.*
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.max
@@ -45,6 +45,7 @@ import kotlin.math.min
 class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : RelativeLayout(context, attrs, defStyle) {
     constructor(context: Context, attrs: AttributeSet) : this(context, attrs, 0)
 
+    private lateinit var binding: HomeScreenGridBinding
     private var columnCount = context.config.homeColumnCount
     private var rowCount = context.config.homeRowCount
     private var cellXCoords = ArrayList<Int>(columnCount)
@@ -55,8 +56,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private var extraYMargin = 0
 
     private var iconMargin = (context.resources.getDimension(R.dimen.icon_side_margin) * 5 / columnCount).toInt()
-    private var labelSideMargin = context.resources.getDimension(R.dimen.small_margin).toInt()
-    private var roundedCornerRadius = context.resources.getDimension(R.dimen.activity_margin)
+    private var labelSideMargin = context.resources.getDimension(com.simplemobiletools.commons.R.dimen.small_margin).toInt()
+    private var roundedCornerRadius = context.resources.getDimension(com.simplemobiletools.commons.R.dimen.activity_margin)
     private var pageIndicatorRadius = context.resources.getDimension(R.dimen.page_indicator_dot_radius)
     private var pageIndicatorMargin = context.resources.getDimension(R.dimen.page_indicator_margin)
     private var textPaint: TextPaint
@@ -117,13 +118,13 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
         textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
-            textSize = context.resources.getDimension(R.dimen.smaller_text_size)
+            textSize = context.resources.getDimension(com.simplemobiletools.commons.R.dimen.smaller_text_size)
             setShadowLayer(2f, 0f, 0f, Color.BLACK)
         }
 
         dragShadowCirclePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = context.resources.getColor(R.color.hint_white)
-            strokeWidth = context.resources.getDimension(R.dimen.small_margin)
+            color = context.resources.getColor(com.simplemobiletools.commons.R.color.hint_white)
+            strokeWidth = context.resources.getDimension(com.simplemobiletools.commons.R.dimen.small_margin)
             style = Paint.Style.STROKE
         }
 
@@ -131,11 +132,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             strokeWidth = context.resources.getDimension(R.dimen.page_indicator_stroke_width)
         }
         currentPageIndicatorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = context.resources.getColor(R.color.white)
+            color = context.resources.getColor(android.R.color.white)
             style = Paint.Style.FILL
         }
 
-        val sideMargin = context.resources.getDimension(R.dimen.normal_margin).toInt()
+        val sideMargin = context.resources.getDimension(com.simplemobiletools.commons.R.dimen.normal_margin).toInt()
         sideMargins.apply {
             top = context.statusBarHeight
             bottom = context.navigationBarHeight
@@ -146,6 +147,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         fetchGridItems()
     }
 
+    override fun onFinishInflate() {
+        super.onFinishInflate()
+        binding = HomeScreenGridBinding.bind(this)
+    }
+
     fun fetchGridItems() {
         ensureBackgroundThread {
             val providers = appWidgetManager.installedProviders
@@ -154,7 +160,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 if (item.type == ITEM_TYPE_ICON) {
                     item.drawable = context.getDrawableForPackageName(item.packageName)
                 } else if (item.type == ITEM_TYPE_FOLDER) {
-                    item.drawable = resources.getColoredDrawableWithColor(R.drawable.ic_folder_vector, context.getProperPrimaryColor())
+                    item.drawable =
+                        resources.getColoredDrawableWithColor(com.simplemobiletools.commons.R.drawable.ic_folder_vector, context.getProperPrimaryColor())
                 } else if (item.type == ITEM_TYPE_SHORTCUT) {
                     if (item.icon != null) {
                         item.drawable = BitmapDrawable(item.icon)
@@ -218,7 +225,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         draggedItem = draggedGridItem
         if (draggedItem!!.drawable == null) {
             if (draggedItem?.type == ITEM_TYPE_FOLDER) {
-                draggedItem!!.drawable = resources.getColoredDrawableWithColor(R.drawable.ic_folder_vector, context.getProperPrimaryColor())
+                draggedItem!!.drawable =
+                    resources.getColoredDrawableWithColor(com.simplemobiletools.commons.R.drawable.ic_folder_vector, context.getProperPrimaryColor())
             } else {
                 draggedItem!!.drawable = context.getDrawableForPackageName(draggedGridItem.packageName)
             }
@@ -311,20 +319,20 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         redrawGrid()
 
         val widgetView = widgetViews.firstOrNull { it.tag == resizedWidget!!.widgetId }
-        resize_frame.beGone()
+        binding.resizeFrame.beGone()
         if (widgetView != null) {
             val viewX = widgetView.x.toInt()
             val viewY = widgetView.y.toInt()
             val frameRect = Rect(viewX, viewY, viewX + widgetView.width, viewY + widgetView.height)
             val otherGridItems = gridItems.filter { it.widgetId != item.widgetId }.toMutableList() as ArrayList<HomeScreenGridItem>
-            resize_frame.updateFrameCoords(frameRect, cellWidth, cellHeight, sideMargins, item, otherGridItems)
-            resize_frame.beVisible()
-            resize_frame.z = 1f     // make sure the frame isnt behind the widget itself
-            resize_frame.onClickListener = {
+            binding.resizeFrame.updateFrameCoords(frameRect, cellWidth, cellHeight, sideMargins, item, otherGridItems)
+            binding.resizeFrame.beVisible()
+            binding.resizeFrame.z = 1f     // make sure the frame isnt behind the widget itself
+            binding.resizeFrame.onClickListener = {
                 hideResizeLines()
             }
 
-            resize_frame.onResizeListener = { cellsRect ->
+            binding.resizeFrame.onResizeListener = { cellsRect ->
                 item.left = cellsRect.left
                 item.top = cellsRect.top
                 item.right = cellsRect.right
@@ -341,7 +349,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
             widgetView.ignoreTouches = true
             widgetView.setOnTouchListener { v, event ->
-                resize_frame.onTouchEvent(event)
+                binding.resizeFrame.onTouchEvent(event)
                 return@setOnTouchListener true
             }
         }
@@ -352,7 +360,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             return
         }
 
-        resize_frame.beGone()
+        binding.resizeFrame.beGone()
         widgetViews.firstOrNull { it.tag == resizedWidget!!.widgetId }?.apply {
             ignoreTouches = false
             setOnTouchListener(null)
@@ -454,7 +462,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         val parentItem = potentialParent!!.copy(
                             type = ITEM_TYPE_FOLDER,
                             id = null,
-                            title = resources.getString(R.string.folder)
+                            title = resources.getString(com.simplemobiletools.commons.R.string.folder)
                         )
                         ensureBackgroundThread {
                             val newId = context.homeScreenGridItemsDB.insert(parentItem)
@@ -795,7 +803,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 val drawableX = cellXCoords[item.left] + iconMargin + extraXMargin + sideMargins.left + (width * xFactor).toInt()
 
                 val drawable = if (item.type == ITEM_TYPE_FOLDER) {
-                    resources.getColoredDrawableWithColor(R.drawable.ic_folder_vector, context.getProperPrimaryColor())
+                    resources.getColoredDrawableWithColor(com.simplemobiletools.commons.R.drawable.ic_folder_vector, context.getProperPrimaryColor())
                 } else {
                     item.drawable!!
                 }

@@ -9,31 +9,38 @@ import com.simplemobiletools.commons.helpers.NavigationIcon
 import com.simplemobiletools.commons.helpers.ensureBackgroundThread
 import com.simplemobiletools.commons.interfaces.RefreshRecyclerViewListener
 import com.simplemobiletools.commons.views.MyGridLayoutManager
-import com.simplemobiletools.launcher.R
 import com.simplemobiletools.launcher.adapters.HiddenIconsAdapter
+import com.simplemobiletools.launcher.databinding.ActivityHiddenIconsBinding
 import com.simplemobiletools.launcher.extensions.config
 import com.simplemobiletools.launcher.extensions.getDrawableForPackageName
 import com.simplemobiletools.launcher.extensions.hiddenIconsDB
 import com.simplemobiletools.launcher.models.HiddenIcon
-import kotlinx.android.synthetic.main.activity_hidden_icons.*
 
 class HiddenIconsActivity : SimpleActivity(), RefreshRecyclerViewListener {
+    private lateinit var binding: ActivityHiddenIconsBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         isMaterialActivity = true
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_hidden_icons)
+        binding = ActivityHiddenIconsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         updateIcons()
 
-        updateMaterialActivityViews(manage_hidden_icons_coordinator, manage_hidden_icons_list, useTransparentNavigation = true, useTopSearchMenu = false)
-        setupMaterialScrollListener(manage_hidden_icons_list, manage_hidden_icons_toolbar)
+        updateMaterialActivityViews(
+            binding.manageHiddenIconsCoordinator,
+            binding.manageHiddenIconsList,
+            useTransparentNavigation = true,
+            useTopSearchMenu = false
+        )
+        setupMaterialScrollListener(binding.manageHiddenIconsList, binding.manageHiddenIconsToolbar)
 
-        val layoutManager = manage_hidden_icons_list.layoutManager as MyGridLayoutManager
+        val layoutManager = binding.manageHiddenIconsList.layoutManager as MyGridLayoutManager
         layoutManager.spanCount = config.drawerColumnCount
     }
 
     override fun onResume() {
         super.onResume()
-        setupToolbar(manage_hidden_icons_toolbar, NavigationIcon.Arrow)
+        setupToolbar(binding.manageHiddenIconsToolbar, NavigationIcon.Arrow)
     }
 
     private fun updateIcons() {
@@ -48,7 +55,7 @@ class HiddenIconsActivity : SimpleActivity(), RefreshRecyclerViewListener {
 
             val hiddenIconsEmpty = hiddenIcons.isEmpty()
             runOnUiThread {
-                manage_hidden_icons_placeholder.beVisibleIf(hiddenIconsEmpty)
+                binding.manageHiddenIconsPlaceholder.beVisibleIf(hiddenIconsEmpty)
             }
 
             if (hiddenIcons.isNotEmpty()) {
@@ -77,9 +84,9 @@ class HiddenIconsActivity : SimpleActivity(), RefreshRecyclerViewListener {
             }
 
             runOnUiThread {
-                HiddenIconsAdapter(this, hiddenIcons, this, manage_hidden_icons_list) {
+                HiddenIconsAdapter(this, hiddenIcons, this, binding.manageHiddenIconsList) {
                 }.apply {
-                    manage_hidden_icons_list.adapter = this
+                    binding.manageHiddenIconsList.adapter = this
                 }
             }
         }
