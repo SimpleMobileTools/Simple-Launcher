@@ -44,6 +44,9 @@ interface HomeScreenGridItemsDao {
     @Query("DELETE FROM home_screen_grid_items WHERE parent_id IN (SELECT id FROM home_screen_grid_items WHERE package_name = :packageName)")
     fun deleteItemsByParentPackageName(packageName: String)
 
+    @Query("UPDATE home_screen_grid_items SET `left` = `left` + :shiftBy WHERE parent_id == :folderId AND `left` >= :shiftFrom")
+    fun shiftFolderItems(folderId: Long, shiftFrom: Int, shiftBy: Int)
+
     @Transaction
     fun deleteByPackageName(packageName: String) {
         deleteItemByPackageName(packageName)

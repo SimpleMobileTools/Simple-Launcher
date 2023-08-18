@@ -551,6 +551,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         if (draggedHomeGridItem != null) {
             draggedHomeGridItem.apply {
                 val oldParentId = parentId
+                val oldLeft = left
                 left = finalXIndex
                 top = yIndex
                 right = finalXIndex
@@ -571,6 +572,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                     context.homeScreenGridItemsDB.updateItemPosition(left, top, right, bottom, page, docked, newParentId, id!!)
                     if (deleteOldParent && oldParentId != null) {
                         context.homeScreenGridItemsDB.deleteById(oldParentId)
+                    } else if (oldParentId != null) {
+                        gridItems.filter { it.parentId == oldParentId && it.left >= oldLeft }.forEach {
+                            it.left -= 1
+                        }
+                        context.homeScreenGridItemsDB.shiftFolderItems(oldParentId, oldLeft, -1)
                     }
                 }
             }
@@ -984,6 +990,38 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             canvas.drawCircle(currentIndicatorPosition + pageIndicatorRadius, pageIndicatorY, pageIndicatorRadius, currentPageIndicatorPaint)
         }
 
+        val folder = currentlyOpenFolder
+        if (folder != null) {
+            val items = folder.getFolderItems()
+            val folderRect = folder.getFolderRect()
+            val folderItemsRect = folder.getFolderItemsRect()
+
+            canvas.drawRoundRect(folderRect, roundedCornerRadius, roundedCornerRadius, folderBackgroundPaint)
+
+            val textX = folderRect.left + folderPadding
+            val textY = folderRect.top + folderPadding + folderTitleTextPaint.textSize
+            val staticLayout = StaticLayout.Builder
+                .obtain(folder.title, 0, folder.title.length, folderTitleTextPaint, (folderRect.width() - 2 * folderPadding).toInt())
+                .setMaxLines(1)
+                .setEllipsize(TextUtils.TruncateAt.END)
+                .setAlignment(Layout.Alignment.ALIGN_CENTER)
+                .build()
+
+            canvas.save()
+            canvas.translate(textX, textY)
+            staticLayout.draw(canvas)
+            canvas.restore()
+
+            items.forEach { item ->
+                val (row, column) = item.getPositionInFolder(folder)
+                handleGridItemDrawing(
+                    item,
+                    (folderItemsRect.left + column * cellWidth).roundToInt(),
+                    (folderItemsRect.top + row * cellHeight).roundToInt()
+                )
+            }
+        }
+
         if (draggedItem != null && draggedItemCurrentCoords.first != -1 && draggedItemCurrentCoords.second != -1) {
             if (draggedItem!!.type == ITEM_TYPE_ICON || draggedItem!!.type == ITEM_TYPE_SHORTCUT || draggedItem!!.type == ITEM_TYPE_FOLDER) {
                 // draw a circle under the current cell
@@ -1042,38 +1080,6 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             }
         }
 
-        val folder = currentlyOpenFolder
-        if (folder != null) {
-            val items = folder.getFolderItems()
-            val folderRect = folder.getFolderRect()
-            val folderItemsRect = folder.getFolderItemsRect()
-
-            canvas.drawRoundRect(folderRect, roundedCornerRadius, roundedCornerRadius, folderBackgroundPaint)
-
-            val textX = folderRect.left + folderPadding
-            val textY = folderRect.top + folderPadding + folderTitleTextPaint.textSize
-            val staticLayout = StaticLayout.Builder
-                .obtain(folder.title, 0, folder.title.length, folderTitleTextPaint, (folderRect.width() - 2 * folderPadding).toInt())
-                .setMaxLines(1)
-                .setEllipsize(TextUtils.TruncateAt.END)
-                .setAlignment(Layout.Alignment.ALIGN_CENTER)
-                .build()
-
-            canvas.save()
-            canvas.translate(textX, textY)
-            staticLayout.draw(canvas)
-            canvas.restore()
-
-            items.forEach { item ->
-                val (row, column) = item.getPositionInFolder(folder)
-                handleGridItemDrawing(
-                    item,
-                    (folderItemsRect.left + column * cellWidth).roundToInt(),
-                    (folderItemsRect.top + row * cellHeight).roundToInt()
-                )
-            }
-        }
-
         isFirstDraw = false
     }
 
@@ -1110,6 +1116,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         widgetViews.forEach {
             it.ignoreTouches = true
         }
+        closeFolder(true)
     }
 
     fun fragmentCollapsed() {
