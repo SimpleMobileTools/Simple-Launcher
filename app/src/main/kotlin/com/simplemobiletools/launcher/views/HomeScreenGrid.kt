@@ -78,6 +78,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private var pageChangeIndicatorsAlpha = 0f
 
     private var currentlyOpenFolder: HomeScreenGridItem? = null
+    private var draggingLeftFolderAt: Long? = null
 
     // apply fake margins at the home screen. Real ones would cause the icons be cut at dragging at screen sides
     var sideMargins = Rect()
@@ -244,6 +245,20 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     fun draggedItemMoved(x: Int, y: Int) {
         if (draggedItem == null) {
             return
+        }
+
+        currentlyOpenFolder?.also { folder ->
+            if (folder.getFolderRect().contains(x.toFloat(), y.toFloat())) {
+                draggingLeftFolderAt = null
+            } else {
+                draggingLeftFolderAt.also {
+                    if (it == null) {
+                        draggingLeftFolderAt = System.currentTimeMillis()
+                    } else if (System.currentTimeMillis() - it > PAGE_CHANGE_HOLD_THRESHOLD) {
+                        closeFolder()
+                    }
+                }
+            }
         }
 
         pageChangeIndicatorsAlpha = 1f
@@ -504,13 +519,18 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     private fun addAppIconOrShortcut(draggedHomeGridItem: HomeScreenGridItem?, xIndex: Int, yIndex: Int, newParentId: Long? = null) {
         val finalXIndex = if (newParentId != null) {
-                gridItems.find { it.id == newParentId }?.getFolderItems()?.maxOf { it.left + 1 } ?: 0
+            if (newParentId == draggedHomeGridItem?.parentId) {
+                draggedHomeGridItem.left
             } else {
-                xIndex
+                gridItems.firstOrNull { it.id == newParentId }?.getFolderItems()?.maxOf { it.left + 1 } ?: 0
             }
+        } else {
+            xIndex
+        }
         // we are moving an existing home screen item from one place to another
         if (draggedHomeGridItem != null) {
             draggedHomeGridItem.apply {
+                val oldParentId = parentId
                 left = finalXIndex
                 top = yIndex
                 right = finalXIndex
@@ -519,8 +539,19 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 docked = yIndex == rowCount - 1
                 parentId = newParentId
 
+                val oldParent = gridItems.firstOrNull { it.id == oldParentId }
+                val deleteOldParent = if (oldParent?.getFolderItems()?.isEmpty() == true) {
+                    gridItems.remove(oldParent)
+                    true
+                } else {
+                    false
+                }
+
                 ensureBackgroundThread {
                     context.homeScreenGridItemsDB.updateItemPosition(left, top, right, bottom, page, docked, newParentId, id!!)
+                    if (deleteOldParent && oldParentId != null) {
+                        context.homeScreenGridItemsDB.deleteById(oldParentId)
+                    }
                 }
             }
         } else if (draggedItem != null) {
@@ -1307,12 +1338,12 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             ceil(count / 2.0f).roundToInt()
         }
         val rowsCount = ceil(count.toFloat() / columnsCount).roundToInt()
-        val centerX = cellXCoords[left] + cellWidth / 2
-        val centerY = cellYCoords[top] + cellHeight / 2
+        val centerX = cellXCoords[left] + cellWidth / 2 + sideMargins.left
+        val centerY = cellYCoords[top] + cellHeight / 2 + sideMargins.top
         val folderDialogWidth = (columnsCount * cellWidth).toFloat()
         val folderDialogHeight = (rowsCount * cellHeight).toFloat()
-        val folderDialogTop = centerY - folderDialogHeight / 2 + sideMargins.top
-        val folderDialogLeft = centerX - folderDialogWidth / 2 + sideMargins.left
+        val folderDialogTop = centerY - folderDialogHeight / 2
+        val folderDialogLeft = centerX - folderDialogWidth / 2
         return RectF(folderDialogLeft, folderDialogTop, folderDialogLeft + folderDialogWidth, folderDialogTop + folderDialogHeight)
     }
 
