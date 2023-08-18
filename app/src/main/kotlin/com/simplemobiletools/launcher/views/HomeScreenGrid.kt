@@ -22,7 +22,6 @@ import android.view.View
 import android.widget.RelativeLayout
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.drawable.toDrawable
-import androidx.core.graphics.toRectF
 import androidx.core.view.ViewCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.customview.widget.ExploreByTouchHelper
@@ -56,9 +55,12 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private var iconMargin = (context.resources.getDimension(R.dimen.icon_side_margin) * 5 / columnCount).toInt()
     private var labelSideMargin = context.resources.getDimension(com.simplemobiletools.commons.R.dimen.small_margin).toInt()
     private var roundedCornerRadius = context.resources.getDimension(com.simplemobiletools.commons.R.dimen.activity_margin)
+    private var folderPadding = context.resources.getDimension(com.simplemobiletools.commons.R.dimen.medium_margin)
     private var pageIndicatorRadius = context.resources.getDimension(R.dimen.page_indicator_dot_radius)
     private var pageIndicatorMargin = context.resources.getDimension(R.dimen.page_indicator_margin)
     private var textPaint: TextPaint
+    private var contrastTextPaint: TextPaint
+    private var folderTitleTextPaint: TextPaint
     private var dragShadowCirclePaint: Paint
     private var emptyPageIndicatorPaint: Paint
     private var currentPageIndicatorPaint: Paint
@@ -122,6 +124,17 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             color = Color.WHITE
             textSize = context.resources.getDimension(com.simplemobiletools.commons.R.dimen.smaller_text_size)
             setShadowLayer(2f, 0f, 0f, Color.BLACK)
+        }
+
+        contrastTextPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = context.getProperTextColor()
+            textSize = context.resources.getDimension(com.simplemobiletools.commons.R.dimen.smaller_text_size)
+            setShadowLayer(2f, 0f, 0f, context.getProperTextColor().getContrastColor())
+        }
+
+        folderTitleTextPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = context.getProperTextColor()
+            textSize = context.resources.getDimension(com.simplemobiletools.commons.R.dimen.medium_text_size)
         }
 
         dragShadowCirclePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -197,6 +210,13 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             redrawWidgets = true
             redrawGrid()
         }
+    }
+
+    fun updateColors() {
+        folderTitleTextPaint.color = context.getProperTextColor()
+        contrastTextPaint.color = context.getProperTextColor()
+        contrastTextPaint.setShadowLayer(2f, 0f, 0f, context.getProperTextColor().getContrastColor())
+        folderBackgroundPaint.color = context.getProperBackgroundColor()
     }
 
     fun removeAppIcon(item: HomeScreenGridItem) {
@@ -862,8 +882,13 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                     if (item.id != draggedItem?.id && item.title.isNotEmpty()) {
                         val textX = baseItemX.toFloat() + labelSideMargin
                         val textY = baseItemY.toFloat() + iconSize + iconMargin + extraYMargin + labelSideMargin
+                        val textPaintToUse = if (item.parentId == null) {
+                            textPaint
+                        } else {
+                            contrastTextPaint
+                        }
                         val staticLayout = StaticLayout.Builder
-                            .obtain(item.title, 0, item.title.length, textPaint, cellWidth - 2 * labelSideMargin)
+                            .obtain(item.title, 0, item.title.length, textPaintToUse, cellWidth - 2 * labelSideMargin)
                             .setMaxLines(2)
                             .setEllipsize(TextUtils.TruncateAt.END)
                             .setAlignment(Layout.Alignment.ALIGN_CENTER)
@@ -1021,15 +1046,30 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         if (folder != null) {
             val items = folder.getFolderItems()
             val folderRect = folder.getFolderRect()
+            val folderItemsRect = folder.getFolderItemsRect()
 
             canvas.drawRoundRect(folderRect, roundedCornerRadius, roundedCornerRadius, folderBackgroundPaint)
+
+            val textX = folderRect.left + folderPadding
+            val textY = folderRect.top + folderPadding + folderTitleTextPaint.textSize
+            val staticLayout = StaticLayout.Builder
+                .obtain(folder.title, 0, folder.title.length, folderTitleTextPaint, (folderRect.width() - 2 * folderPadding).toInt())
+                .setMaxLines(1)
+                .setEllipsize(TextUtils.TruncateAt.END)
+                .setAlignment(Layout.Alignment.ALIGN_CENTER)
+                .build()
+
+            canvas.save()
+            canvas.translate(textX, textY)
+            staticLayout.draw(canvas)
+            canvas.restore()
 
             items.forEach { item ->
                 val (row, column) = item.getPositionInFolder(folder)
                 handleGridItemDrawing(
                     item,
-                    (folderRect.left + column * cellWidth).roundToInt(),
-                    (folderRect.top + row * cellHeight).roundToInt()
+                    (folderItemsRect.left + column * cellWidth).roundToInt(),
+                    (folderItemsRect.top + row * cellHeight).roundToInt()
                 )
             }
         }
@@ -1088,10 +1128,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         val clickableLeft: Int
         val clickableTop: Int
         if (folder != null && item.parentId == folder.id) {
-            val folderRect = folder.getFolderRect()
+            val folderRect = folder.getFolderItemsRect()
             val (row, column) = item.getPositionInFolder(folder)
             clickableLeft = (folderRect.left + column * cellWidth + extraXMargin).toInt()
-            clickableTop  = (folderRect.top + row * cellHeight - iconMargin + extraYMargin).toInt()
+            clickableTop = (folderRect.top + row * cellHeight - iconMargin + extraYMargin).toInt()
         } else {
             clickableLeft = cellXCoords[item.left] + sideMargins.left + extraXMargin
             clickableTop = if (item.docked) {
@@ -1328,7 +1368,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     private fun ArrayList<HomeScreenGridItem>.filterVisibleOnly() = filter { (it.page == currentPage || it.docked) && it.parentId == null }
 
-    private fun HomeScreenGridItem.getFolderItems() = gridItems.filter { (it.drawable != null && it.type == ITEM_TYPE_ICON || it.type == ITEM_TYPE_SHORTCUT) && it.parentId == id }
+    private fun HomeScreenGridItem.getFolderItems() =
+        gridItems.filter { (it.drawable != null && it.type == ITEM_TYPE_ICON || it.type == ITEM_TYPE_SHORTCUT) && it.parentId == id }
 
     private fun HomeScreenGridItem.getFolderRect(): RectF {
         val count = getFolderItems().count()
@@ -1336,8 +1377,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         val rowsCount = ceil(count.toFloat() / columnsCount).roundToInt()
         val centerX = cellXCoords[left] + cellWidth / 2 + sideMargins.left
         val centerY = cellYCoords[top] + cellHeight / 2 + sideMargins.top
-        val folderDialogWidth = (columnsCount * cellWidth).toFloat()
-        val folderDialogHeight = (rowsCount * cellHeight).toFloat()
+        val folderDialogWidth = (columnsCount * cellWidth + 2 * folderPadding)
+        val folderDialogHeight = (rowsCount * cellHeight + 3 * folderPadding + folderTitleTextPaint.textSize)
         var folderDialogTop = centerY - folderDialogHeight / 2
         var folderDialogLeft = centerX - folderDialogWidth / 2
 
@@ -1355,6 +1396,16 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         return RectF(folderDialogLeft, folderDialogTop, folderDialogLeft + folderDialogWidth, folderDialogTop + folderDialogHeight)
+    }
+
+    private fun HomeScreenGridItem.getFolderItemsRect(): RectF {
+        val folderRect = getFolderRect()
+        return RectF(
+            folderRect.left + folderPadding,
+            folderRect.top + folderPadding * 2 + folderTitleTextPaint.textSize,
+            folderRect.right - folderPadding,
+            folderRect.bottom - folderPadding
+        )
     }
 
     private fun HomeScreenGridItem.getPositionInFolder(folder: HomeScreenGridItem): Pair<Int, Int> {

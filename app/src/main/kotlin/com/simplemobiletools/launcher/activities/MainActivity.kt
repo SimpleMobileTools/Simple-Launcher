@@ -301,12 +301,13 @@ class MainActivity : SimpleActivity(), FlingListener {
             newRowCount = config.homeRowCount,
             newColumnCount = config.homeColumnCount
         )
+        binding.homeScreenGrid.root.updateColors()
         binding.allAppsFragment.root.onResume()
     }
 
     override fun onStop() {
         super.onStop()
-        binding.homeScreenGrid.root.appWidgetHost?.stopListening()
+        binding.homeScreenGrid.root.appWidgetHost.stopListening()
         wasJustPaused = false
     }
 
