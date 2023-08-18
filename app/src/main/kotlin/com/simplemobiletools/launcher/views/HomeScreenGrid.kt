@@ -81,6 +81,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     private var currentlyOpenFolder: HomeScreenGridItem? = null
     private var draggingLeftFolderAt: Long? = null
+    private var draggingEnteredNewFolderAt: Long? = null
 
     // apply fake margins at the home screen. Real ones would cause the icons be cut at dragging at screen sides
     var sideMargins = Rect()
@@ -300,6 +301,28 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         draggedItemCurrentCoords = Pair(x, y)
+
+        val center = gridCenters.minBy {
+            abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + abs(it.second - draggedItemCurrentCoords.second + sideMargins.top)
+        }
+        val coveredCell = getClosestGridCells(center)
+        if (coveredCell != null) {
+            val coveredFolder = gridItems.firstOrNull { it.type == ITEM_TYPE_FOLDER && it.left == coveredCell.first && it.top == coveredCell.second }
+            if (coveredFolder != null) {
+                draggingEnteredNewFolderAt.also {
+                    if (it == null) {
+                        draggingEnteredNewFolderAt = System.currentTimeMillis()
+                    } else if (System.currentTimeMillis() - it > PAGE_CHANGE_HOLD_THRESHOLD) {
+                        openFolder(coveredFolder)
+                    }
+                }
+            } else {
+                draggingEnteredNewFolderAt = null
+            }
+        } else {
+            draggingEnteredNewFolderAt = null
+        }
+
         if (x > right - sideMargins.right - cellWidth / 2) {
             doWithPageChangeDelay(PageChangeArea.RIGHT) {
                 nextOrAdditionalPage()
@@ -618,7 +641,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         gridItems.filter { it.parentId == oldParentId && it.left > oldLeft && it.id != id }.forEach {
                             it.left -= 1
                         }
-                        context.homeScreenGridItemsDB.shiftFolderItems(oldParentId, oldLeft, -1, id!!)
+                        context.homeScreenGridItemsDB.shiftFolderItems(oldParentId, oldLeft, -1, id)
                     }
 
                     if (newParentId != null && gridItems.any { it.parentId == newParentId && it.left == left }) {
@@ -626,7 +649,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                             it.left += 1
                         }
 
-                        context.homeScreenGridItemsDB.shiftFolderItems(newParentId, left - 1, +1, id!!)
+                        context.homeScreenGridItemsDB.shiftFolderItems(newParentId, left - 1, +1, id)
                     }
                 }
             }
@@ -667,6 +690,16 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         newHomeScreenGridItem.drawable = icon
                         storeAndShowGridItem(newHomeScreenGridItem)
                     }
+                }
+            }
+
+            ensureBackgroundThread {
+                if (newParentId != null && gridItems.any { it.parentId == newParentId && it.left == finalXIndex }) {
+                    gridItems.filter { it.parentId == newParentId && it.left >= finalXIndex }.forEach {
+                        it.left += 1
+                    }
+
+                    context.homeScreenGridItemsDB.shiftFolderItems(newParentId, left - 1, +1)
                 }
             }
         }
