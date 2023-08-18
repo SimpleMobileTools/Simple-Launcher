@@ -38,7 +38,6 @@ import com.simplemobiletools.commons.extensions.*
 import com.simplemobiletools.commons.helpers.*
 import com.simplemobiletools.launcher.BuildConfig
 import com.simplemobiletools.launcher.R
-import com.simplemobiletools.launcher.dialogs.FolderIconsDialog
 import com.simplemobiletools.launcher.databinding.ActivityMainBinding
 import com.simplemobiletools.launcher.databinding.AllAppsFragmentBinding
 import com.simplemobiletools.launcher.databinding.WidgetsFragmentBinding
@@ -64,7 +63,6 @@ class MainActivity : SimpleActivity(), FlingListener {
     private var mIgnoreMoveEvents = false
     private var mLongPressedIcon: HomeScreenGridItem? = null
     private var mOpenPopupMenu: PopupMenu? = null
-    private var mOpenFolderDialog: FolderIconsDialog? = null
     private var mCachedLaunchers = ArrayList<AppLauncher>()
     private var mLastTouchCoords = Pair(-1f, -1f)
     private var mActionOnCanBindWidget: ((granted: Boolean) -> Unit)? = null
@@ -398,12 +396,11 @@ class MainActivity : SimpleActivity(), FlingListener {
                     hasFingerMoved(event)
                 }
 
-                if (mLongPressedIcon != null && (mOpenPopupMenu != null || mOpenFolderDialog != null) && hasFingerMoved) {
+                if (mLongPressedIcon != null && (mOpenPopupMenu != null) && hasFingerMoved) {
                     mOpenPopupMenu?.dismiss()
                     mOpenPopupMenu = null
                     binding.homeScreenGrid.root.itemDraggingStarted(mLongPressedIcon!!)
                     hideFragment(binding.allAppsFragment)
-                    mOpenFolderDialog?.dismiss()
                 }
 
                 if (mLongPressedIcon != null && hasFingerMoved) {
@@ -475,7 +472,6 @@ class MainActivity : SimpleActivity(), FlingListener {
 
         if (hasDeletedAnything) {
             binding.homeScreenGrid.root.fetchGridItems()
-            mOpenFolderDialog?.fetchItems()
         }
 
         mCachedLaunchers = launchers
@@ -558,6 +554,9 @@ class MainActivity : SimpleActivity(), FlingListener {
         if (clickedGridItem != null) {
             performItemClick(clickedGridItem)
         }
+        if (clickedGridItem?.type != ITEM_TYPE_FOLDER) {
+            binding.homeScreenGrid.root.closeFolder(redraw = true)
+        }
     }
 
     fun closeAppDrawer(delayed: Boolean = false) {
@@ -595,7 +594,7 @@ class MainActivity : SimpleActivity(), FlingListener {
     private fun performItemClick(clickedGridItem: HomeScreenGridItem) {
         when (clickedGridItem.type) {
             ITEM_TYPE_ICON -> launchApp(clickedGridItem.packageName, clickedGridItem.activityName)
-            ITEM_TYPE_FOLDER -> showFolderDialog(clickedGridItem)
+            ITEM_TYPE_FOLDER -> openFolder(clickedGridItem)
             ITEM_TYPE_SHORTCUT -> {
                 val id = clickedGridItem.shortcutId
                 val packageName = clickedGridItem.packageName
@@ -607,19 +606,8 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
     }
 
-    private fun showFolderDialog(folder: HomeScreenGridItem) {
-        mOpenFolderDialog = FolderIconsDialog(
-            activity = this,
-            folder = folder,
-            iconWidth = binding.homeScreenGrid.root.getCurrentCellSize(),
-            iconPadding = binding.homeScreenGrid.root.getCurrentCellMargin(),
-            dismissListener = {
-                mOpenFolderDialog = null
-            },
-            itemClick = {
-                performItemClick(it)
-            }
-        )
+    private fun openFolder(folder: HomeScreenGridItem) {
+        binding.homeScreenGrid.root.openFolder(folder)
     }
 
     private fun performItemLongClick(x: Float, clickedGridItem: HomeScreenGridItem) {
@@ -629,11 +617,6 @@ class MainActivity : SimpleActivity(), FlingListener {
 
         val anchorY = binding.homeScreenGrid.root.sideMargins.top + (clickedGridItem.top * binding.homeScreenGrid.root.cellHeight.toFloat())
         showHomeIconMenu(x, anchorY, clickedGridItem, false)
-    }
-
-    fun startHandlingItem(gridItem: HomeScreenGridItem) {
-        mLongPressedIcon = gridItem
-        mOpenFolderDialog?.dismiss()
     }
 
     fun showHomeIconMenu(x: Float, y: Float, gridItem: HomeScreenGridItem, isOnAllAppsFragment: Boolean) {
