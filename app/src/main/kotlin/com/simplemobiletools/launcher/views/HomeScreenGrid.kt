@@ -1332,28 +1332,34 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     private fun HomeScreenGridItem.getFolderRect(): RectF {
         val count = getFolderItems().count()
-        val columnsCount = if (count == 2) {
-            2
-        } else {
-            ceil(count / 2.0f).roundToInt()
-        }
+        val columnsCount = ceil(sqrt(count.toDouble())).roundToInt()
         val rowsCount = ceil(count.toFloat() / columnsCount).roundToInt()
         val centerX = cellXCoords[left] + cellWidth / 2 + sideMargins.left
         val centerY = cellYCoords[top] + cellHeight / 2 + sideMargins.top
         val folderDialogWidth = (columnsCount * cellWidth).toFloat()
         val folderDialogHeight = (rowsCount * cellHeight).toFloat()
-        val folderDialogTop = centerY - folderDialogHeight / 2
-        val folderDialogLeft = centerX - folderDialogWidth / 2
+        var folderDialogTop = centerY - folderDialogHeight / 2
+        var folderDialogLeft = centerX - folderDialogWidth / 2
+
+        if (folderDialogLeft < this@HomeScreenGrid.left + sideMargins.left) {
+            folderDialogLeft += this@HomeScreenGrid.left + sideMargins.left - folderDialogLeft
+        }
+        if (folderDialogLeft + folderDialogWidth > this@HomeScreenGrid.right - sideMargins.right) {
+            folderDialogLeft -= folderDialogLeft + folderDialogWidth - (this@HomeScreenGrid.right - sideMargins.right)
+        }
+        if (folderDialogTop < this@HomeScreenGrid.top + sideMargins.top) {
+            folderDialogTop += this@HomeScreenGrid.top + sideMargins.top - folderDialogTop
+        }
+        if (folderDialogTop + folderDialogHeight > this@HomeScreenGrid.bottom - sideMargins.bottom) {
+            folderDialogTop -= folderDialogTop + folderDialogHeight - (this@HomeScreenGrid.bottom - sideMargins.bottom)
+        }
+
         return RectF(folderDialogLeft, folderDialogTop, folderDialogLeft + folderDialogWidth, folderDialogTop + folderDialogHeight)
     }
 
     private fun HomeScreenGridItem.getPositionInFolder(folder: HomeScreenGridItem): Pair<Int, Int> {
         val count = folder.getFolderItems().count()
-        val columnsCount = if (count == 2) {
-            2
-        } else {
-            ceil(count / 2.0f).roundToInt()
-        }
+        val columnsCount = ceil(sqrt(count.toDouble())).roundToInt()
         val column = left % columnsCount
         val row = left / columnsCount
         return Pair(row, column)
