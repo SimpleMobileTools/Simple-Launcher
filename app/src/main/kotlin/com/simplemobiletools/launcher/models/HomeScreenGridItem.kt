@@ -33,6 +33,10 @@ data class HomeScreenGridItem(
     @Ignore var widthCells: Int = 1,
     @Ignore var heightCells: Int = 1
 ) {
+    companion object {
+        const val FOLDER_MAX_CAPACITY = 16
+    }
+
     constructor() : this(null, -1, -1, -1, -1, 0, "", "", "", ITEM_TYPE_ICON, "", -1, "", null, false, null, null, null, null, 1, 1)
 
     fun getWidthInCells() = if (right == -1 || left == -1) {

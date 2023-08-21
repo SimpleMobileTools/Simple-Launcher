@@ -313,7 +313,12 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                     if (it == null) {
                         draggingEnteredNewFolderAt = System.currentTimeMillis()
                     } else if (System.currentTimeMillis() - it > PAGE_CHANGE_HOLD_THRESHOLD) {
-                        openFolder(coveredFolder)
+                        if (coveredFolder.getFolderItems().count() >= HomeScreenGridItem.FOLDER_MAX_CAPACITY && draggedItem?.parentId != coveredFolder.id) {
+                            performHapticFeedback()
+                            draggingEnteredNewFolderAt = null
+                        } else {
+                            openFolder(coveredFolder)
+                        }
                     }
                 }
             } else {
@@ -597,6 +602,18 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         newParentId: Long? = null,
         toFolderEnd: Boolean = true
     ) {
+        if (newParentId != null && newParentId != draggedHomeGridItem?.parentId) {
+            gridItems.firstOrNull { it.id == newParentId }?.also {
+                if (it.getFolderItems().count() >= HomeScreenGridItem.FOLDER_MAX_CAPACITY) {
+                    performHapticFeedback()
+                    draggedItem = null
+                    draggedItemCurrentCoords = Pair(-1, -1)
+                    redrawGrid()
+                    return
+                }
+            }
+        }
+
         val finalXIndex = if (newParentId != null) {
             if (toFolderEnd) {
                 gridItems.firstOrNull { it.id == newParentId }?.getFolderItems()?.maxOf { it.left + 1 } ?: 0
