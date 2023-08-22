@@ -73,52 +73,6 @@ class MainActivity : SimpleActivity(), FlingListener {
     private lateinit var mDetector: GestureDetectorCompat
     private val binding by viewBinding(ActivityMainBinding::inflate)
 
-    val menuListener: ItemMenuListener = object : ItemMenuListener {
-        override fun onAnyClick() {
-            resetFragmentTouches()
-        }
-
-        override fun hide(gridItem: HomeScreenGridItem) {
-            hideIcon(gridItem)
-        }
-
-        override fun rename(gridItem: HomeScreenGridItem) {
-            renameItem(gridItem)
-        }
-
-        override fun resize(gridItem: HomeScreenGridItem) {
-            binding.homeScreenGrid.root.widgetLongPressed(gridItem)
-        }
-
-        override fun appInfo(gridItem: HomeScreenGridItem) {
-            launchAppInfo(gridItem.packageName)
-        }
-
-        override fun remove(gridItem: HomeScreenGridItem) {
-            binding.homeScreenGrid.root.removeAppIcon(gridItem)
-        }
-
-        override fun uninstall(gridItem: HomeScreenGridItem) {
-            uninstallApp(gridItem.packageName)
-        }
-
-        override fun onDismiss() {
-            mOpenPopupMenu = null
-            resetFragmentTouches()
-        }
-
-        override fun beforeShow(menu: Menu) {
-            var visibleMenuItems = 0
-            for (item in menu.iterator()) {
-                if (item.isVisible) {
-                    visibleMenuItems++
-                }
-            }
-            val yOffset = resources.getDimension(R.dimen.long_press_anchor_button_offset_y) * (visibleMenuItems - 1)
-            binding.homeScreenPopupMenuAnchor.y -= yOffset
-        }
-    }
-
     companion object {
         private var mLastUpEvent = 0L
         private const val ANIMATION_DURATION = 150L
@@ -174,80 +128,6 @@ class MainActivity : SimpleActivity(), FlingListener {
         if (intent != null) {
             handleIntentAction(intent)
         }
-    }
-
-    private fun handleIntentAction(intent: Intent) {
-        if (intent.action == LauncherApps.ACTION_CONFIRM_PIN_SHORTCUT) {
-            val launcherApps = applicationContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
-            val item = launcherApps.getPinItemRequest(intent)
-            if (item.shortcutInfo == null) {
-                return
-            }
-
-            ensureBackgroundThread {
-                val shortcutId = item.shortcutInfo?.id!!
-                val label = item.shortcutInfo?.shortLabel?.toString() ?: item.shortcutInfo?.longLabel?.toString() ?: ""
-                val icon = launcherApps.getShortcutIconDrawable(item.shortcutInfo!!, resources.displayMetrics.densityDpi)
-                val (page, rect) = findFirstEmptyCell()
-                val gridItem = HomeScreenGridItem(
-                    null,
-                    rect.left,
-                    rect.top,
-                    rect.right,
-                    rect.bottom,
-                    page,
-                    item.shortcutInfo!!.`package`,
-                    "",
-                    label,
-                    ITEM_TYPE_SHORTCUT,
-                    "",
-                    -1,
-                    shortcutId,
-                    icon.toBitmap(),
-                    false,
-                    null,
-                    icon
-                )
-
-                runOnUiThread {
-                    binding.homeScreenGrid.root.skipToPage(page)
-                }
-                // delay showing the shortcut both to let the user see adding it in realtime and hackily avoid concurrent modification exception at HomeScreenGrid
-                Thread.sleep(2000)
-
-                try {
-                    item.accept()
-                    binding.homeScreenGrid.root.storeAndShowGridItem(gridItem)
-                } catch (ignored: IllegalStateException) {
-                }
-            }
-        }
-    }
-
-    private fun findFirstEmptyCell(): Pair<Int, Rect> {
-        val gridItems = homeScreenGridItemsDB.getAllItems() as ArrayList<HomeScreenGridItem>
-        val maxPage = gridItems.map { it.page }.max()
-        val occupiedCells = ArrayList<Triple<Int, Int, Int>>()
-        gridItems.forEach { item ->
-            for (xCell in item.left..item.right) {
-                for (yCell in item.top..item.bottom) {
-                    occupiedCells.add(Triple(item.page, xCell, yCell))
-                }
-            }
-        }
-
-        for (page in 0 until maxPage) {
-            for (checkedYCell in 0 until config.homeColumnCount) {
-                for (checkedXCell in 0 until config.homeRowCount - 1) {
-                    val wantedCell = Triple(page, checkedXCell, checkedYCell)
-                    if (!occupiedCells.contains(wantedCell)) {
-                        return Pair(page, Rect(wantedCell.second, wantedCell.third, wantedCell.second, wantedCell.third))
-                    }
-                }
-            }
-        }
-
-        return Pair(maxPage + 1, Rect(0, 0, 0, 0))
     }
 
     override fun onStart() {
@@ -452,6 +332,79 @@ class MainActivity : SimpleActivity(), FlingListener {
         return true
     }
 
+    private fun handleIntentAction(intent: Intent) {
+        if (intent.action == LauncherApps.ACTION_CONFIRM_PIN_SHORTCUT) {
+            val launcherApps = applicationContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+            val item = launcherApps.getPinItemRequest(intent)
+            if (item.shortcutInfo == null) {
+                return
+            }
+
+            ensureBackgroundThread {
+                val shortcutId = item.shortcutInfo?.id!!
+                val label = item.shortcutInfo?.shortLabel?.toString() ?: item.shortcutInfo?.longLabel?.toString() ?: ""
+                val icon = launcherApps.getShortcutIconDrawable(item.shortcutInfo!!, resources.displayMetrics.densityDpi)
+                val (page, rect) = findFirstEmptyCell()
+                val gridItem = HomeScreenGridItem(
+                    null,
+                    rect.left,
+                    rect.top,
+                    rect.right,
+                    rect.bottom,
+                    page,
+                    item.shortcutInfo!!.`package`,
+                    "",
+                    label,
+                    ITEM_TYPE_SHORTCUT,
+                    "",
+                    -1,
+                    shortcutId,
+                    icon.toBitmap(),
+                    false,
+                    null,
+                    icon
+                )
+
+                runOnUiThread {
+                    binding.homeScreenGrid.root.skipToPage(page)
+                }
+                // delay showing the shortcut both to let the user see adding it in realtime and hackily avoid concurrent modification exception at HomeScreenGrid
+                Thread.sleep(2000)
+
+                try {
+                    item.accept()
+                    binding.homeScreenGrid.root.storeAndShowGridItem(gridItem)
+                } catch (ignored: IllegalStateException) {
+                }
+            }
+        }
+    }
+
+    private fun findFirstEmptyCell(): Pair<Int, Rect> {
+        val gridItems = homeScreenGridItemsDB.getAllItems() as ArrayList<HomeScreenGridItem>
+        val maxPage = gridItems.map { it.page }.max()
+        val occupiedCells = ArrayList<Triple<Int, Int, Int>>()
+        gridItems.forEach { item ->
+            for (xCell in item.left..item.right) {
+                for (yCell in item.top..item.bottom) {
+                    occupiedCells.add(Triple(item.page, xCell, yCell))
+                }
+            }
+        }
+
+        for (page in 0 until maxPage) {
+            for (checkedYCell in 0 until config.homeColumnCount) {
+                for (checkedXCell in 0 until config.homeRowCount - 1) {
+                    val wantedCell = Triple(page, checkedXCell, checkedYCell)
+                    if (!occupiedCells.contains(wantedCell)) {
+                        return Pair(page, Rect(wantedCell.second, wantedCell.third, wantedCell.second, wantedCell.third))
+                    }
+                }
+            }
+        }
+
+        return Pair(maxPage + 1, Rect(0, 0, 0, 0))
+    }
 
     // some devices ACTION_MOVE keeps triggering for the whole long press duration, but we are interested in real moves only, when coords change
     private fun hasFingerMoved(event: MotionEvent) = mTouchDownX != -1 && mTouchDownY != -1 &&
@@ -707,6 +660,53 @@ class MainActivity : SimpleActivity(), FlingListener {
             showErrorToast(e)
         }
     }
+
+    val menuListener: ItemMenuListener = object : ItemMenuListener {
+        override fun onAnyClick() {
+            resetFragmentTouches()
+        }
+
+        override fun hide(gridItem: HomeScreenGridItem) {
+            hideIcon(gridItem)
+        }
+
+        override fun rename(gridItem: HomeScreenGridItem) {
+            renameItem(gridItem)
+        }
+
+        override fun resize(gridItem: HomeScreenGridItem) {
+            binding.homeScreenGrid.root.widgetLongPressed(gridItem)
+        }
+
+        override fun appInfo(gridItem: HomeScreenGridItem) {
+            launchAppInfo(gridItem.packageName)
+        }
+
+        override fun remove(gridItem: HomeScreenGridItem) {
+            binding.homeScreenGrid.root.removeAppIcon(gridItem)
+        }
+
+        override fun uninstall(gridItem: HomeScreenGridItem) {
+            uninstallApp(gridItem.packageName)
+        }
+
+        override fun onDismiss() {
+            mOpenPopupMenu = null
+            resetFragmentTouches()
+        }
+
+        override fun beforeShow(menu: Menu) {
+            var visibleMenuItems = 0
+            for (item in menu.iterator()) {
+                if (item.isVisible) {
+                    visibleMenuItems++
+                }
+            }
+            val yOffset = resources.getDimension(R.dimen.long_press_anchor_button_offset_y) * (visibleMenuItems - 1)
+            binding.homeScreenPopupMenuAnchor.y -= yOffset
+        }
+    }
+
 
     private class MyGestureListener(private val flingListener: FlingListener) : GestureDetector.SimpleOnGestureListener() {
         override fun onSingleTapUp(event: MotionEvent): Boolean {
