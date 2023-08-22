@@ -1536,8 +1536,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     private fun HomeScreenGridItem.getFolderRect(): RectF {
         val count = getFolderItems().count()
-        val columnsCount = ceil(sqrt(count.toDouble())).roundToInt()
-        val rowsCount = ceil(count.toFloat() / columnsCount).roundToInt()
+        if (count == 0) {
+            return RectF(0f, 0f, 0f, 0f)
+        }
+        val columnsCount = ceil(sqrt(count.toDouble())).toInt()
+        val rowsCount = ceil(count.toFloat() / columnsCount).toInt()
         val centerX = cellXCoords[left] + cellWidth / 2 + sideMargins.left
         val centerY = cellYCoords[top] + cellHeight / 2 + sideMargins.top
         val folderDialogWidth = (columnsCount * cellWidth + 2 * folderPadding)
