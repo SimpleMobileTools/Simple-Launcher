@@ -1522,7 +1522,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         val scaledCellSize = (iconSize.toFloat() / folderColumnCount)
         val scaledGap = scaledCellSize / 5f
         val scaledIconSize = (iconSize - (folderColumnCount + 1) * scaledGap) / folderColumnCount
-        val extraYMargin = if (folderRowCount < folderColumnCount) scaledIconSize / 2 else 0f
+        val extraYMargin = if (folderRowCount < folderColumnCount) (scaledIconSize + scaledGap) / 2 else 0f
         items.forEach {
             val (row, column) = it.getPositionInFolder(this@generateFolderDrawable)
             val drawableX = (scaledGap + column * scaledIconSize + column * scaledGap).toInt()
