@@ -291,7 +291,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 draggingLeftFolderAt.also {
                     if (it == null) {
                         draggingLeftFolderAt = System.currentTimeMillis()
-                    } else if (System.currentTimeMillis() - it > PAGE_CHANGE_HOLD_THRESHOLD) {
+                    } else if (System.currentTimeMillis() - it > FOLDER_CLOSE_HOLD_THRESHOLD) {
                         closeFolder()
                     }
                 }
@@ -319,11 +319,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         val coveredCell = getClosestGridCells(center)
         if (coveredCell != null) {
             val coveredFolder = gridItems.firstOrNull { it.type == ITEM_TYPE_FOLDER && it.left == coveredCell.first && it.top == coveredCell.second }
-            if (coveredFolder != null) {
+            if (coveredFolder != null && coveredFolder.id != draggedItem?.id) {
                 draggingEnteredNewFolderAt.also {
                     if (it == null) {
                         draggingEnteredNewFolderAt = System.currentTimeMillis()
-                    } else if (System.currentTimeMillis() - it > PAGE_CHANGE_HOLD_THRESHOLD) {
+                    } else if (System.currentTimeMillis() - it > FOLDER_OPEN_HOLD_THRESHOLD) {
                         if (coveredFolder.getFolderItems().count() >= HomeScreenGridItem.FOLDER_MAX_CAPACITY && draggedItem?.parentId != coveredFolder.id) {
                             performHapticFeedback()
                             draggingEnteredNewFolderAt = null
@@ -1599,6 +1599,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     companion object {
         private const val PAGE_CHANGE_HOLD_THRESHOLD = 500L
         private const val PAGE_INDICATORS_FADE_DELAY = PAGE_CHANGE_HOLD_THRESHOLD + 300L
+        private const val FOLDER_OPEN_HOLD_THRESHOLD = 500L
+        private const val FOLDER_CLOSE_HOLD_THRESHOLD = 300L
 
         private enum class PageChangeArea {
             LEFT,
