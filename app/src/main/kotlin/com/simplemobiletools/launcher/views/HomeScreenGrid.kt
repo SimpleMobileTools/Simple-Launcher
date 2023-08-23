@@ -37,10 +37,7 @@ import com.simplemobiletools.launcher.extensions.getDrawableForPackageName
 import com.simplemobiletools.launcher.extensions.homeScreenGridItemsDB
 import com.simplemobiletools.launcher.helpers.*
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
-import kotlin.math.abs
-import kotlin.math.floor
-import kotlin.math.max
-import kotlin.math.min
+import kotlin.math.*
 
 class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : RelativeLayout(context, attrs, defStyle) {
     constructor(context: Context, attrs: AttributeSet) : this(context, attrs, 0)
@@ -77,6 +74,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private var pageChangeAnimLeftPercentage = 0f
     private var pageChangeEnabled = true
     private var pageChangeIndicatorsAlpha = 0f
+    private var pageChangeSwipedPercentage = 0f
 
     // apply fake margins at the home screen. Real ones would cause the icons be cut at dragging at screen sides
     var sideMargins = Rect()
@@ -611,21 +609,12 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     private fun updateWidgetPositionAndSize(widgetView: AppWidgetHostView, item: HomeScreenGridItem): Size {
         var x = calculateWidgetX(item.left) + width * item.page - width * lastPage
-        if (pageChangeAnimLeftPercentage > 0f && pageChangeAnimLeftPercentage < 1f && (item.page == currentPage || item.page == lastPage)) {
-            val xFactor = if (currentPage > lastPage) {
-                pageChangeAnimLeftPercentage
-            } else {
-                -pageChangeAnimLeftPercentage
-            }
-            val lastXFactor = if (currentPage > lastPage) {
-                pageChangeAnimLeftPercentage - 1
-            } else {
-                1 - pageChangeAnimLeftPercentage
-            }
+        if (isBetweenPages() && (item.page == currentPage || item.page == lastPage || (pageChangeSwipedPercentage > 0f && item.page == currentPage - 1) || (pageChangeSwipedPercentage < 0f && item.page == currentPage + 1))) {
+            val xFactor = getXFactorForCurrentPage()
+            val lastXFactor = getXFactorForLastPage()
             if (item.page == currentPage) {
                 x += width * xFactor
-            }
-            if (item.page == lastPage) {
+            } else if (item.page == lastPage || (pageChangeSwipedPercentage > 0f && item.page == currentPage - 1) || (pageChangeSwipedPercentage < 0f && item.page == currentPage + 1)) {
                 x += width * lastXFactor
             }
         }
@@ -685,16 +674,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             fillCellSizes()
         }
 
-        val currentXFactor = if (currentPage > lastPage) {
-            pageChangeAnimLeftPercentage
-        } else {
-            -pageChangeAnimLeftPercentage
-        }
-        val lastXFactor = if (currentPage > lastPage) {
-            pageChangeAnimLeftPercentage - 1
-        } else {
-            1 - pageChangeAnimLeftPercentage
-        }
+        val currentXFactor = getXFactorForCurrentPage()
+        val lastXFactor = getXFactorForLastPage()
 
         fun handleItemDrawing(item: HomeScreenGridItem, xFactor: Float) {
             if (item.id != draggedItem?.id) {
@@ -755,6 +736,20 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 }
         }
 
+        if (abs(pageChangeSwipedPercentage) > 0f) {
+            gridItems.filter {
+                (it.drawable != null && it.type == ITEM_TYPE_ICON || it.type == ITEM_TYPE_SHORTCUT)
+                    && ((pageChangeSwipedPercentage > 0f && it.page == currentPage - 1) || (pageChangeSwipedPercentage < 0f && it.page == currentPage + 1))
+                    && !it.docked
+            }.forEach { item ->
+                if (item.outOfBounds()) {
+                    return@forEach
+                }
+
+                handleItemDrawing(item, lastXFactor)
+            }
+        }
+
         if (isFirstDraw) {
             gridItems.filter { it.type == ITEM_TYPE_WIDGET && !it.outOfBounds() }.forEach { item ->
                 bindWidget(item, true)
@@ -768,7 +763,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         // Only draw page indicators when there is a need for it
-        if (pageChangeAnimLeftPercentage > 0f || pageChangeIndicatorsAlpha != 0f) {
+        if (pageChangeAnimLeftPercentage > 0f || pageChangeIndicatorsAlpha != 0f || abs(pageChangeSwipedPercentage) > 0f) {
             val pageCount = max(getMaxPage(), currentPage) + 1
             val pageIndicatorsRequiredWidth = pageCount * pageIndicatorRadius * 2 + pageCount * (pageIndicatorMargin - 1)
             val usableWidth = getFakeWidth()
@@ -789,8 +784,22 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
             // Draw current page indicator on exact position
             val currentIndicatorRangeStart = pageIndicatorsStart + lastPage * pageIndicatorStep
-            val currentIndicatorRangeEnd = pageIndicatorsStart + currentPage * pageIndicatorStep
-            val currentIndicatorPosition = MathUtils.lerp(currentIndicatorRangeStart, currentIndicatorRangeEnd, 1 - pageChangeAnimLeftPercentage)
+            val indicatorEndPage = if (abs(pageChangeSwipedPercentage) > 0f) {
+                if (pageChangeSwipedPercentage > 0f) {
+                    currentPage - 1
+                } else {
+                    currentPage + 1
+                }
+            } else {
+                currentPage
+            }
+            val currentIndicatorRangeEnd = pageIndicatorsStart + indicatorEndPage * pageIndicatorStep
+            val lerpAmount = if (pageChangeAnimLeftPercentage > 0f) {
+                1 - pageChangeAnimLeftPercentage
+            } else {
+                abs(pageChangeSwipedPercentage)
+            }
+            val currentIndicatorPosition = MathUtils.lerp(currentIndicatorRangeStart, currentIndicatorRangeEnd, lerpAmount)
             if (pageChangeIndicatorsAlpha != 0f) {
                 currentPageIndicatorPaint.alpha = (pageChangeIndicatorsAlpha * 255.0f).toInt()
             } else {
@@ -1087,11 +1096,13 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private fun handlePageChange(redraw: Boolean = false) {
         pageChangeEnabled = false
         pageChangeIndicatorsAlpha = 0f
+        val startingAt = 1 - abs(pageChangeSwipedPercentage)
+        pageChangeSwipedPercentage = 0f
         removeCallbacks(startFadingIndicators)
         if (redraw) {
             redrawGrid()
         }
-        ValueAnimator.ofFloat(1f, 0f)
+        ValueAnimator.ofFloat(startingAt, 0f)
             .apply {
                 addUpdateListener {
                     pageChangeAnimLeftPercentage = it.animatedValue as Float
@@ -1110,6 +1121,63 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 })
                 start()
             }
+    }
+
+    private fun isBetweenPages() =
+        (pageChangeSwipedPercentage > 0f && pageChangeSwipedPercentage < 1f) || (pageChangeAnimLeftPercentage > 0f && pageChangeAnimLeftPercentage < 1f)
+
+    private fun getXFactorForCurrentPage(): Float {
+        return if (abs(pageChangeSwipedPercentage) > 0f) {
+            pageChangeSwipedPercentage
+        } else {
+            if (currentPage > lastPage) {
+                pageChangeAnimLeftPercentage
+            } else {
+                -pageChangeAnimLeftPercentage
+            }
+        }
+    }
+
+    private fun getXFactorForLastPage(): Float {
+        return if (abs(pageChangeSwipedPercentage) > 0f) {
+            (1 - abs(pageChangeSwipedPercentage)) * -sign(pageChangeSwipedPercentage)
+        } else {
+            if (currentPage > lastPage) {
+                pageChangeAnimLeftPercentage - 1
+            } else {
+                1 - pageChangeAnimLeftPercentage
+            }
+        }
+    }
+
+    fun setSwipeMovement(diffX: Float) {
+        if (!pageChangeEnabled) {
+            return
+        }
+
+        if (currentPage < getMaxPage() && diffX > 0f || currentPage > 0 && diffX < 0f) {
+            pageChangeSwipedPercentage = (-diffX / width.toFloat()).coerceIn(-1f, 1f)
+            redrawGrid()
+        }
+    }
+
+    fun finalizeSwipe() {
+        if (abs(pageChangeSwipedPercentage) > 0.5f) {
+            lastPage = currentPage
+            currentPage = if (pageChangeSwipedPercentage > 0f) {
+                currentPage - 1
+            } else {
+                currentPage + 1
+            }
+            handlePageChange(true)
+        } else {
+            lastPage = if (pageChangeSwipedPercentage > 0f) {
+                currentPage - 1
+            } else {
+                currentPage + 1
+            }
+            handlePageChange(true)
+        }
     }
 
     companion object {
