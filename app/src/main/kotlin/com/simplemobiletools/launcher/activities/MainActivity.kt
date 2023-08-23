@@ -749,6 +749,10 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     override fun onFlingUp() {
+        if (mIgnoreYMoveEvents) {
+            return
+        }
+
         if (!isWidgetsFragmentExpanded()) {
             mIgnoreUpEvent = true
             showFragment(binding.allAppsFragment)
@@ -757,6 +761,10 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     @SuppressLint("WrongConstant")
     override fun onFlingDown() {
+        if (mIgnoreYMoveEvents) {
+            return
+        }
+
         mIgnoreUpEvent = true
         if (isAllAppsFragmentExpanded()) {
             hideFragment(binding.allAppsFragment)
@@ -771,11 +779,19 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     override fun onFlingRight() {
+        if (mIgnoreXMoveEvents) {
+            return
+        }
+
         mIgnoreUpEvent = true
         binding.homeScreenGrid.root.prevPage(redraw = true)
     }
 
     override fun onFlingLeft() {
+        if (mIgnoreXMoveEvents) {
+            return
+        }
+
         mIgnoreUpEvent = true
         binding.homeScreenGrid.root.nextPage(redraw = true)
     }
