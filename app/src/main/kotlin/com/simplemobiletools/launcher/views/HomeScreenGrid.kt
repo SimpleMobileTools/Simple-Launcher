@@ -973,7 +973,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
 
     fun setSwipeMovement(diffX: Float) {
-        if (draggedItem != null) {
+        if (draggedItem == null) {
             pager.setSwipeMovement(diffX)
         }
     }
