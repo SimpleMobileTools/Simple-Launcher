@@ -1176,6 +1176,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             } else {
                 currentPage + 1
             }
+            pageChangeSwipedPercentage = sign(pageChangeSwipedPercentage) * (1 - abs(pageChangeSwipedPercentage))
             handlePageChange(true)
         }
     }
