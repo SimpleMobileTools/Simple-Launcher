@@ -61,6 +61,8 @@ class MainActivity : SimpleActivity(), FlingListener {
     private var mMoveGestureThreshold = 0
     private var mIgnoreUpEvent = false
     private var mIgnoreMoveEvents = false
+    private var mIgnoreXMoveEvents = false
+    private var mIgnoreYMoveEvents = false
     private var mLongPressedIcon: HomeScreenGridItem? = null
     private var mOpenPopupMenu: PopupMenu? = null
     private var mCachedLaunchers = ArrayList<AppLauncher>()
@@ -290,13 +292,20 @@ class MainActivity : SimpleActivity(), FlingListener {
 
                 if (hasFingerMoved && !mIgnoreMoveEvents) {
                     val diffY = mTouchDownY - event.y
+                    val diffX = mTouchDownX - event.x
 
-                    if (isWidgetsFragmentExpanded()) {
-                        val newY = mWidgetsFragmentY - diffY
-                        binding.widgetsFragment.root.y = Math.min(Math.max(0f, newY), mScreenHeight.toFloat())
-                    } else if (mLongPressedIcon == null) {
-                        val newY = mAllAppsFragmentY - diffY
-                        binding.allAppsFragment.root.y = Math.min(Math.max(0f, newY), mScreenHeight.toFloat())
+                    if (abs(diffY) > abs(diffX) && !mIgnoreYMoveEvents) {
+                        mIgnoreXMoveEvents = true
+                        if (isWidgetsFragmentExpanded()) {
+                            val newY = mWidgetsFragmentY - diffY
+                            binding.widgetsFragment.root.y = Math.min(Math.max(0f, newY), mScreenHeight.toFloat())
+                        } else if (mLongPressedIcon == null) {
+                            val newY = mAllAppsFragmentY - diffY
+                            binding.allAppsFragment.root.y = Math.min(Math.max(0f, newY), mScreenHeight.toFloat())
+                        }
+                    } else if (abs(diffX) > abs(diffY) && !mIgnoreXMoveEvents) {
+                        mIgnoreYMoveEvents = true
+                        binding.homeScreenGrid.root.setSwipeMovement(diffX)
                     }
                 }
 
@@ -314,18 +323,27 @@ class MainActivity : SimpleActivity(), FlingListener {
                 binding.homeScreenGrid.root.itemDraggingStopped()
 
                 if (!mIgnoreUpEvent) {
-                    if (binding.allAppsFragment.root.y < mScreenHeight * 0.5) {
-                        showFragment(binding.allAppsFragment)
-                    } else if (isAllAppsFragmentExpanded()) {
-                        hideFragment(binding.allAppsFragment)
+                    if (!mIgnoreYMoveEvents) {
+                        if (binding.allAppsFragment.root.y < mScreenHeight * 0.5) {
+                            showFragment(binding.allAppsFragment)
+                        } else if (isAllAppsFragmentExpanded()) {
+                            hideFragment(binding.allAppsFragment)
+                        }
+
+                        if (binding.widgetsFragment.root.y < mScreenHeight * 0.5) {
+                            showFragment(binding.widgetsFragment)
+                        } else if (isWidgetsFragmentExpanded()) {
+                            hideFragment(binding.widgetsFragment)
+                        }
                     }
 
-                    if (binding.widgetsFragment.root.y < mScreenHeight * 0.5) {
-                        showFragment(binding.widgetsFragment)
-                    } else if (isWidgetsFragmentExpanded()) {
-                        hideFragment(binding.widgetsFragment)
+                    if (!mIgnoreXMoveEvents) {
+                        binding.homeScreenGrid.root.finalizeSwipe()
                     }
                 }
+
+                mIgnoreXMoveEvents = false
+                mIgnoreYMoveEvents = false
             }
         }
 
@@ -743,6 +761,10 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     override fun onFlingUp() {
+        if (mIgnoreYMoveEvents) {
+            return
+        }
+
         if (!isWidgetsFragmentExpanded()) {
             mIgnoreUpEvent = true
             showFragment(binding.allAppsFragment)
@@ -751,6 +773,10 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     @SuppressLint("WrongConstant")
     override fun onFlingDown() {
+        if (mIgnoreYMoveEvents) {
+            return
+        }
+
         mIgnoreUpEvent = true
         if (isAllAppsFragmentExpanded()) {
             hideFragment(binding.allAppsFragment)
@@ -765,11 +791,19 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     override fun onFlingRight() {
+        if (mIgnoreXMoveEvents) {
+            return
+        }
+
         mIgnoreUpEvent = true
         binding.homeScreenGrid.root.prevPage(redraw = true)
     }
 
     override fun onFlingLeft() {
+        if (mIgnoreXMoveEvents) {
+            return
+        }
+
         mIgnoreUpEvent = true
         binding.homeScreenGrid.root.nextPage(redraw = true)
     }
