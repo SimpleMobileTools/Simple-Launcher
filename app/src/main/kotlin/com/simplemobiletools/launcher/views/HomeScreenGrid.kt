@@ -469,8 +469,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
         val folder = currentlyOpenFolder
         if (folder != null && folder.getItemsDrawingRect().contains(
-                (sideMargins.left + draggedItemCurrentCoords.first).toFloat(),
-                (sideMargins.top + draggedItemCurrentCoords.second).toFloat()
+                (draggedItemCurrentCoords.first).toFloat(),
+                (draggedItemCurrentCoords.second).toFloat()
             )
         ) {
             val center = folder.getItemsGridCenters().minBy {
@@ -1040,8 +1040,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         if (draggedItem != null && draggedItemCurrentCoords.first != -1 && draggedItemCurrentCoords.second != -1) {
             if (draggedItem!!.isSingleCellType()) {
                 if (folder != null && folder.getItemsDrawingRect().contains(
-                        (sideMargins.left + draggedItemCurrentCoords.first).toFloat(),
-                        (sideMargins.top + draggedItemCurrentCoords.second).toFloat()
+                        (draggedItemCurrentCoords.first).toFloat(),
+                        (draggedItemCurrentCoords.second).toFloat()
                     )
                 ) {
 
@@ -1346,7 +1346,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         if (currentlyOpenFolder == null) {
             currentlyOpenFolder = folder.toFolder(animateOpening = true)
             redrawGrid()
-        } else if (currentlyOpenFolder?.item?.id != folder.id ){
+        } else if (currentlyOpenFolder?.item?.id != folder.id) {
             closeFolder()
         }
     }
