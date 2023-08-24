@@ -270,7 +270,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         currentlyOpenFolder?.also { folder ->
-            if (folder.getDrawingRect().contains(x.toFloat(), y.toFloat())) {
+            if (folder.getDrawingRect(overrideScale = 1f).contains(x.toFloat(), y.toFloat())) {
                 draggingLeftFolderAt = null
             } else {
                 draggingLeftFolderAt.also {
@@ -296,32 +296,34 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
         draggedItemCurrentCoords = Pair(x, y)
 
-        val center = gridCenters.minBy {
-            abs(it.x - draggedItemCurrentCoords.first + sideMargins.left) + abs(it.y - draggedItemCurrentCoords.second + sideMargins.top)
-        }
-        val coveredCell = getClosestGridCells(center)
-        if (coveredCell != null) {
-            val coveredFolder = gridItems.firstOrNull { it.type == ITEM_TYPE_FOLDER && it.left == coveredCell.x && it.top == coveredCell.y }
-            if (coveredFolder != null && coveredFolder.id != draggedItem?.id) {
-                draggingEnteredNewFolderAt.also {
-                    if (it == null) {
-                        draggingEnteredNewFolderAt = System.currentTimeMillis()
-                    } else if (System.currentTimeMillis() - it > FOLDER_OPEN_HOLD_THRESHOLD) {
-                        if (coveredFolder.toFolder().getItems()
-                                .count() >= HomeScreenGridItem.FOLDER_MAX_CAPACITY && draggedItem?.parentId != coveredFolder.id
-                        ) {
-                            performHapticFeedback()
-                            draggingEnteredNewFolderAt = null
-                        } else {
-                            openFolder(coveredFolder)
+        if (draggedItem?.type != ITEM_TYPE_FOLDER && draggedItem?.type != ITEM_TYPE_WIDGET) {
+            val center = gridCenters.minBy {
+                abs(it.x - draggedItemCurrentCoords.first + sideMargins.left) + abs(it.y - draggedItemCurrentCoords.second + sideMargins.top)
+            }
+            val coveredCell = getClosestGridCells(center)
+            if (coveredCell != null) {
+                val coveredFolder = gridItems.firstOrNull { it.type == ITEM_TYPE_FOLDER && it.left == coveredCell.x && it.top == coveredCell.y }
+                if (coveredFolder != null && coveredFolder.id != draggedItem?.id) {
+                    draggingEnteredNewFolderAt.also {
+                        if (it == null) {
+                            draggingEnteredNewFolderAt = System.currentTimeMillis()
+                        } else if (System.currentTimeMillis() - it > FOLDER_OPEN_HOLD_THRESHOLD) {
+                            if (coveredFolder.toFolder().getItems()
+                                    .count() >= HomeScreenGridItem.FOLDER_MAX_CAPACITY && draggedItem?.parentId != coveredFolder.id
+                            ) {
+                                performHapticFeedback()
+                                draggingEnteredNewFolderAt = null
+                            } else {
+                                openFolder(coveredFolder)
+                            }
                         }
                     }
+                } else {
+                    draggingEnteredNewFolderAt = null
                 }
             } else {
                 draggingEnteredNewFolderAt = null
             }
-        } else {
-            draggingEnteredNewFolderAt = null
         }
 
         pager.handleItemMovement(x, y)
@@ -492,7 +494,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 // check if the destination cell is empty or a folder
                 isDroppingPositionValid = true
                 val wantedCell = Pair(xIndex, yIndex)
-                gridItems.filterVisibleOnCurrentPageOnly().forEach { item ->
+                gridItems.filterVisibleOnCurrentPageOnly().filter { it.id != draggedItem?.id }.forEach { item ->
                     for (xCell in item.left..item.right) {
                         for (yCell in item.getDockAdjustedTop(rowCount)..item.getDockAdjustedBottom(rowCount)) {
                             val cell = Pair(xCell, yCell)
@@ -626,7 +628,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         context.homeScreenGridItemsDB.shiftFolderItems(oldParentId, oldLeft, -1, id)
                     }
 
-                    if (newParentId != null && gridItems.any { it.parentId == newParentId && it.left == left }) {
+                    if (newParentId != null && gridItems.any { it.parentId == newParentId && it.left == left } && (newParentId != oldParentId || left != oldLeft)) {
                         gridItems.filter { it.parentId == newParentId && it.left >= left && it.id != id }.forEach {
                             it.left += 1
                         }
@@ -989,7 +991,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         val folder = currentlyOpenFolder
-        if (folder != null) {
+        if (folder != null && folder.getItems().isNotEmpty()) {
             val items = folder.getItems()
             val folderRect = folder.getDrawingRect()
             val folderItemsRect = folder.getItemsDrawingRect()
@@ -1344,7 +1346,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         if (currentlyOpenFolder == null) {
             currentlyOpenFolder = folder.toFolder(animateOpening = true)
             redrawGrid()
-        } else {
+        } else if (currentlyOpenFolder?.item?.id != folder.id ){
             closeFolder()
         }
     }
