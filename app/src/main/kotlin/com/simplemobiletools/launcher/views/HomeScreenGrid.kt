@@ -270,7 +270,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         currentlyOpenFolder?.also { folder ->
-            if (folder.getDrawingRect(overrideScale = 1f).contains(x.toFloat(), y.toFloat())) {
+            if (folder.getDrawingRect().contains(x.toFloat(), y.toFloat())) {
                 draggingLeftFolderAt = null
             } else {
                 draggingLeftFolderAt.also {
@@ -1000,9 +1000,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             val rectOffset = width * folder.item.page - currentViewPosition
             folderRect.offset(rectOffset, 0f)
 
-            canvas.drawRoundRect(folderRect, roundedCornerRadius, roundedCornerRadius, folderBackgroundPaint)
-
             canvas.withScale(folder.scale, folder.scale, folderRect.centerX(), folderRect.centerY()) {
+                canvas.drawRoundRect(folderRect, roundedCornerRadius / folder.scale, roundedCornerRadius / folder.scale, folderBackgroundPaint)
                 val textX = folderRect.left + folderPadding
                 val textY = folderRect.top + folderPadding + folderTitleTextPaint.textSize
                 val staticLayout = StaticLayout.Builder
@@ -1484,8 +1483,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             return BitmapDrawable(resources, bitmap)
         }
 
-        fun getDrawingRect(overrideScale: Float? = null): RectF {
-            val finalScale = overrideScale ?: scale
+        fun getDrawingRect(): RectF {
             val count = getItems().count()
             if (count == 0) {
                 return RectF(0f, 0f, 0f, 0f)
@@ -1495,8 +1493,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             val cell = cells[item.getTopLeft()]!!
             val centerX = sideMargins.left + cell.centerX()
             val centerY = sideMargins.top + cell.centerY()
-            val folderDialogWidth = (columnsCount * cellWidth + 2 * folderPadding) * finalScale
-            val folderDialogHeight = (rowsCount * cellHeight + 3 * folderPadding + folderTitleTextPaint.textSize) * finalScale
+            val folderDialogWidth = columnsCount * cellWidth + 2 * folderPadding
+            val folderDialogHeight = rowsCount * cellHeight + 3 * folderPadding + folderTitleTextPaint.textSize
             var folderDialogTop = centerY - folderDialogHeight / 2
             var folderDialogLeft = centerX - folderDialogWidth / 2
 
@@ -1517,7 +1515,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         fun getItemsDrawingRect(): RectF {
-            val folderRect = getDrawingRect(overrideScale = 1f)
+            val folderRect = getDrawingRect()
             return RectF(
                 folderRect.left + folderPadding,
                 folderRect.top + folderPadding * 2 + folderTitleTextPaint.textSize,
