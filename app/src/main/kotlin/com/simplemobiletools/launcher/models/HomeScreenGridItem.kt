@@ -3,6 +3,7 @@ package com.simplemobiletools.launcher.models
 import android.appwidget.AppWidgetProviderInfo
 import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
+import android.graphics.Point
 import android.graphics.drawable.Drawable
 import androidx.room.*
 import com.simplemobiletools.launcher.helpers.ITEM_TYPE_ICON
@@ -68,4 +69,6 @@ data class HomeScreenGridItem(
     }
 
     fun getItemIdentifier() = "$packageName/$activityName"
+
+    fun getTopLeft() = Point(left, top)
 }

@@ -26,6 +26,7 @@ import android.widget.RelativeLayout
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.withScale
+import androidx.core.graphics.withTranslation
 import androidx.core.view.ViewCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.customview.widget.ExploreByTouchHelper
@@ -48,8 +49,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private lateinit var binding: HomeScreenGridBinding
     private var columnCount = context.config.homeColumnCount
     private var rowCount = context.config.homeRowCount
-    private var cellXCoords = ArrayList<Int>(columnCount)
-    private var cellYCoords = ArrayList<Int>(rowCount)
+    private var dockTop = 0
+    private val cells = mutableMapOf<Point, Rect>()
     var cellWidth = 0
     var cellHeight = 0
     private var extraXMargin = 0
@@ -94,7 +95,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     var sideMargins = Rect()
 
     private var gridItems = ArrayList<HomeScreenGridItem>()
-    private var gridCenters = ArrayList<Pair<Int, Int>>()
+    private var gridCenters = ArrayList<Point>()
     private var draggedItemCurrentCoords = Pair(-1, -1)
     private var widgetViews = ArrayList<MyAppWidgetHostView>()
 
@@ -201,8 +202,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         if (columnCount != newColumnCount || rowCount != newRowCount) {
             rowCount = newRowCount
             columnCount = newColumnCount
-            cellXCoords = ArrayList(columnCount)
-            cellYCoords = ArrayList(rowCount)
+            cells.clear()
             gridCenters.clear()
             iconMargin = (context.resources.getDimension(R.dimen.icon_side_margin) * 5 / columnCount).toInt()
             redrawWidgets = true
@@ -297,11 +297,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         draggedItemCurrentCoords = Pair(x, y)
 
         val center = gridCenters.minBy {
-            abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + abs(it.second - draggedItemCurrentCoords.second + sideMargins.top)
+            abs(it.x - draggedItemCurrentCoords.first + sideMargins.left) + abs(it.y - draggedItemCurrentCoords.second + sideMargins.top)
         }
         val coveredCell = getClosestGridCells(center)
         if (coveredCell != null) {
-            val coveredFolder = gridItems.firstOrNull { it.type == ITEM_TYPE_FOLDER && it.left == coveredCell.first && it.top == coveredCell.second }
+            val coveredFolder = gridItems.firstOrNull { it.type == ITEM_TYPE_FOLDER && it.left == coveredCell.x && it.top == coveredCell.y }
             if (coveredFolder != null && coveredFolder.id != draggedItem?.id) {
                 draggingEnteredNewFolderAt.also {
                     if (it == null) {
@@ -404,14 +404,14 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private fun moveItem() {
         val draggedHomeGridItem = gridItems.firstOrNull { it.id == draggedItem?.id }
         val center = gridCenters.minBy {
-            abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + abs(it.second - draggedItemCurrentCoords.second + sideMargins.top)
+            abs(it.x - draggedItemCurrentCoords.first + sideMargins.left) + abs(it.y - draggedItemCurrentCoords.second + sideMargins.top)
         }
 
         var redrawIcons = false
         val gridCells = getClosestGridCells(center)
         if (gridCells != null) {
-            val xIndex = gridCells.first
-            val yIndex = gridCells.second
+            val xIndex = gridCells.x
+            val yIndex = gridCells.y
 
             // check if the destination cell is empty
             var isDroppingPositionValid = true
@@ -420,7 +420,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             if (draggedHomeGridItem?.type == ITEM_TYPE_FOLDER && yIndex == rowCount - 1) {
                 isDroppingPositionValid = false
             } else {
-                gridItems.filterVisibleOnly().forEach { item ->
+                gridItems.filterVisibleOnCurrentPageOnly().forEach { item ->
                     for (xCell in item.left..item.right) {
                         for (yCell in item.getDockAdjustedTop(rowCount)..item.getDockAdjustedBottom(rowCount)) {
                             val cell = Pair(xCell, yCell)
@@ -481,18 +481,18 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             redrawIcons = true
         } else {
             val center = gridCenters.minBy {
-                Math.abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(it.second - draggedItemCurrentCoords.second + sideMargins.top)
+                Math.abs(it.x - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(it.y - draggedItemCurrentCoords.second + sideMargins.top)
             }
 
             val gridCells = getClosestGridCells(center)
             if (gridCells != null) {
-                xIndex = gridCells.first
-                yIndex = gridCells.second
+                xIndex = gridCells.x
+                yIndex = gridCells.y
 
                 // check if the destination cell is empty or a folder
                 isDroppingPositionValid = true
                 val wantedCell = Pair(xIndex, yIndex)
-                gridItems.filterVisibleOnly().forEach { item ->
+                gridItems.filterVisibleOnCurrentPageOnly().forEach { item ->
                     for (xCell in item.left..item.right) {
                         for (yCell in item.getDockAdjustedTop(rowCount)..item.getDockAdjustedBottom(rowCount)) {
                             val cell = Pair(xCell, yCell)
@@ -700,7 +700,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     private fun addWidget() {
         val center = gridCenters.minBy {
-            Math.abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(it.second - draggedItemCurrentCoords.second + sideMargins.top)
+            Math.abs(it.x - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(it.y - draggedItemCurrentCoords.second + sideMargins.top)
         }
 
         val gridCells = getClosestGridCells(center)
@@ -714,7 +714,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             }
 
             var areAllCellsEmpty = true
-            gridItems.filterVisibleOnly().filter { it.id != draggedItem?.id }.forEach { item ->
+            gridItems.filterVisibleOnCurrentPageOnly().filter { it.id != draggedItem?.id }.forEach { item ->
                 for (xCell in item.left..item.right) {
                     for (yCell in item.getDockAdjustedTop(rowCount)..item.getDockAdjustedBottom(rowCount)) {
                         val cell = Pair(xCell, yCell)
@@ -759,8 +759,9 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         val widgetView = widgetViews.firstOrNull { it.tag == widgetItem.widgetId }
                         if (widgetView != null && !widgetItem.outOfBounds()) {
                             post {
-                                widgetView.x = calculateWidgetX(widgetItem.left)
-                                widgetView.y = calculateWidgetY(widgetItem.top)
+                                val widgetPos = calculateWidgetPos(widgetItem.getTopLeft())
+                                widgetView.x = widgetPos.x.toFloat()
+                                widgetView.y = widgetPos.y.toFloat()
                                 widgetView.beVisible()
                             }
                         }
@@ -847,9 +848,9 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     private fun updateWidgetPositionAndSize(widgetView: AppWidgetHostView, item: HomeScreenGridItem): Size {
         val currentViewPosition = pager.getCurrentViewPositionInFullPageSpace() * width.toFloat()
-        val x = calculateWidgetX(item.left) + width * item.page - currentViewPosition
-        widgetView.x = x
-        widgetView.y = calculateWidgetY(item.top)
+        val widgetPos = calculateWidgetPos(item.getTopLeft())
+        widgetView.x = widgetPos.x + width * item.page - currentViewPosition
+        widgetView.y = widgetPos.y.toFloat()
         val widgetWidth = item.getWidthInCells() * cellWidth
         val widgetHeight = item.getHeightInCells() * cellHeight
 
@@ -869,21 +870,17 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         return Size(widgetWidth, widgetHeight)
     }
 
-    private fun calculateWidgetX(leftCell: Int) = cellXCoords[leftCell] + sideMargins.left.toFloat() + extraXMargin
-
-    private fun calculateWidgetY(topCell: Int) = cellYCoords[topCell] + sideMargins.top.toFloat() + extraYMargin
+    private fun calculateWidgetPos(topLeft: Point): Point {
+        val cell = cells[topLeft]!!
+        return Point(
+            cell.left + sideMargins.left + extraXMargin,
+            cell.top + sideMargins.top + extraYMargin
+        )
+    }
 
     // convert stuff like 102x192 to grid cells like 0x1
-    private fun getClosestGridCells(center: Pair<Int, Int>): Pair<Int, Int>? {
-        cellXCoords.forEachIndexed { xIndex, xCell ->
-            cellYCoords.forEachIndexed { yIndex, yCell ->
-                if (xCell + cellWidth / 2 == center.first && yCell + cellHeight / 2 == center.second) {
-                    return Pair(xIndex, yIndex)
-                }
-            }
-        }
-
-        return null
+    private fun getClosestGridCells(center: Point): Point? {
+        return cells.entries.firstOrNull { (_, cell) -> center.x == cell.centerX() && center.y == cell.centerY() }?.key
     }
 
     private fun redrawGrid() {
@@ -900,66 +897,22 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        if (cellXCoords.isEmpty()) {
+        if (cells.isEmpty()) {
             fillCellSizes()
         }
 
         val currentXFactor = pager.getXFactorForCurrentPage()
         val lastXFactor = pager.getXFactorForLastPage()
 
-        fun handleGridItemDrawing(item: HomeScreenGridItem, baseItemX: Int, baseItemY: Int) {
-            if (item.id != draggedItem?.id) {
-                val drawableX = baseItemX + iconMargin + extraXMargin
-
-                val drawable = if (item.type == ITEM_TYPE_FOLDER) {
-                    item.toFolder().generateDrawable()
-                } else {
-                    item.drawable!!
-                }
-
-                if (item.docked) {
-                    val drawableY = cellYCoords[rowCount - 1] + cellHeight - iconMargin - iconSize + sideMargins.top
-
-                    drawable?.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
-                } else {
-                    val drawableY = baseItemY + iconMargin + extraYMargin
-                    drawable?.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
-
-                    if (item.id != draggedItem?.id && item.title.isNotEmpty()) {
-                        val textX = baseItemX.toFloat() + labelSideMargin
-                        val textY = baseItemY.toFloat() + iconSize + iconMargin + extraYMargin + labelSideMargin
-                        val textPaintToUse = if (item.parentId == null) {
-                            textPaint
-                        } else {
-                            contrastTextPaint
-                        }
-                        val staticLayout = StaticLayout.Builder
-                            .obtain(item.title, 0, item.title.length, textPaintToUse, cellWidth - 2 * labelSideMargin)
-                            .setMaxLines(2)
-                            .setEllipsize(TextUtils.TruncateAt.END)
-                            .setAlignment(Layout.Alignment.ALIGN_CENTER)
-                            .build()
-
-                        canvas.save()
-                        canvas.translate(textX, textY)
-                        staticLayout.draw(canvas)
-                        canvas.restore()
-                    }
-                }
-
-                drawable?.draw(canvas)
+        fun handleMainGridItemDrawing(item: HomeScreenGridItem, xFactor: Float) {
+            val offsetX = sideMargins.left + (this@HomeScreenGrid.width * xFactor).toInt()
+            val offsetY = sideMargins.top
+            cells[item.getTopLeft()]!!.withOffset(offsetX, offsetY) {
+                canvas.drawItemInCell(item, this)
             }
         }
 
-        fun handleMainGridItemDrawing(item: HomeScreenGridItem, xFactor: Float) {
-            handleGridItemDrawing(
-                item,
-                cellXCoords[item.left] + sideMargins.left + (width * xFactor).toInt(),
-                cellYCoords[item.top] + sideMargins.top
-            )
-        }
-
-        gridItems.filter { (it.drawable != null && it.type == ITEM_TYPE_ICON || it.type == ITEM_TYPE_SHORTCUT || it.type == ITEM_TYPE_FOLDER) && pager.isItemOnCurrentPage(it) && !it.docked && it.parentId == null }
+        gridItems.filter { it.isSingleCellType() && pager.isItemOnCurrentPage(it) && !it.docked && it.parentId == null }
             .forEach { item ->
                 if (item.outOfBounds()) {
                     return@forEach
@@ -967,7 +920,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
                 handleMainGridItemDrawing(item, currentXFactor)
             }
-        gridItems.filter { (it.drawable != null && it.type == ITEM_TYPE_ICON || it.type == ITEM_TYPE_SHORTCUT || it.type == ITEM_TYPE_FOLDER) && it.docked && it.parentId == null }
+        gridItems.filter { it.isSingleCellType() && it.docked && it.parentId == null }
             .forEach { item ->
                 if (item.outOfBounds()) {
                     return@forEach
@@ -976,7 +929,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 handleMainGridItemDrawing(item, 0f)
             }
         if (pager.isAnimatingPageChange()) {
-            gridItems.filter { (it.drawable != null && it.type == ITEM_TYPE_ICON || it.type == ITEM_TYPE_SHORTCUT || it.type == ITEM_TYPE_FOLDER) && pager.isItemOnLastPage(it) && !it.docked && it.parentId == null }
+            gridItems.filter { it.isSingleCellType() && pager.isItemOnLastPage(it) && !it.docked && it.parentId == null }
                 .forEach { item ->
                     if (item.outOfBounds()) {
                         return@forEach
@@ -988,7 +941,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
         if (pager.isSwiped()) {
             gridItems.filter {
-                (it.drawable != null && it.type == ITEM_TYPE_ICON || it.type == ITEM_TYPE_SHORTCUT || it.type == ITEM_TYPE_FOLDER)
+                it.isSingleCellType()
                     && pager.isItemInSwipeRange(it)
                     && !it.docked
                     && it.parentId == null
@@ -1020,7 +973,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             val usableWidth = getFakeWidth()
             val pageIndicatorsStart = (usableWidth - pageIndicatorsRequiredWidth) / 2 + sideMargins.left
             var currentPageIndicatorLeft = pageIndicatorsStart
-            val pageIndicatorY = cellYCoords[rowCount - 1].toFloat() + sideMargins.top + extraYMargin + iconMargin
+            val pageIndicatorY = dockTop.toFloat() + sideMargins.top + extraYMargin + iconMargin
             val pageIndicatorStep = pageIndicatorRadius * 2 + pageIndicatorMargin
             emptyPageIndicatorPaint.alpha = pager.getPageChangeIndicatorsAlpha()
             // Draw empty page indicators
@@ -1063,24 +1016,27 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                     .setAlignment(Layout.Alignment.ALIGN_CENTER)
                     .build()
 
-                canvas.save()
-                canvas.translate(textX, textY)
-                staticLayout.draw(canvas)
-                canvas.restore()
+                withTranslation(textX, textY) {
+                    staticLayout.draw(canvas)
+                }
 
                 items.forEach { item ->
                     val (row, column) = folder.getItemPosition(item)
-                    handleGridItemDrawing(
-                        item,
-                        (folderItemsRect.left + column * cellWidth).roundToInt(),
-                        (folderItemsRect.top + row * cellHeight).roundToInt()
+                    val left = (folderItemsRect.left + column * cellWidth).roundToInt()
+                    val top = (folderItemsRect.top + row * cellHeight).roundToInt()
+                    val rect = Rect(
+                        left,
+                        top,
+                        left + cellWidth,
+                        top + cellHeight
                     )
+                    canvas.drawItemInCell(item, rect)
                 }
             }
         }
 
         if (draggedItem != null && draggedItemCurrentCoords.first != -1 && draggedItemCurrentCoords.second != -1) {
-            if (draggedItem!!.type == ITEM_TYPE_ICON || draggedItem!!.type == ITEM_TYPE_SHORTCUT || draggedItem!!.type == ITEM_TYPE_FOLDER) {
+            if (draggedItem!!.isSingleCellType()) {
                 if (folder != null && folder.getItemsDrawingRect().contains(
                         (sideMargins.left + draggedItemCurrentCoords.first).toFloat(),
                         (sideMargins.top + draggedItemCurrentCoords.second).toFloat()
@@ -1098,16 +1054,17 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 } else {
                     // draw a circle under the current cell
                     val center = gridCenters.minBy {
-                        abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + abs(it.second - draggedItemCurrentCoords.second + sideMargins.top)
+                        abs(it.x - draggedItemCurrentCoords.first + sideMargins.left) + abs(it.y - draggedItemCurrentCoords.second + sideMargins.top)
                     }
 
                     val gridCells = getClosestGridCells(center)
                     if (gridCells != null) {
-                        val shadowX = cellXCoords[gridCells.first] + iconMargin + iconSize / 2f + extraXMargin + sideMargins.left
-                        val shadowY = if (gridCells.second == rowCount - 1) {
-                            cellYCoords[gridCells.second] + cellHeight - iconMargin - iconSize / 2f
+                        val cell = cells[gridCells]!!
+                        val shadowX = cell.left + iconMargin + iconSize / 2f + extraXMargin + sideMargins.left
+                        val shadowY = if (gridCells.y == rowCount - 1) {
+                            cell.top + cellHeight - iconMargin - iconSize / 2f
                         } else {
-                            cellYCoords[gridCells.second] + iconMargin + iconSize / 2f + extraYMargin
+                            cell.top + iconMargin + iconSize / 2f + extraYMargin
                         } + sideMargins.top
 
                         canvas.drawCircle(shadowX, shadowY, iconSize / 2f, dragShadowCirclePaint)
@@ -1123,14 +1080,15 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 // at first draw we are loading the widget from the database at some exact spot, not dragging it
                 if (!isFirstDraw) {
                     val center = gridCenters.minBy {
-                        Math.abs(it.first - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(it.second - draggedItemCurrentCoords.second + sideMargins.top)
+                        Math.abs(it.x - draggedItemCurrentCoords.first + sideMargins.left) + Math.abs(it.y - draggedItemCurrentCoords.second + sideMargins.top)
                     }
 
                     val gridCells = getClosestGridCells(center)
                     if (gridCells != null) {
                         val widgetRect = getWidgetOccupiedRect(gridCells)
-                        val leftSide = calculateWidgetX(widgetRect.left)
-                        val topSide = calculateWidgetY(widgetRect.top)
+                        val widgetPos = calculateWidgetPos(Point(widgetRect.left, widgetRect.top))
+                        val leftSide = widgetPos.x.toFloat()
+                        val topSide = widgetPos.y.toFloat()
                         val rightSide = leftSide + draggedItem!!.getWidthInCells() * cellWidth
                         val bottomSide = topSide + draggedItem!!.getHeightInCells() * cellHeight
                         canvas.drawRoundRect(leftSide, topSide, rightSide, bottomSide, roundedCornerRadius, roundedCornerRadius, dragShadowCirclePaint)
@@ -1170,17 +1128,17 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             0
         }
         iconSize = min(cellWidth, cellHeight) - 2 * iconMargin
+        dockTop = (context.config.homeRowCount - 1) * cellHeight
         for (i in 0 until context.config.homeColumnCount) {
-            cellXCoords.add(i, i * cellWidth)
-        }
-
-        for (i in 0 until context.config.homeRowCount) {
-            cellYCoords.add(i, i * cellHeight)
-        }
-
-        cellXCoords.forEach { x ->
-            cellYCoords.forEach { y ->
-                gridCenters.add(Pair(x + cellWidth / 2, y + cellHeight / 2))
+            for (j in 0 until context.config.homeRowCount) {
+                val rect = Rect(
+                    i * cellWidth,
+                    j * cellHeight,
+                    (i + 1) * cellWidth,
+                    (j + 1) * cellHeight,
+                )
+                cells[Point(i, j)] = rect
+                gridCenters.add(Point(rect.centerX(), rect.centerY()))
             }
         }
     }
@@ -1200,7 +1158,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     // get the clickable area around the icon, it includes text too
     fun getClickableRect(item: HomeScreenGridItem): Rect {
-        if (cellXCoords.isEmpty()) {
+        if (cells.isEmpty()) {
             fillCellSizes()
         }
 
@@ -1213,11 +1171,12 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             clickableLeft = (folderRect.left + column * cellWidth + extraXMargin).toInt()
             clickableTop = (folderRect.top + row * cellHeight - iconMargin + extraYMargin).toInt()
         } else {
-            clickableLeft = cellXCoords[item.left] + sideMargins.left + extraXMargin
+            val cell = cells[item.getTopLeft()]!!
+            clickableLeft = cell.left + sideMargins.left + extraXMargin
             clickableTop = if (item.docked) {
-                cellYCoords[item.getDockAdjustedTop(rowCount)] + cellHeight - iconSize - iconMargin
+                dockTop + cellHeight - iconSize - iconMargin
             } else {
-                cellYCoords[item.top] - iconMargin + extraYMargin
+                cell.top - iconMargin + extraYMargin
             } + sideMargins.top
         }
 
@@ -1225,9 +1184,9 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     }
 
     // drag the center of the widget, not the top left corner
-    private fun getWidgetOccupiedRect(item: Pair<Int, Int>): Rect {
-        val left = item.first - floor((draggedItem!!.getWidthInCells() - 1) / 2.0).toInt()
-        val rect = Rect(left, item.second, left + draggedItem!!.getWidthInCells() - 1, item.second + draggedItem!!.getHeightInCells() - 1)
+    private fun getWidgetOccupiedRect(item: Point): Rect {
+        val left = item.x - floor((draggedItem!!.getWidthInCells() - 1) / 2.0).toInt()
+        val rect = Rect(left, item.y, left + draggedItem!!.getWidthInCells() - 1, item.y + draggedItem!!.getHeightInCells() - 1)
         if (rect.left < 0) {
             rect.right -= rect.left
             rect.left = 0
@@ -1259,19 +1218,20 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             }
         }
 
-        for (gridItem in gridItems.filterVisibleOnly()) {
+        for (gridItem in gridItems.filterVisibleOnCurrentPageOnly()) {
             if (gridItem.outOfBounds()) {
                 continue
             }
 
-            if (gridItem.type == ITEM_TYPE_ICON || gridItem.type == ITEM_TYPE_SHORTCUT || gridItem.type == ITEM_TYPE_FOLDER) {
+            if (gridItem.isSingleCellType()) {
                 val rect = getClickableRect(gridItem)
                 if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
                     return gridItem
                 }
             } else if (gridItem.type == ITEM_TYPE_WIDGET) {
-                val left = calculateWidgetX(gridItem.left)
-                val top = calculateWidgetY(gridItem.top)
+                val widgetPos = calculateWidgetPos(gridItem.getTopLeft())
+                val left = widgetPos.x.toFloat()
+                val top = widgetPos.y.toFloat()
                 val right = left + gridItem.getWidthInCells() * cellWidth
                 val bottom = top + gridItem.getHeightInCells() * cellHeight
 
@@ -1293,7 +1253,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     }
 
     private fun HomeScreenGridItem.outOfBounds(): Boolean {
-        return (left >= cellXCoords.size || right >= cellXCoords.size || (!docked && (top >= cellYCoords.size - 1 || bottom >= cellYCoords.size - 1)))
+        return (left >= columnCount || right >= columnCount || (!docked && (top >= rowCount - 1 || bottom >= rowCount - 1)))
     }
 
     private inner class HomeScreenGridTouchHelper(host: View) : ExploreByTouchHelper(host) {
@@ -1398,7 +1358,63 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
     }
 
-    private fun ArrayList<HomeScreenGridItem>.filterVisibleOnly() = filter { (pager.isItemOnCurrentPage(it) || it.docked) && it.parentId == null }
+    private fun Canvas.drawItemInCell(item: HomeScreenGridItem, cell: Rect) {
+        if (item.id != draggedItem?.id) {
+            val drawableX = cell.left + iconMargin + extraXMargin
+
+            val drawable = if (item.type == ITEM_TYPE_FOLDER) {
+                item.toFolder().generateDrawable()
+            } else {
+                item.drawable!!
+            }
+
+            if (item.docked) {
+                val drawableY = dockTop + cellHeight - iconMargin - iconSize + sideMargins.top
+
+                drawable?.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
+            } else {
+                val drawableY = cell.top + iconMargin + extraYMargin
+                drawable?.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
+
+                if (item.id != draggedItem?.id && item.title.isNotEmpty()) {
+                    val textX = cell.left.toFloat() + labelSideMargin
+                    val textY = cell.top.toFloat() + iconSize + iconMargin + extraYMargin + labelSideMargin
+                    val textPaintToUse = if (item.parentId == null) {
+                        textPaint
+                    } else {
+                        contrastTextPaint
+                    }
+                    val staticLayout = StaticLayout.Builder
+                        .obtain(item.title, 0, item.title.length, textPaintToUse, cellWidth - 2 * labelSideMargin)
+                        .setMaxLines(2)
+                        .setEllipsize(TextUtils.TruncateAt.END)
+                        .setAlignment(Layout.Alignment.ALIGN_CENTER)
+                        .build()
+
+                    withTranslation(textX, textY) {
+                        staticLayout.draw(this)
+                    }
+                }
+            }
+
+            drawable?.draw(this)
+        }
+    }
+
+    private fun Rect.withOffset(offsetX: Int, offsetY: Int, block: Rect.() -> Unit) {
+        offset(offsetX, offsetY)
+        try {
+            block()
+        } finally {
+            offset(-offsetX, -offsetY)
+        }
+    }
+
+    private fun ArrayList<HomeScreenGridItem>.filterVisibleOnCurrentPageOnly() = filter { it.visibleOnCurrentPage() }
+
+    private fun HomeScreenGridItem.visibleOnCurrentPage() = (pager.isItemOnCurrentPage(this) || docked) && parentId == null
+
+    private fun HomeScreenGridItem.isSingleCellType() = (drawable != null && type == ITEM_TYPE_ICON || type == ITEM_TYPE_SHORTCUT || type == ITEM_TYPE_FOLDER)
 
     private fun HomeScreenGridItem.toFolder(animateOpening: Boolean = false) = HomeScreenFolder(this, animateOpening)
 
@@ -1435,7 +1451,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         fun getItems() =
-            gridItems.filter { (it.drawable != null && it.type == ITEM_TYPE_ICON || it.type == ITEM_TYPE_SHORTCUT) && it.parentId == item.id }
+            gridItems.filter { it.isSingleCellType() && it.parentId == item.id }
 
         fun generateDrawable(): Drawable? {
             if (iconSize == 0) {
@@ -1474,8 +1490,9 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             }
             val columnsCount = ceil(sqrt(count.toDouble())).toInt()
             val rowsCount = ceil(count.toFloat() / columnsCount).toInt()
-            val centerX = cellXCoords[item.left] + cellWidth / 2 + sideMargins.left
-            val centerY = cellYCoords[item.top] + cellHeight / 2 + sideMargins.top
+            val cell = cells[item.getTopLeft()]!!
+            val centerX = sideMargins.left + cell.centerX()
+            val centerY = sideMargins.top + cell.centerY()
             val folderDialogWidth = (columnsCount * cellWidth + 2 * folderPadding) * finalScale
             val folderDialogHeight = (rowsCount * cellHeight + 3 * folderPadding + folderTitleTextPaint.textSize) * finalScale
             var folderDialogTop = centerY - folderDialogHeight / 2
@@ -1560,17 +1577,9 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     }
 
     companion object {
-        private const val PAGE_CHANGE_HOLD_THRESHOLD = 500L
-        private const val PAGE_INDICATORS_FADE_DELAY = PAGE_CHANGE_HOLD_THRESHOLD + 300L
         private const val FOLDER_OPEN_HOLD_THRESHOLD = 500L
         private const val FOLDER_CLOSE_HOLD_THRESHOLD = 300L
         private const val FOLDER_ANIMATION_DURATION = 200L
-
-        private enum class PageChangeArea {
-            LEFT,
-            MIDDLE,
-            RIGHT
-        }
     }
 }
 
