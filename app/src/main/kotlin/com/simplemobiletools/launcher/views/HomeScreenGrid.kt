@@ -20,6 +20,7 @@ import android.util.AttributeSet
 import android.util.Size
 import android.util.SizeF
 import android.view.View
+import android.view.animation.OvershootInterpolator
 import android.widget.RelativeLayout
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.drawable.toDrawable
@@ -1032,9 +1033,9 @@ private class AnimatedGridPager(
 
     fun isSwiped() = abs(pageChangeSwipedPercentage) > 0f
 
-    fun isAnimatingPageChange() = pageChangeAnimLeftPercentage > 0f
+    fun isAnimatingPageChange() = pageChangeAnimLeftPercentage != 0f
 
-    fun shouldDisplayPageChangeIndicator() = isSwiped() || isAnimatingPageChange() || pageChangeIndicatorsAlpha > 0f
+    fun shouldDisplayPageChangeIndicator() = isSwiped() || isAnimatingPageChange() || pageChangeIndicatorsAlpha != 0f
 
     fun getPageChangeIndicatorsAlpha() = if (pageChangeIndicatorsAlpha != 0f) {
         (pageChangeIndicatorsAlpha * 255.0f).toInt()
@@ -1078,7 +1079,7 @@ private class AnimatedGridPager(
             currentPage
         }
         val rangeEnd = rangeEndPage.toFloat()
-        val lerpAmount = if (pageChangeAnimLeftPercentage > 0f) {
+        val lerpAmount = if (pageChangeAnimLeftPercentage != 0f) {
             1 - pageChangeAnimLeftPercentage
         } else {
             abs(pageChangeSwipedPercentage)
@@ -1248,6 +1249,7 @@ private class AnimatedGridPager(
         }
         ValueAnimator.ofFloat(startingAt, 0f)
             .apply {
+                interpolator = OvershootInterpolator(1f)
                 addUpdateListener {
                     pageChangeAnimLeftPercentage = it.animatedValue as Float
                     redrawGrid()
