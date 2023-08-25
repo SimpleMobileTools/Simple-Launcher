@@ -49,12 +49,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private lateinit var binding: HomeScreenGridBinding
     private var columnCount = context.config.homeColumnCount
     private var rowCount = context.config.homeRowCount
-    private var dockTop = 0
+    private var pageIndicatorsYPos = 0
     private val cells = mutableMapOf<Point, Rect>()
+    private var dockCellY = 0
     var cellWidth = 0
     var cellHeight = 0
-    private var extraXMargin = 0
-    private var extraYMargin = 0
 
     private var iconMargin = (context.resources.getDimension(R.dimen.icon_side_margin) * 5 / columnCount).toInt()
     private var labelSideMargin = context.resources.getDimension(com.simplemobiletools.commons.R.dimen.small_margin).toInt()
@@ -875,8 +874,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private fun calculateWidgetPos(topLeft: Point): Point {
         val cell = cells[topLeft]!!
         return Point(
-            cell.left + sideMargins.left + extraXMargin,
-            cell.top + sideMargins.top + extraYMargin
+            cell.left + sideMargins.left,
+            cell.top + sideMargins.top
         )
     }
 
@@ -975,7 +974,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             val usableWidth = getFakeWidth()
             val pageIndicatorsStart = (usableWidth - pageIndicatorsRequiredWidth) / 2 + sideMargins.left
             var currentPageIndicatorLeft = pageIndicatorsStart
-            val pageIndicatorY = dockTop.toFloat() + sideMargins.top + extraYMargin + iconMargin
+            val pageIndicatorY = pageIndicatorsYPos.toFloat() + sideMargins.top + iconMargin
             val pageIndicatorStep = pageIndicatorRadius * 2 + pageIndicatorMargin
             emptyPageIndicatorPaint.alpha = pager.getPageChangeIndicatorsAlpha()
             // Draw empty page indicators
@@ -995,6 +994,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             val items = folder.getItems()
             val folderRect = folder.getDrawingRect()
             val folderItemsRect = folder.getItemsDrawingRect()
+            val cellSize = min(cellWidth, cellHeight)
 
             val currentViewPosition = pager.getCurrentViewPositionInFullPageSpace() * width.toFloat()
             val rectOffset = width * folder.item.page - currentViewPosition
@@ -1023,13 +1023,13 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
                 items.forEach { item ->
                     val (row, column) = folder.getItemPosition(item)
-                    val left = (folderItemsRect.left + column * cellWidth).roundToInt()
-                    val top = (folderItemsRect.top + row * cellHeight).roundToInt()
+                    val left = (folderItemsRect.left + column * cellSize).roundToInt()
+                    val top = (folderItemsRect.top + row * cellSize).roundToInt()
                     val rect = Rect(
                         left,
                         top,
-                        left + cellWidth,
-                        top + cellHeight
+                        left + cellSize,
+                        top + cellSize
                     )
                     canvas.drawItemInCell(item, rect)
                 }
@@ -1047,11 +1047,12 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                     val center = folder.getItemsGridCenters().minBy {
                         abs(it.second - draggedItemCurrentCoords.first + sideMargins.left) + abs(it.third - draggedItemCurrentCoords.second + sideMargins.top)
                     }
+                    val cellSize = min(cellWidth, cellHeight)
 
-                    val shadowX = center.second - cellWidth / 2 + iconMargin + iconSize / 2f + extraXMargin
-                    val shadowY = center.third - cellHeight / 2 + iconMargin + iconSize / 2f + extraYMargin
+                    val shadowX = center.second - cellSize / 2 + iconMargin + iconSize / 2f
+                    val shadowY = center.third - cellSize / 2 + iconMargin + iconSize / 2
 
-                    canvas.drawCircle(shadowX, shadowY, iconSize / 2f, dragShadowCirclePaint)
+                    canvas.drawCircle(shadowX, shadowY.toFloat(), iconSize / 2f, dragShadowCirclePaint)
                 } else {
                     // draw a circle under the current cell
                     val center = gridCenters.minBy {
@@ -1061,12 +1062,12 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                     val gridCells = getClosestGridCells(center)
                     if (gridCells != null) {
                         val cell = cells[gridCells]!!
-                        val shadowX = cell.left + iconMargin + iconSize / 2f + extraXMargin + sideMargins.left
+                        val shadowX = cell.left + iconMargin + iconSize / 2f + sideMargins.left
                         val shadowY = if (gridCells.y == rowCount - 1) {
-                            cell.top + cellHeight - iconMargin - iconSize / 2f
+                            cellHeight - iconMargin - iconSize / 2f
                         } else {
-                            cell.top + iconMargin + iconSize / 2f + extraYMargin
-                        } + sideMargins.top
+                            iconMargin + iconSize / 2f
+                        } + sideMargins.top + cell.top
 
                         canvas.drawCircle(shadowX, shadowY, iconSize / 2f, dragShadowCirclePaint)
                     }
@@ -1116,30 +1117,34 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     }
 
     private fun fillCellSizes() {
-        cellWidth = getFakeWidth() / context.config.homeColumnCount
-        cellHeight = getFakeHeight() / context.config.homeRowCount
-        extraXMargin = if (cellWidth > cellHeight) {
+        cellWidth = getFakeWidth() / columnCount
+        cellHeight = getFakeHeight() / rowCount
+        val extraXMargin = if (cellWidth > cellHeight) {
             (cellWidth - cellHeight) / 2
         } else {
             0
         }
-        extraYMargin = if (cellHeight > cellWidth) {
+        val extraYMargin = if (cellHeight > cellWidth) {
             (cellHeight - cellWidth) / 2
         } else {
             0
         }
         iconSize = min(cellWidth, cellHeight) - 2 * iconMargin
-        dockTop = (context.config.homeRowCount - 1) * cellHeight
-        for (i in 0 until context.config.homeColumnCount) {
-            for (j in 0 until context.config.homeRowCount) {
+        pageIndicatorsYPos = (rowCount - 1) * cellHeight + extraYMargin
+        for (i in 0 until columnCount) {
+            for (j in 0 until rowCount) {
+                val yMarginToAdd = if (j == rowCount - 1) 0 else extraYMargin
                 val rect = Rect(
-                    i * cellWidth,
-                    j * cellHeight,
-                    (i + 1) * cellWidth,
-                    (j + 1) * cellHeight,
+                    i * cellWidth + extraXMargin,
+                    j * cellHeight + yMarginToAdd,
+                    (i + 1) * cellWidth - extraXMargin,
+                    (j + 1) * cellHeight - yMarginToAdd,
                 )
                 cells[Point(i, j)] = rect
                 gridCenters.add(Point(rect.centerX(), rect.centerY()))
+                if (j == rowCount - 1) {
+                    dockCellY = j * cellHeight
+                }
             }
         }
     }
@@ -1169,15 +1174,15 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         if (folder != null && item.parentId == folder.item.id) {
             val folderRect = folder.getItemsDrawingRect()
             val (row, column) = folder.getItemPosition(item)
-            clickableLeft = (folderRect.left + column * cellWidth + extraXMargin).toInt()
-            clickableTop = (folderRect.top + row * cellHeight - iconMargin + extraYMargin).toInt()
+            clickableLeft = (folderRect.left + column * cellWidth).toInt()
+            clickableTop = (folderRect.top + row * cellHeight - iconMargin).toInt()
         } else {
             val cell = cells[item.getTopLeft()]!!
-            clickableLeft = cell.left + sideMargins.left + extraXMargin
+            clickableLeft = cell.left + sideMargins.left
             clickableTop = if (item.docked) {
-                dockTop + cellHeight - iconSize - iconMargin
+                dockCellY + cellHeight - iconSize - iconMargin
             } else {
-                cell.top - iconMargin + extraYMargin
+                cell.top - iconMargin
             } + sideMargins.top
         }
 
@@ -1361,7 +1366,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     private fun Canvas.drawItemInCell(item: HomeScreenGridItem, cell: Rect) {
         if (item.id != draggedItem?.id) {
-            val drawableX = cell.left + iconMargin + extraXMargin
+            val drawableX = cell.left + iconMargin
 
             val drawable = if (item.type == ITEM_TYPE_FOLDER) {
                 item.toFolder().generateDrawable()
@@ -1370,16 +1375,16 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             }
 
             if (item.docked) {
-                val drawableY = dockTop + cellHeight - iconMargin - iconSize + sideMargins.top
+                val drawableY = dockCellY + cellHeight - iconMargin - iconSize + sideMargins.top
 
                 drawable?.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
             } else {
-                val drawableY = cell.top + iconMargin + extraYMargin
+                val drawableY = cell.top + iconMargin
                 drawable?.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
 
                 if (item.id != draggedItem?.id && item.title.isNotEmpty()) {
                     val textX = cell.left.toFloat() + labelSideMargin
-                    val textY = cell.top.toFloat() + iconSize + iconMargin + extraYMargin + labelSideMargin
+                    val textY = cell.top.toFloat() + iconSize + iconMargin + labelSideMargin
                     val textPaintToUse = if (item.parentId == null) {
                         textPaint
                     } else {
@@ -1490,11 +1495,12 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             }
             val columnsCount = ceil(sqrt(count.toDouble())).toInt()
             val rowsCount = ceil(count.toFloat() / columnsCount).toInt()
+            val cellSize = min(cellWidth, cellHeight)
             val cell = cells[item.getTopLeft()]!!
             val centerX = sideMargins.left + cell.centerX()
             val centerY = sideMargins.top + cell.centerY()
-            val folderDialogWidth = columnsCount * cellWidth + 2 * folderPadding
-            val folderDialogHeight = rowsCount * cellHeight + 3 * folderPadding + folderTitleTextPaint.textSize
+            val folderDialogWidth = columnsCount * cellSize + 2 * folderPadding
+            val folderDialogHeight = rowsCount * cellSize + 3 * folderPadding + folderTitleTextPaint.textSize
             var folderDialogTop = centerY - folderDialogHeight / 2
             var folderDialogLeft = centerX - folderDialogWidth / 2
 
@@ -1529,14 +1535,15 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             val columnsCount = ceil(sqrt(count.toDouble())).roundToInt()
             val rowsCount = ceil(count.toFloat() / columnsCount).roundToInt()
             val folderItemsRect = getItemsDrawingRect()
+            val cellSize = min(cellWidth, cellHeight)
             return (0 until columnsCount * rowsCount)
                 .toList()
                 .map { Pair(it % columnsCount, it / columnsCount) }
                 .mapIndexed { index, (x, y) ->
                     Triple(
                         index,
-                        (folderItemsRect.left + x * cellWidth + cellWidth / 2).toInt(),
-                        (folderItemsRect.top + y * cellHeight + cellHeight / 2).toInt()
+                        (folderItemsRect.left + x * cellSize + cellSize / 2).toInt(),
+                        (folderItemsRect.top + y * cellSize + cellSize / 2).toInt()
                     )
                 }
         }
