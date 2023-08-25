@@ -583,7 +583,7 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     private fun performItemLongClick(x: Float, clickedGridItem: HomeScreenGridItem) {
-        if (clickedGridItem.type == ITEM_TYPE_ICON || clickedGridItem.type == ITEM_TYPE_SHORTCUT) {
+        if (clickedGridItem.type == ITEM_TYPE_ICON || clickedGridItem.type == ITEM_TYPE_SHORTCUT || clickedGridItem.type == ITEM_TYPE_FOLDER) {
             binding.mainHolder.performHapticFeedback()
         }
 
