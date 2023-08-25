@@ -75,7 +75,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         getWidth = { width },
         getHandler = { handler },
         getNextPageBound = { right - sideMargins.right - cellWidth / 2 },
-        getPrevPageBound = { left + sideMargins.left + cellWidth / 2 }
+        getPrevPageBound = { left + sideMargins.left + cellWidth / 2 },
+        pageChangeStarted = { widgetViews.forEach { it.resetTouches() } }
     )
 
     // apply fake margins at the home screen. Real ones would cause the icons be cut at dragging at screen sides
@@ -862,6 +863,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     }
 
     fun isClickingGridItem(x: Int, y: Int): HomeScreenGridItem? {
+        if (pager.isAnimatingPageChange() || pager.isSwiped()) {
+            return null
+        }
+
         for (gridItem in gridItems.filter { it.page == pager.getCurrentPage() || it.docked }) {
             if (gridItem.outOfBounds()) {
                 continue
@@ -995,6 +1000,7 @@ private class AnimatedGridPager(
     private val getHandler: () -> Handler,
     private val getNextPageBound: () -> Int,
     private val getPrevPageBound: () -> Int,
+    private val pageChangeStarted: () -> Unit,
 ) {
 
     companion object {
@@ -1244,6 +1250,7 @@ private class AnimatedGridPager(
         val startingAt = 1 - abs(pageChangeSwipedPercentage)
         pageChangeSwipedPercentage = 0f
         getHandler().removeCallbacks(startFadingIndicators)
+        pageChangeStarted()
         if (redraw) {
             redrawGrid()
         }
