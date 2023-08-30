@@ -27,6 +27,7 @@ const val REQUEST_CREATE_SHORTCUT = 53
 const val ITEM_TYPE_ICON = 0
 const val ITEM_TYPE_WIDGET = 1
 const val ITEM_TYPE_SHORTCUT = 2
+const val ITEM_TYPE_FOLDER = 3
 
 const val WIDGET_HOST_ID = 12345
 const val MAX_CLICK_DURATION = 150

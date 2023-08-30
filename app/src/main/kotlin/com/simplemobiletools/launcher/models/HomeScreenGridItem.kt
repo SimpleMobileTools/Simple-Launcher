@@ -3,6 +3,7 @@ package com.simplemobiletools.launcher.models
 import android.appwidget.AppWidgetProviderInfo
 import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
+import android.graphics.Point
 import android.graphics.drawable.Drawable
 import androidx.room.*
 import com.simplemobiletools.launcher.helpers.ITEM_TYPE_ICON
@@ -25,6 +26,7 @@ data class HomeScreenGridItem(
     @ColumnInfo(name = "shortcut_id") var shortcutId: String,   // used at pinned shortcuts at startLauncher call
     @ColumnInfo(name = "icon") var icon: Bitmap? = null,        // store images of pinned shortcuts, those cannot be retrieved after creating
     @ColumnInfo(name = "docked") var docked: Boolean = false,   // special flag, meaning that page, top and bottom don't matter for this item, it is always at the bottom of the screen
+    @ColumnInfo(name = "parent_id") var parentId: Long? = null, // id of folder this item is in (if it is in any)
 
     @Ignore var drawable: Drawable? = null,
     @Ignore var providerInfo: AppWidgetProviderInfo? = null,    // used at widgets
@@ -32,7 +34,11 @@ data class HomeScreenGridItem(
     @Ignore var widthCells: Int = 1,
     @Ignore var heightCells: Int = 1
 ) {
-    constructor() : this(null, -1, -1, -1, -1, 0, "", "", "", ITEM_TYPE_ICON, "", -1, "", null, false, null, null, null, 1, 1)
+    companion object {
+        const val FOLDER_MAX_CAPACITY = 16
+    }
+
+    constructor() : this(null, -1, -1, -1, -1, 0, "", "", "", ITEM_TYPE_ICON, "", -1, "", null, false, null, null, null, null, 1, 1)
 
     fun getWidthInCells() = if (right == -1 || left == -1) {
         widthCells
@@ -63,4 +69,6 @@ data class HomeScreenGridItem(
     }
 
     fun getItemIdentifier() = "$packageName/$activityName"
+
+    fun getTopLeft() = Point(left, top)
 }

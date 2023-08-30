@@ -46,6 +46,7 @@ import com.simplemobiletools.launcher.extensions.*
 import com.simplemobiletools.launcher.fragments.MyFragment
 import com.simplemobiletools.launcher.helpers.*
 import com.simplemobiletools.launcher.interfaces.FlingListener
+import com.simplemobiletools.launcher.interfaces.ItemMenuListener
 import com.simplemobiletools.launcher.models.AppLauncher
 import com.simplemobiletools.launcher.models.HiddenIcon
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
@@ -72,7 +73,7 @@ class MainActivity : SimpleActivity(), FlingListener {
     private var wasJustPaused: Boolean = false
 
     private lateinit var mDetector: GestureDetectorCompat
-    private lateinit var binding: ActivityMainBinding
+    private val binding by viewBinding(ActivityMainBinding::inflate)
 
     companion object {
         private var mLastUpEvent = 0L
@@ -84,7 +85,6 @@ class MainActivity : SimpleActivity(), FlingListener {
         useDynamicTheme = false
 
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         appLaunched(BuildConfig.APPLICATION_ID)
 
@@ -130,79 +130,6 @@ class MainActivity : SimpleActivity(), FlingListener {
         if (intent != null) {
             handleIntentAction(intent)
         }
-    }
-
-    private fun handleIntentAction(intent: Intent) {
-        if (intent.action == LauncherApps.ACTION_CONFIRM_PIN_SHORTCUT) {
-            val launcherApps = applicationContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
-            val item = launcherApps.getPinItemRequest(intent)
-            if (item.shortcutInfo == null) {
-                return
-            }
-
-            ensureBackgroundThread {
-                val shortcutId = item.shortcutInfo?.id!!
-                val label = item.shortcutInfo?.shortLabel?.toString() ?: item.shortcutInfo?.longLabel?.toString() ?: ""
-                val icon = launcherApps.getShortcutIconDrawable(item.shortcutInfo!!, resources.displayMetrics.densityDpi)
-                val (page, rect) = findFirstEmptyCell()
-                val gridItem = HomeScreenGridItem(
-                    null,
-                    rect.left,
-                    rect.top,
-                    rect.right,
-                    rect.bottom,
-                    page,
-                    item.shortcutInfo!!.`package`,
-                    "",
-                    label,
-                    ITEM_TYPE_SHORTCUT,
-                    "",
-                    -1,
-                    shortcutId,
-                    icon.toBitmap(),
-                    false,
-                    icon
-                )
-
-                runOnUiThread {
-                    binding.homeScreenGrid.root.skipToPage(page)
-                }
-                // delay showing the shortcut both to let the user see adding it in realtime and hackily avoid concurrent modification exception at HomeScreenGrid
-                Thread.sleep(2000)
-
-                try {
-                    item.accept()
-                    binding.homeScreenGrid.root.storeAndShowGridItem(gridItem)
-                } catch (ignored: IllegalStateException) {
-                }
-            }
-        }
-    }
-
-    private fun findFirstEmptyCell(): Pair<Int, Rect> {
-        val gridItems = homeScreenGridItemsDB.getAllItems() as ArrayList<HomeScreenGridItem>
-        val maxPage = gridItems.map { it.page }.max()
-        val occupiedCells = ArrayList<Triple<Int, Int, Int>>()
-        gridItems.forEach { item ->
-            for (xCell in item.left..item.right) {
-                for (yCell in item.top..item.bottom) {
-                    occupiedCells.add(Triple(item.page, xCell, yCell))
-                }
-            }
-        }
-
-        for (page in 0 until maxPage) {
-            for (checkedYCell in 0 until config.homeColumnCount) {
-                for (checkedXCell in 0 until config.homeRowCount - 1) {
-                    val wantedCell = Triple(page, checkedXCell, checkedYCell)
-                    if (!occupiedCells.contains(wantedCell)) {
-                        return Pair(page, Rect(wantedCell.second, wantedCell.third, wantedCell.second, wantedCell.third))
-                    }
-                }
-            }
-        }
-
-        return Pair(maxPage + 1, Rect(0, 0, 0, 0))
     }
 
     override fun onStart() {
@@ -256,12 +183,13 @@ class MainActivity : SimpleActivity(), FlingListener {
             newRowCount = config.homeRowCount,
             newColumnCount = config.homeColumnCount
         )
+        binding.homeScreenGrid.root.updateColors()
         binding.allAppsFragment.root.onResume()
     }
 
     override fun onStop() {
         super.onStop()
-        binding.homeScreenGrid.root.appWidgetHost?.stopListening()
+        binding.homeScreenGrid.root.appWidgetHost.stopListening()
         wasJustPaused = false
     }
 
@@ -351,7 +279,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                     hasFingerMoved(event)
                 }
 
-                if (mLongPressedIcon != null && mOpenPopupMenu != null && hasFingerMoved) {
+                if (mLongPressedIcon != null && (mOpenPopupMenu != null) && hasFingerMoved) {
                     mOpenPopupMenu?.dismiss()
                     mOpenPopupMenu = null
                     binding.homeScreenGrid.root.itemDraggingStarted(mLongPressedIcon!!)
@@ -420,6 +348,80 @@ class MainActivity : SimpleActivity(), FlingListener {
         }
 
         return true
+    }
+
+    private fun handleIntentAction(intent: Intent) {
+        if (intent.action == LauncherApps.ACTION_CONFIRM_PIN_SHORTCUT) {
+            val launcherApps = applicationContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+            val item = launcherApps.getPinItemRequest(intent)
+            if (item.shortcutInfo == null) {
+                return
+            }
+
+            ensureBackgroundThread {
+                val shortcutId = item.shortcutInfo?.id!!
+                val label = item.shortcutInfo?.shortLabel?.toString() ?: item.shortcutInfo?.longLabel?.toString() ?: ""
+                val icon = launcherApps.getShortcutIconDrawable(item.shortcutInfo!!, resources.displayMetrics.densityDpi)
+                val (page, rect) = findFirstEmptyCell()
+                val gridItem = HomeScreenGridItem(
+                    null,
+                    rect.left,
+                    rect.top,
+                    rect.right,
+                    rect.bottom,
+                    page,
+                    item.shortcutInfo!!.`package`,
+                    "",
+                    label,
+                    ITEM_TYPE_SHORTCUT,
+                    "",
+                    -1,
+                    shortcutId,
+                    icon.toBitmap(),
+                    false,
+                    null,
+                    icon
+                )
+
+                runOnUiThread {
+                    binding.homeScreenGrid.root.skipToPage(page)
+                }
+                // delay showing the shortcut both to let the user see adding it in realtime and hackily avoid concurrent modification exception at HomeScreenGrid
+                Thread.sleep(2000)
+
+                try {
+                    item.accept()
+                    binding.homeScreenGrid.root.storeAndShowGridItem(gridItem)
+                } catch (ignored: IllegalStateException) {
+                }
+            }
+        }
+    }
+
+    private fun findFirstEmptyCell(): Pair<Int, Rect> {
+        val gridItems = homeScreenGridItemsDB.getAllItems() as ArrayList<HomeScreenGridItem>
+        val maxPage = gridItems.map { it.page }.max()
+        val occupiedCells = ArrayList<Triple<Int, Int, Int>>()
+        gridItems.forEach { item ->
+            for (xCell in item.left..item.right) {
+                for (yCell in item.top..item.bottom) {
+                    occupiedCells.add(Triple(item.page, xCell, yCell))
+                }
+            }
+        }
+
+        for (page in 0 until maxPage) {
+            for (checkedYCell in 0 until config.homeColumnCount) {
+                for (checkedXCell in 0 until config.homeRowCount - 1) {
+                    val wantedCell = Triple(page, checkedXCell, checkedYCell)
+                    if (!occupiedCells.contains(wantedCell)) {
+                        return Pair(page, Rect(wantedCell.second, wantedCell.third, wantedCell.second, wantedCell.third))
+                    }
+                }
+            }
+        }
+
+        return Pair(maxPage + 1, Rect(0, 0, 0, 0))
     }
 
     // some devices ACTION_MOVE keeps triggering for the whole long press duration, but we are interested in real moves only, when coords change
@@ -524,6 +526,9 @@ class MainActivity : SimpleActivity(), FlingListener {
         if (clickedGridItem != null) {
             performItemClick(clickedGridItem)
         }
+        if (clickedGridItem?.type != ITEM_TYPE_FOLDER) {
+            binding.homeScreenGrid.root.closeFolder(redraw = true)
+        }
     }
 
     fun closeAppDrawer(delayed: Boolean = false) {
@@ -559,20 +564,26 @@ class MainActivity : SimpleActivity(), FlingListener {
     }
 
     private fun performItemClick(clickedGridItem: HomeScreenGridItem) {
-        if (clickedGridItem.type == ITEM_TYPE_ICON) {
-            launchApp(clickedGridItem.packageName, clickedGridItem.activityName)
-        } else if (clickedGridItem.type == ITEM_TYPE_SHORTCUT) {
-            val id = clickedGridItem.shortcutId
-            val packageName = clickedGridItem.packageName
-            val userHandle = android.os.Process.myUserHandle()
-            val shortcutBounds = binding.homeScreenGrid.root.getClickableRect(clickedGridItem)
-            val launcherApps = applicationContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
-            launcherApps.startShortcut(packageName, id, shortcutBounds, null, userHandle)
+        when (clickedGridItem.type) {
+            ITEM_TYPE_ICON -> launchApp(clickedGridItem.packageName, clickedGridItem.activityName)
+            ITEM_TYPE_FOLDER -> openFolder(clickedGridItem)
+            ITEM_TYPE_SHORTCUT -> {
+                val id = clickedGridItem.shortcutId
+                val packageName = clickedGridItem.packageName
+                val userHandle = android.os.Process.myUserHandle()
+                val shortcutBounds = binding.homeScreenGrid.root.getClickableRect(clickedGridItem)
+                val launcherApps = applicationContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+                launcherApps.startShortcut(packageName, id, shortcutBounds, null, userHandle)
+            }
         }
     }
 
+    private fun openFolder(folder: HomeScreenGridItem) {
+        binding.homeScreenGrid.root.openFolder(folder)
+    }
+
     private fun performItemLongClick(x: Float, clickedGridItem: HomeScreenGridItem) {
-        if (clickedGridItem.type == ITEM_TYPE_ICON || clickedGridItem.type == ITEM_TYPE_SHORTCUT) {
+        if (clickedGridItem.type == ITEM_TYPE_ICON || clickedGridItem.type == ITEM_TYPE_SHORTCUT || clickedGridItem.type == ITEM_TYPE_FOLDER) {
             binding.mainHolder.performHapticFeedback()
         }
 
@@ -595,7 +606,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         binding.homeScreenPopupMenuAnchor.y = anchorY
 
         if (mOpenPopupMenu == null) {
-            mOpenPopupMenu = handleGridItemPopupMenu(binding.homeScreenPopupMenuAnchor, gridItem, isOnAllAppsFragment)
+            mOpenPopupMenu = handleGridItemPopupMenu(binding.homeScreenPopupMenuAnchor, gridItem, isOnAllAppsFragment, menuListener)
         }
     }
 
@@ -619,52 +630,6 @@ class MainActivity : SimpleActivity(), FlingListener {
                 }
                 true
             }
-            show()
-        }
-    }
-
-    private fun handleGridItemPopupMenu(anchorView: View, gridItem: HomeScreenGridItem, isOnAllAppsFragment: Boolean): PopupMenu {
-
-        val contextTheme = ContextThemeWrapper(this, getPopupMenuTheme())
-        return PopupMenu(contextTheme, anchorView, Gravity.TOP or Gravity.END).apply {
-            if (isQPlus()) {
-                setForceShowIcon(true)
-            }
-
-            inflate(R.menu.menu_app_icon)
-            menu.findItem(R.id.rename).isVisible = gridItem.type == ITEM_TYPE_ICON && !isOnAllAppsFragment
-            menu.findItem(R.id.hide_icon).isVisible = gridItem.type == ITEM_TYPE_ICON && isOnAllAppsFragment
-            menu.findItem(R.id.resize).isVisible = gridItem.type == ITEM_TYPE_WIDGET
-            menu.findItem(R.id.app_info).isVisible = gridItem.type == ITEM_TYPE_ICON
-            menu.findItem(R.id.uninstall).isVisible = gridItem.type == ITEM_TYPE_ICON && canAppBeUninstalled(gridItem.packageName)
-            menu.findItem(R.id.remove).isVisible = !isOnAllAppsFragment
-            setOnMenuItemClickListener { item ->
-                resetFragmentTouches()
-                when (item.itemId) {
-                    R.id.hide_icon -> hideIcon(gridItem)
-                    R.id.rename -> renameItem(gridItem)
-                    R.id.resize -> binding.homeScreenGrid.root.widgetLongPressed(gridItem)
-                    R.id.app_info -> launchAppInfo(gridItem.packageName)
-                    R.id.remove -> binding.homeScreenGrid.root.removeAppIcon(gridItem)
-                    R.id.uninstall -> uninstallApp(gridItem.packageName)
-                }
-                true
-            }
-
-            setOnDismissListener {
-                mOpenPopupMenu = null
-                resetFragmentTouches()
-            }
-
-            var visibleMenuItems = 0
-            for (item in menu.iterator()) {
-                if (item.isVisible) {
-                    visibleMenuItems++
-                }
-            }
-            val yOffset = resources.getDimension(R.dimen.long_press_anchor_button_offset_y) * (visibleMenuItems - 1)
-            anchorView.y -= yOffset
-
             show()
         }
     }
@@ -713,6 +678,53 @@ class MainActivity : SimpleActivity(), FlingListener {
             showErrorToast(e)
         }
     }
+
+    val menuListener: ItemMenuListener = object : ItemMenuListener {
+        override fun onAnyClick() {
+            resetFragmentTouches()
+        }
+
+        override fun hide(gridItem: HomeScreenGridItem) {
+            hideIcon(gridItem)
+        }
+
+        override fun rename(gridItem: HomeScreenGridItem) {
+            renameItem(gridItem)
+        }
+
+        override fun resize(gridItem: HomeScreenGridItem) {
+            binding.homeScreenGrid.root.widgetLongPressed(gridItem)
+        }
+
+        override fun appInfo(gridItem: HomeScreenGridItem) {
+            launchAppInfo(gridItem.packageName)
+        }
+
+        override fun remove(gridItem: HomeScreenGridItem) {
+            binding.homeScreenGrid.root.removeAppIcon(gridItem)
+        }
+
+        override fun uninstall(gridItem: HomeScreenGridItem) {
+            uninstallApp(gridItem.packageName)
+        }
+
+        override fun onDismiss() {
+            mOpenPopupMenu = null
+            resetFragmentTouches()
+        }
+
+        override fun beforeShow(menu: Menu) {
+            var visibleMenuItems = 0
+            for (item in menu.iterator()) {
+                if (item.isVisible) {
+                    visibleMenuItems++
+                }
+            }
+            val yOffset = resources.getDimension(R.dimen.long_press_anchor_button_offset_y) * (visibleMenuItems - 1)
+            binding.homeScreenPopupMenuAnchor.y -= yOffset
+        }
+    }
+
 
     private class MyGestureListener(private val flingListener: FlingListener) : GestureDetector.SimpleOnGestureListener() {
         override fun onSingleTapUp(event: MotionEvent): Boolean {
@@ -857,7 +869,8 @@ class MainActivity : SimpleActivity(), FlingListener {
                         -1,
                         "",
                         null,
-                        true
+                        true,
+                        null
                     )
                 homeScreenGridItems.add(dialerIcon)
             }
@@ -883,7 +896,8 @@ class MainActivity : SimpleActivity(), FlingListener {
                         -1,
                         "",
                         null,
-                        true
+                        true,
+                        null
                     )
                 homeScreenGridItems.add(SMSMessengerIcon)
             }
@@ -911,7 +925,8 @@ class MainActivity : SimpleActivity(), FlingListener {
                         -1,
                         "",
                         null,
-                        true
+                        true,
+                        null
                     )
                 homeScreenGridItems.add(browserIcon)
             }
@@ -938,7 +953,8 @@ class MainActivity : SimpleActivity(), FlingListener {
                         -1,
                         "",
                         null,
-                        true
+                        true,
+                        null
                     )
                     homeScreenGridItems.add(storeIcon)
                 }
@@ -967,7 +983,8 @@ class MainActivity : SimpleActivity(), FlingListener {
                         -1,
                         "",
                         null,
-                        true
+                        true,
+                        null
                     )
                 homeScreenGridItems.add(cameraIcon)
             }
