@@ -27,4 +27,10 @@
         android:maxLines="2"
         android:textSize="@dimen/smaller_text_size" />
 
+    <View
+        android:id="@+id/popup_anchor"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:gravity="center_horizontal|top" />
+
 </RelativeLayout>
