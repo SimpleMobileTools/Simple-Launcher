@@ -4,13 +4,16 @@ import android.app.Activity
 import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.ApplicationInfo
+import android.content.res.ColorStateList
 import android.net.Uri
 import android.provider.Settings
 import android.view.ContextThemeWrapper
 import android.view.Gravity
 import android.view.View
 import android.widget.PopupMenu
+import androidx.core.view.forEach
 import com.simplemobiletools.commons.extensions.getPopupMenuTheme
+import com.simplemobiletools.commons.extensions.getProperTextColor
 import com.simplemobiletools.commons.extensions.showErrorToast
 import com.simplemobiletools.commons.helpers.isQPlus
 import com.simplemobiletools.launcher.R
@@ -77,6 +80,9 @@ fun Activity.handleGridItemPopupMenu(anchorView: View, gridItem: HomeScreenGridI
         }
 
         inflate(R.menu.menu_app_icon)
+        menu.forEach {
+            it.iconTintList = ColorStateList.valueOf(getProperTextColor())
+        }
         menu.findItem(R.id.rename).isVisible = (gridItem.type == ITEM_TYPE_ICON || gridItem.type == ITEM_TYPE_FOLDER) && !isOnAllAppsFragment
         menu.findItem(R.id.hide_icon).isVisible = gridItem.type == ITEM_TYPE_ICON && isOnAllAppsFragment
         menu.findItem(R.id.resize).isVisible = gridItem.type == ITEM_TYPE_WIDGET
