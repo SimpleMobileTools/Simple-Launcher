@@ -85,9 +85,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         getNextPageBound = { right - sideMargins.right - cellWidth / 2 },
         getPrevPageBound = { left + sideMargins.left + cellWidth / 2 },
         pageChangeStarted = {
-            widgetViews.forEach { it.resetTouches()
-                closeFolder()
-            }
+            widgetViews.forEach { it.resetTouches() }
+            closeFolder()
         }
     )
 
