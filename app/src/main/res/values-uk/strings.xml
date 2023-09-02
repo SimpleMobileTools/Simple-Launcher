@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Simple Launcher</string>
-    <string name="app_launcher_name">Launcher</string>
+    <string name="app_name">Простий Лаунчер</string>
+    <string name="app_launcher_name">Лаунчер</string>
     <string name="launcher_settings">Налаштування</string>
     <string name="app_info">Про застосунок</string>
     <string name="touch_hold_widget">Натисніть і утримуйте віджет і перетягніть його на головний екран</string>
@@ -11,8 +11,8 @@
     <string name="manage_hidden_icons">Керування прихованими піктограмами</string>
     <string name="hidden_icons">Приховані піктограми</string>
     <string name="hidden_icons_placeholder">Деякі застосунки не можна видалити через системні обмеження, але ви можете принаймні приховати їх піктограми, щоб уникнути їх перегляду.</string>
-    <string name="app_drawer_settings">App drawer</string>
-    <string name="close_app_drawer_on_app_open">Close app drawer on opening an app</string>
-    <string name="home_screen_settings">Home screen</string>
-    <string name="widget_too_big">Widget is too big for current home screen size</string>
+    <string name="app_drawer_settings">Панель застосунку</string>
+    <string name="close_app_drawer_on_app_open">Закривати панель застосунок при відкриті застосунку</string>
+    <string name="home_screen_settings">Домашній екран</string>
+    <string name="widget_too_big">Віджет надто великий для поточного розміру домашнього екрану</string>
 </resources>
