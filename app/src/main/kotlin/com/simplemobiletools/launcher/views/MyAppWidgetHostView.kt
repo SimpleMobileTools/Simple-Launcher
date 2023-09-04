@@ -68,4 +68,8 @@ class MyAppWidgetHostView(context: Context) : AppWidgetHostView(context) {
             longPressListener?.invoke(actionDownCoords.x, actionDownCoords.y)
         }
     }
+
+    fun resetTouches() {
+        longPressHandler.removeCallbacksAndMessages(null)
+    }
 }
