@@ -21,8 +21,8 @@ import android.util.AttributeSet
 import android.util.Size
 import android.util.SizeF
 import android.view.View
-import android.view.animation.OvershootInterpolator
 import android.view.animation.DecelerateInterpolator
+import android.view.animation.OvershootInterpolator
 import android.widget.RelativeLayout
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.drawable.toDrawable
