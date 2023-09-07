@@ -246,6 +246,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             if (item.type == ITEM_TYPE_WIDGET) {
                 appWidgetHost.deleteAppWidgetId(item.widgetId)
             }
+
+            if (item.page != 0 && gridItems.none { it.page == item.page && it.id != item.id && it.parentId == null }) {
+                deletePage(item.page)
+            }
         }
     }
 
@@ -441,6 +445,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
             if (isDroppingPositionValid) {
                 draggedHomeGridItem?.apply {
+                    val oldPage = page
                     left = xIndex
                     top = yIndex
                     right = xIndex
@@ -450,6 +455,12 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
                     ensureBackgroundThread {
                         context.homeScreenGridItemsDB.updateItemPosition(left, top, right, bottom, page, docked, parentId, id!!)
+
+                        if (page != oldPage && oldPage != 0) {
+                            if (gridItems.none { it.page == oldPage && it.parentId == null }) {
+                                deletePage(oldPage)
+                            }
+                        }
                     }
                 }
                 redrawIcons = true
@@ -604,6 +615,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             draggedHomeGridItem.apply {
                 val oldParentId = parentId
                 val oldLeft = left
+                val oldPage = page
                 left = finalXIndex
                 top = yIndex
                 right = finalXIndex
@@ -637,6 +649,12 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         }
 
                         context.homeScreenGridItemsDB.shiftFolderItems(newParentId, left - 1, +1, id)
+                    }
+
+                    if (page != oldPage && oldPage != 0) {
+                        if (gridItems.none { it.page == oldPage && it.parentId == null }) {
+                            deletePage(oldPage)
+                        }
                     }
                 }
             }
@@ -734,6 +752,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
             if (areAllCellsEmpty) {
                 val widgetItem = draggedItem!!.copy()
+                val oldPage = widgetItem.page
                 widgetItem.apply {
                     left = widgetRect.left
                     top = widgetRect.top
@@ -776,7 +795,14 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                             right = widgetItem.right
                             top = widgetItem.top
                             bottom = widgetItem.bottom
-                            page = widgetItem.page
+                            page = pager.getCurrentPage()
+                        }
+
+
+                        if (widgetItem.page != oldPage && oldPage != 0) {
+                            if (gridItems.none { it.page == oldPage && it.parentId == null }) {
+                                deletePage(oldPage)
+                            }
                         }
                     }
                 }
@@ -848,6 +874,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
         // remove the drawable so that it gets refreshed on long press
         item.drawable = null
+        // Delete existing windget if it has already been loaded to the list
+        gridItems.removeIf { it.id == item.id }
         gridItems.add(item)
     }
 
@@ -1314,6 +1342,19 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             }
 
             return false
+        }
+    }
+
+    private fun deletePage(page: Int) {
+        gridItems.filter { it.page > page }.forEach {
+            it.page -= 1
+        }
+        context.homeScreenGridItemsDB.shiftPage(page, -1)
+
+        if (pager.isOutsideOfPageRange()) {
+            post {
+                prevPage()
+            }
         }
     }
 
