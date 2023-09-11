@@ -91,7 +91,11 @@ fun Activity.handleGridItemPopupMenu(anchorView: View, gridItem: HomeScreenGridI
         inflate(R.menu.menu_app_icon)
         menu.forEach {
             val color = MaterialColors.getColor(contextTheme, android.R.attr.textColorPrimary, getProperTextColor())
-            it.iconTintList = ColorStateList.valueOf(color)
+            if (color != -1) {
+                it.iconTintList = ColorStateList.valueOf(color)
+            } else {
+                it.iconTintList = ColorStateList.valueOf(getProperTextColor())
+            }
         }
         menu.findItem(R.id.rename).isVisible = (gridItem.type == ITEM_TYPE_ICON || gridItem.type == ITEM_TYPE_FOLDER) && !isOnAllAppsFragment
         menu.findItem(R.id.hide_icon).isVisible = gridItem.type == ITEM_TYPE_ICON && isOnAllAppsFragment
