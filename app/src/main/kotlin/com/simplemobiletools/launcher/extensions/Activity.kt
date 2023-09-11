@@ -120,7 +120,7 @@ fun Activity.handleGridItemPopupMenu(anchorView: View, gridItem: HomeScreenGridI
         if (hasShortcuts) {
             val iconSize = resources.getDimensionPixelSize(R.dimen.menu_icon_size)
             shortcuts?.forEach {
-                menu.add(R.id.group_shortcuts, Menu.NONE, Menu.NONE, it.shortLabel)
+                menu.add(R.id.group_shortcuts, Menu.NONE, Menu.NONE, it.longLabel)
                     .setIcon(
                         launcherApps.getShortcutIconDrawable(it, resources.displayMetrics.densityDpi).toBitmap(width = iconSize, height = iconSize)
                             .toDrawable(resources)
