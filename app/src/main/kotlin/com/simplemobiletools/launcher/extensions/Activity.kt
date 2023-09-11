@@ -2,15 +2,23 @@ package com.simplemobiletools.launcher.extensions
 
 import android.app.Activity
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
+import android.content.pm.LauncherApps
 import android.content.res.ColorStateList
+import android.graphics.Rect
 import android.net.Uri
+import android.os.Process
 import android.provider.Settings
 import android.view.ContextThemeWrapper
 import android.view.Gravity
+import android.view.Menu
 import android.view.View
 import android.widget.PopupMenu
+import androidx.core.graphics.drawable.toBitmap
+import androidx.core.graphics.drawable.toDrawable
+import androidx.core.view.MenuCompat
 import androidx.core.view.forEach
 import com.google.android.material.color.MaterialColors
 import com.simplemobiletools.commons.extensions.getPopupMenuTheme
@@ -91,6 +99,43 @@ fun Activity.handleGridItemPopupMenu(anchorView: View, gridItem: HomeScreenGridI
         menu.findItem(R.id.app_info).isVisible = gridItem.type == ITEM_TYPE_ICON
         menu.findItem(R.id.uninstall).isVisible = gridItem.type == ITEM_TYPE_ICON && canAppBeUninstalled(gridItem.packageName)
         menu.findItem(R.id.remove).isVisible = !isOnAllAppsFragment
+
+        val launcherApps = applicationContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+        val shortcuts = if (launcherApps.hasShortcutHostPermission()) {
+            try {
+                val query = LauncherApps.ShortcutQuery().setQueryFlags(
+                    LauncherApps.ShortcutQuery.FLAG_MATCH_DYNAMIC or LauncherApps.ShortcutQuery.FLAG_MATCH_MANIFEST or LauncherApps.ShortcutQuery.FLAG_MATCH_PINNED
+                ).setPackage(gridItem.packageName)
+                launcherApps.getShortcuts(query, Process.myUserHandle())
+            } catch (e: Exception) {
+                null
+            }
+        } else {
+            null
+        }
+
+        val hasShortcuts = !shortcuts.isNullOrEmpty()
+        MenuCompat.setGroupDividerEnabled(menu, hasShortcuts)
+        menu.setGroupVisible(R.id.group_shortcuts, hasShortcuts)
+        if (hasShortcuts) {
+            val iconSize = resources.getDimensionPixelSize(R.dimen.menu_icon_size)
+            shortcuts?.forEach {
+                menu.add(R.id.group_shortcuts, Menu.NONE, Menu.NONE, it.longLabel)
+                    .setIcon(
+                        launcherApps.getShortcutIconDrawable(it, resources.displayMetrics.densityDpi).toBitmap(width = iconSize, height = iconSize)
+                            .toDrawable(resources)
+                    )
+                    .setOnMenuItemClickListener { _ ->
+                        listener.onAnyClick()
+                        val id = it.id
+                        val packageName = it.`package`
+                        val userHandle = Process.myUserHandle()
+                        launcherApps.startShortcut(packageName, id, Rect(), null, userHandle)
+                        true
+                    }
+            }
+        }
+
         setOnMenuItemClickListener { item ->
             listener.onAnyClick()
             when (item.itemId) {
