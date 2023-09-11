@@ -127,6 +127,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             closeAppDrawer()
             closeWidgetsFragment()
         }
+        hideKeyboard()
         if (intent != null) {
             handleIntentAction(intent)
         }
