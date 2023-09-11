@@ -127,6 +127,7 @@ class MainActivity : SimpleActivity(), FlingListener {
             closeAppDrawer()
             closeWidgetsFragment()
         }
+
         binding.allAppsFragment.searchBar.closeSearch()
         if (intent != null) {
             handleIntentAction(intent)
