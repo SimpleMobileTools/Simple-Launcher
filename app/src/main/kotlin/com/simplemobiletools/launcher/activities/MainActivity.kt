@@ -482,6 +482,10 @@ class MainActivity : SimpleActivity(), FlingListener {
         binding.homeScreenGrid.root.fragmentExpanded()
         binding.homeScreenGrid.root.hideResizeLines()
         fragment.root.performAccessibilityAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null)
+
+        Handler(Looper.getMainLooper()).postDelayed({
+            updateStatusBarIcons()
+        }, ANIMATION_DURATION)
     }
 
     private fun hideFragment(fragment: ViewBinding) {
@@ -493,6 +497,7 @@ class MainActivity : SimpleActivity(), FlingListener {
 
         window.navigationBarColor = Color.TRANSPARENT
         binding.homeScreenGrid.root.fragmentCollapsed()
+        updateStatusBarIcons(Color.TRANSPARENT)
         Handler(Looper.getMainLooper()).postDelayed({
             if (fragment is AllAppsFragmentBinding) {
                 fragment.allAppsGrid.scrollToPosition(0)
@@ -540,6 +545,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                 binding.allAppsFragment.allAppsGrid.scrollToPosition(0)
                 binding.allAppsFragment.root.touchDownY = -1
                 binding.homeScreenGrid.root.fragmentCollapsed()
+                updateStatusBarIcons(Color.TRANSPARENT)
             }
             if (delayed) {
                 Handler(Looper.getMainLooper()).postDelayed(close, APP_DRAWER_CLOSE_DELAY)
@@ -556,6 +562,7 @@ class MainActivity : SimpleActivity(), FlingListener {
                 binding.widgetsFragment.widgetsList.scrollToPosition(0)
                 binding.widgetsFragment.root.touchDownY = -1
                 binding.homeScreenGrid.root.fragmentCollapsed()
+                updateStatusBarIcons(Color.TRANSPARENT)
             }
             if (delayed) {
                 Handler(Looper.getMainLooper()).postDelayed(close, APP_DRAWER_CLOSE_DELAY)
@@ -1034,6 +1041,10 @@ class MainActivity : SimpleActivity(), FlingListener {
             component = componentName
             startActivityForResult(this, REQUEST_CREATE_SHORTCUT)
         }
+    }
+
+    private fun updateStatusBarIcons(backgroundColor: Int = getProperBackgroundColor()) {
+        WindowCompat.getInsetsController(window, binding.root).isAppearanceLightStatusBars = backgroundColor.getContrastColor() == DARK_GREY
     }
 
     // taken from https://gist.github.com/maxjvh/a6ab15cbba9c82a5065d
