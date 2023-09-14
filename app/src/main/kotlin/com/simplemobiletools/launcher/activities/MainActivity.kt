@@ -29,6 +29,7 @@ import android.view.accessibility.AccessibilityNodeInfo
 import android.view.animation.DecelerateInterpolator
 import android.widget.PopupMenu
 import androidx.core.graphics.drawable.toBitmap
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.isVisible
@@ -845,13 +846,13 @@ class MainActivity : SimpleActivity(), FlingListener {
             val label = info.loadLabel(packageManager).toString()
             val drawable = info.loadIcon(packageManager) ?: getDrawableForPackageName(packageName) ?: continue
             val placeholderColor = calculateAverageColor(drawable.toBitmap())
-            allApps.add(AppLauncher(null, label, packageName, activityName, 0, placeholderColor, drawable))
+            allApps.add(AppLauncher(null, label, packageName, activityName, 0, placeholderColor, drawable.toBitmap().toDrawable(resources)))
         }
 
         // add Simple Launchers settings as an app
         val drawable = getDrawableForPackageName(packageName)
         val placeholderColor = calculateAverageColor(drawable!!.toBitmap())
-        val launcherSettings = AppLauncher(null, getString(R.string.launcher_settings), packageName, "", 0, placeholderColor, drawable)
+        val launcherSettings = AppLauncher(null, getString(R.string.launcher_settings), packageName, "", 0, placeholderColor, drawable.toBitmap().toDrawable(resources))
         allApps.add(launcherSettings)
         launchersDB.insertAll(allApps)
         return allApps
