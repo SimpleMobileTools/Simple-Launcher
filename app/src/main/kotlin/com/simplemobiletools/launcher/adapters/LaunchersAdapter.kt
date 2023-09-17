@@ -1,5 +1,6 @@
 package com.simplemobiletools.launcher.adapters
 
+import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -7,7 +8,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.request.target.DrawableImageViewTarget
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
+import com.bumptech.glide.request.transition.Transition
 import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
 import com.simplemobiletools.commons.extensions.getColoredDrawableWithColor
 import com.simplemobiletools.commons.extensions.getProperTextColor
@@ -109,15 +112,26 @@ class LaunchersAdapter(
                 binding.launcherLabel.setTextColor(textColor)
                 binding.launcherIcon.setPadding(iconPadding, iconPadding, iconPadding, 0)
 
-                val factory = DrawableCrossFadeFactory.Builder(150).setCrossFadeEnabled(true).build()
-                val placeholderDrawable = activity.resources.getColoredDrawableWithColor(R.drawable.placeholder_drawable, launcher.thumbnailColor)
+                // Once all images are loaded and crossfades are done, directly set drawables
+                if (launcher.drawable != null && binding.launcherIcon.tag == true) {
+                    binding.launcherIcon.setImageDrawable(launcher.drawable)
+                } else {
+                    val factory = DrawableCrossFadeFactory.Builder(150).setCrossFadeEnabled(true).build()
+                    val placeholderDrawable = activity.resources.getColoredDrawableWithColor(R.drawable.placeholder_drawable, launcher.thumbnailColor)
 
-                Glide.with(activity)
-                    .load(launcher.drawable)
-                    .placeholder(placeholderDrawable)
-                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                    .transition(DrawableTransitionOptions.withCrossFade(factory))
-                    .into(binding.launcherIcon)
+                    Glide.with(activity)
+                        .load(launcher.drawable)
+                        .placeholder(placeholderDrawable)
+                        .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                        .transition(DrawableTransitionOptions.withCrossFade(factory))
+                        .into(object : DrawableImageViewTarget(binding.launcherIcon) {
+                            override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
+                                super.onResourceReady(resource, transition)
+                                // Set tag to true to mark that crossfade was already done on this view
+                                view.tag = true
+                            }
+                        })
+                }
 
                 setOnClickListener { itemClick(launcher) }
                 setOnLongClickListener { view ->
