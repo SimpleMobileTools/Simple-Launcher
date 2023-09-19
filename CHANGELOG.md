@@ -1,6 +1,17 @@
 Changelog
 ==========
 
+Version 5.1.0 *(2023-09-19)*
+----------------------------
+
+ * Allow creating multiple home screen pages
+ * Added folder support
+ * Added shortcut support
+ * Added search
+ * Allow changing row and column count
+ * Improved accessibility talkback
+ * Added some UX, translation and stability improvements
+
 Version 5.0.6 *(2023-02-12)*
 ----------------------------
 
