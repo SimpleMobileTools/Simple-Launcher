@@ -1588,6 +1588,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
         fun getItemsGridCenters(): List<Triple<Int, Int, Int>> {
             val count = getItems().count()
+            if (count == 0) {
+                return emptyList()
+            }
+
             val columnsCount = ceil(sqrt(count.toDouble())).roundToInt()
             val rowsCount = ceil(count.toFloat() / columnsCount).roundToInt()
             val folderItemsRect = getItemsDrawingRect()
