@@ -4,6 +4,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- Drawing area with Z translation so it is drawn over widgets -->
+    <com.simplemobiletools.launcher.views.HomeScreenGridDrawingArea
+        android:id="@+id/drawing_area"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:translationZ="1dp"/>
+
     <com.simplemobiletools.launcher.views.MyAppWidgetResizeFrame
         android:id="@+id/resize_frame"
         android:layout_width="match_parent"
