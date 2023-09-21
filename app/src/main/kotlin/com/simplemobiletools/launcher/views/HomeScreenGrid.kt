@@ -1502,13 +1502,18 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 return null
             }
 
+            val items = getItems()
+            val itemsCount = getItems().count()
+
+            if (itemsCount == 0) {
+                return null
+            }
+
             val bitmap = Bitmap.createBitmap(iconSize, iconSize, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bitmap)
             val circlePath = Path().apply { addCircle((iconSize / 2).toFloat(), (iconSize / 2).toFloat(), (iconSize / 2).toFloat(), Path.Direction.CCW) }
             canvas.clipPath(circlePath)
             canvas.drawPaint(folderIconBackgroundPaint)
-            val items = getItems()
-            val itemsCount = getItems().count()
             val folderColumnCount = ceil(sqrt(itemsCount.toDouble())).roundToInt()
             val folderRowCount = ceil(itemsCount.toFloat() / folderColumnCount).roundToInt()
             val scaledCellSize = (iconSize.toFloat() / folderColumnCount)
