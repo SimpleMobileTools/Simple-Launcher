@@ -405,9 +405,9 @@ class MainActivity : SimpleActivity(), FlingListener {
 
     private fun findFirstEmptyCell(): Pair<Int, Rect> {
         val gridItems = homeScreenGridItemsDB.getAllItems() as ArrayList<HomeScreenGridItem>
-        val maxPage = gridItems.map { it.page }.max()
+        val maxPage = gridItems.maxOf { it.page }
         val occupiedCells = ArrayList<Triple<Int, Int, Int>>()
-        gridItems.forEach { item ->
+        gridItems.filter { it.parentId == null }.forEach { item ->
             for (xCell in item.left..item.right) {
                 for (yCell in item.top..item.bottom) {
                     occupiedCells.add(Triple(item.page, xCell, yCell))
