@@ -26,6 +26,7 @@ import android.view.animation.OvershootInterpolator
 import android.widget.RelativeLayout
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.drawable.toDrawable
+import androidx.core.graphics.toRect
 import androidx.core.graphics.withScale
 import androidx.core.graphics.withTranslation
 import androidx.core.view.ViewCompat
@@ -88,6 +89,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         pageChangeStarted = {
             widgetViews.forEach { it.resetTouches() }
             closeFolder()
+            accessibilityHelper.invalidateRoot()
         }
     )
 
@@ -106,12 +108,13 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     val appWidgetHost = MyAppWidgetHost(context, WIDGET_HOST_ID)
     private val appWidgetManager = AppWidgetManager.getInstance(context)
 
+    private val accessibilityHelper = HomeScreenGridTouchHelper(this)
     var itemClickListener: ((HomeScreenGridItem) -> Unit)? = null
     var itemLongClickListener: ((HomeScreenGridItem) -> Unit)? = null
 
 
     init {
-        ViewCompat.setAccessibilityDelegate(this, HomeScreenGridTouchHelper(this))
+        ViewCompat.setAccessibilityDelegate(this, accessibilityHelper)
 
         textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
@@ -1309,8 +1312,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         override fun getVisibleVirtualViews(virtualViewIds: MutableList<Int>?) {
-            val sorted = gridItems.filterVisibleOnCurrentPageOnly().sortedBy {
-                it.getDockAdjustedTop(rowCount) * 100 + it.left
+            val sorted = gridItems.filter { it.visibleOnCurrentPage() || (currentlyOpenFolder != null && it.parentId == currentlyOpenFolder?.item?.id) }.sortedBy {
+                (if (it.parentId == null) it.getDockAdjustedTop(rowCount) else 1) * 100 + it.left
             }
             sorted.forEachIndexed { index, homeScreenGridItem ->
                 virtualViewIds?.add(index, homeScreenGridItem.id?.toInt() ?: index)
@@ -1318,14 +1321,44 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         override fun onPopulateNodeForVirtualView(virtualViewId: Int, node: AccessibilityNodeInfoCompat) {
-            val item = gridItems.firstOrNull { it.id?.toInt() == virtualViewId } ?: throw IllegalArgumentException("Unknown id")
-
-            node.text = item.title
-
             val viewLocation = IntArray(2)
             getLocationOnScreen(viewLocation)
 
-            val viewBounds = getClickableRect(item)
+            // home screen
+            if (virtualViewId == -1) {
+                node.text = context.getString(R.string.app_name)
+                val viewBounds = Rect(left, top, right, bottom)
+                val onScreenBounds = Rect(viewBounds)
+                onScreenBounds.offset(viewLocation[0], viewLocation[1])
+                node.setBoundsInScreen(onScreenBounds)
+                node.setBoundsInParent(viewBounds)
+
+                node.addAction(AccessibilityNodeInfoCompat.ACTION_CLICK)
+                node.addAction(AccessibilityNodeInfoCompat.ACTION_LONG_CLICK)
+                node.setParent(this@HomeScreenGrid)
+            }
+
+            val item = gridItems.firstOrNull { it.id?.toInt() == virtualViewId } ?: throw IllegalArgumentException("Unknown id")
+
+            node.text = if (item.type == ITEM_TYPE_WIDGET) {
+                item.providerInfo?.loadLabel(context.packageManager) ?: item.title
+            } else {
+                item.title
+            }
+
+            val viewBounds = if (item == currentlyOpenFolder?.item) {
+                currentlyOpenFolder?.getDrawingRect()?.toRect()
+            } else if (item.type == ITEM_TYPE_WIDGET) {
+                val widgetPos = calculateWidgetPos(item.getTopLeft())
+                val left = widgetPos.x
+                val top = widgetPos.y
+                val right = left + item.getWidthInCells() * cellWidth
+                val bottom = top + item.getHeightInCells() * cellHeight
+
+                Rect(left, top, right, bottom)
+            } else {
+                getClickableRect(item)
+            }
             val onScreenBounds = Rect(viewBounds)
             onScreenBounds.offset(viewLocation[0], viewLocation[1])
             node.setBoundsInScreen(onScreenBounds)
@@ -1340,7 +1373,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             val item = gridItems.firstOrNull { it.id?.toInt() == virtualViewId } ?: throw IllegalArgumentException("Unknown id")
             when (action) {
                 AccessibilityNodeInfoCompat.ACTION_CLICK -> itemClickListener?.apply {
-                    invoke(item)
+                    if (item == currentlyOpenFolder?.item) {
+                        closeFolder(true)
+                    } else {
+                        invoke(item)
+                    }
                     return true
                 }
 
@@ -1401,6 +1438,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         } else if (currentlyOpenFolder?.item?.id != folder.id) {
             closeFolder()
         }
+        accessibilityHelper.invalidateRoot()
     }
 
     fun closeFolder(redraw: Boolean = false) {
@@ -1409,6 +1447,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             if (redraw) {
                 redrawGrid()
             }
+            accessibilityHelper.invalidateRoot()
         }
     }
 
