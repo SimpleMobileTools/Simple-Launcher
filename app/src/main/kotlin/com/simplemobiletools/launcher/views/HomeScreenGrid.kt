@@ -1098,8 +1098,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 // show the app icon itself at dragging, move it above the finger a bit to make it visible
                 val drawableX = (draggedItemCurrentCoords.first - iconSize / 1.5f).toInt()
                 val drawableY = (draggedItemCurrentCoords.second - iconSize / 1.2f).toInt()
-                draggedItem!!.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
-                draggedItem!!.drawable!!.draw(canvas)
+                draggedItem!!.drawable?.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
+                draggedItem!!.drawable?.draw(canvas)
             } else if (draggedItem!!.type == ITEM_TYPE_WIDGET) {
                 // at first draw we are loading the widget from the database at some exact spot, not dragging it
                 if (!isFirstDraw) {
@@ -1119,18 +1119,19 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                     }
 
                     // show the widget preview itself at dragging
-                    val drawable = draggedItem!!.drawable!!
-                    val aspectRatio = drawable.minimumHeight / drawable.minimumWidth.toFloat()
-                    val drawableX = (draggedItemCurrentCoords.first - drawable.minimumWidth / 2f).toInt()
-                    val drawableY = (draggedItemCurrentCoords.second - drawable.minimumHeight / 3f).toInt()
-                    val drawableWidth = draggedItem!!.getWidthInCells() * cellWidth - iconMargin * (draggedItem!!.getWidthInCells() - 1)
-                    drawable.setBounds(
-                        drawableX,
-                        drawableY,
-                        drawableX + drawableWidth,
-                        (drawableY + drawableWidth * aspectRatio).toInt()
-                    )
-                    drawable.draw(canvas)
+                    draggedItem!!.drawable?.also { drawable ->
+                        val aspectRatio = drawable.minimumHeight / drawable.minimumWidth.toFloat()
+                        val drawableX = (draggedItemCurrentCoords.first - drawable.minimumWidth / 2f).toInt()
+                        val drawableY = (draggedItemCurrentCoords.second - drawable.minimumHeight / 3f).toInt()
+                        val drawableWidth = draggedItem!!.getWidthInCells() * cellWidth - iconMargin * (draggedItem!!.getWidthInCells() - 1)
+                        drawable.setBounds(
+                            drawableX,
+                            drawableY,
+                            drawableX + drawableWidth,
+                            (drawableY + drawableWidth * aspectRatio).toInt()
+                        )
+                        drawable.draw(canvas)
+                    }
                 }
             }
         }
@@ -1458,7 +1459,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     private fun HomeScreenGridItem.visibleOnCurrentPage() = (pager.isItemOnCurrentPage(this) || docked) && parentId == null
 
-    private fun HomeScreenGridItem.isSingleCellType() = (drawable != null && type == ITEM_TYPE_ICON || type == ITEM_TYPE_SHORTCUT || type == ITEM_TYPE_FOLDER)
+    private fun HomeScreenGridItem.isSingleCellType() = (type == ITEM_TYPE_ICON || type == ITEM_TYPE_SHORTCUT || type == ITEM_TYPE_FOLDER)
 
     private fun HomeScreenGridItem.toFolder(animateOpening: Boolean = false) = HomeScreenFolder(this, animateOpening)
 
