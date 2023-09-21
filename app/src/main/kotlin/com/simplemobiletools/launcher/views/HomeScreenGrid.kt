@@ -366,7 +366,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             val viewX = widgetView.x.toInt()
             val viewY = widgetView.y.toInt()
             val frameRect = Rect(viewX, viewY, viewX + widgetView.width, viewY + widgetView.height)
-            val otherGridItems = gridItems.filter { it.widgetId != item.widgetId }.toMutableList() as ArrayList<HomeScreenGridItem>
+            val otherGridItems = gridItems.filterVisibleOnCurrentPageOnly().filter { it.widgetId != item.widgetId }.toMutableList() as ArrayList<HomeScreenGridItem>
             binding.resizeFrame.updateFrameCoords(frameRect, cellWidth, cellHeight, sideMargins, item, otherGridItems)
             binding.resizeFrame.beVisible()
             binding.resizeFrame.z = 1f     // make sure the frame isnt behind the widget itself
