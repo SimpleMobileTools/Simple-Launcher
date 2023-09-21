@@ -1408,7 +1408,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             val drawable = if (item.type == ITEM_TYPE_FOLDER) {
                 item.toFolder().generateDrawable()
             } else {
-                item.drawable!!
+                item.drawable
             }
 
             if (item.docked) {
