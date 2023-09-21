@@ -690,9 +690,20 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 draggedItem!!.activityInfo
             )
 
+            fun finalizeFolderOrder(newItem: HomeScreenGridItem) {
+                if (newParentId != null && gridItems.any { it.parentId == newParentId && it.left == newItem.left }) {
+                    gridItems.filter { it.parentId == newParentId && it.left >= newItem.left && it.id != newItem.id}.forEach {
+                        it.left += 1
+                    }
+
+                    context.homeScreenGridItemsDB.shiftFolderItems(newParentId, newItem.left - 1, +1, newItem.id)
+                }
+            }
+
             if (newHomeScreenGridItem.type == ITEM_TYPE_ICON) {
                 ensureBackgroundThread {
                     storeAndShowGridItem(newHomeScreenGridItem)
+                    finalizeFolderOrder(newHomeScreenGridItem)
                 }
             } else if (newHomeScreenGridItem.type == ITEM_TYPE_SHORTCUT) {
                 (context as? MainActivity)?.handleShorcutCreation(newHomeScreenGridItem.activityInfo!!) { shortcutId, label, icon ->
@@ -702,17 +713,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         newHomeScreenGridItem.icon = icon.toBitmap()
                         newHomeScreenGridItem.drawable = icon
                         storeAndShowGridItem(newHomeScreenGridItem)
+                        finalizeFolderOrder(newHomeScreenGridItem)
                     }
-                }
-            }
-
-            ensureBackgroundThread {
-                if (newParentId != null && gridItems.any { it.parentId == newParentId && it.left == finalXIndex }) {
-                    gridItems.filter { it.parentId == newParentId && it.left >= finalXIndex }.forEach {
-                        it.left += 1
-                    }
-
-                    context.homeScreenGridItemsDB.shiftFolderItems(newParentId, left - 1, +1)
                 }
             }
         }
