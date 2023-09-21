@@ -55,8 +55,12 @@ class WidgetsFragment(context: Context, attributeSet: AttributeSet) : MyFragment
         binding.widgetsList.scrollToPosition(0)
         setupViews()
 
-        val appWidgets = (binding.widgetsList.adapter as WidgetsAdapter).widgetListItems
-        setupAdapter(appWidgets)
+        val appWidgets = (binding.widgetsList.adapter as? WidgetsAdapter)?.widgetListItems
+        if (appWidgets != null) {
+            setupAdapter(appWidgets)
+        } else {
+            getAppWidgets()
+        }
     }
 
     override fun onInterceptTouchEvent(event: MotionEvent?): Boolean {
