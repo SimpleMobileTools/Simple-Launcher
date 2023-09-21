@@ -242,6 +242,13 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         ensureBackgroundThread {
             if (item.id != null) {
                 context.homeScreenGridItemsDB.deleteById(item.id!!)
+                if (item.parentId != null) {
+                    gridItems.filter { it.parentId == item.parentId && it.left > item.left && it.id != item.id }.forEach {
+                        it.left -= 1
+                    }
+
+                    context.homeScreenGridItemsDB.shiftFolderItems(item.parentId!!, item.left, -1, item.id)
+                }
             }
 
             if (item.type == ITEM_TYPE_WIDGET) {
