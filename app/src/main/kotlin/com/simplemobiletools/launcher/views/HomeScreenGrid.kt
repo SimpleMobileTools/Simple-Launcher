@@ -1052,7 +1052,6 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
                 items.forEach { item ->
                     val itemRect = folder.getItemRect(item)
-//                    canvas.drawRect(itemRect, contrastTextPaint)
                     canvas.drawItemInCell(item, itemRect)
                 }
             }
