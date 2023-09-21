@@ -1525,8 +1525,9 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 val (row, column) = getItemPosition(it)
                 val drawableX = (scaledGap + column * scaledIconSize + column * scaledGap).toInt()
                 val drawableY = (extraYMargin + scaledGap + row * scaledIconSize + row * scaledGap).toInt()
-                it.drawable?.setBounds(drawableX, drawableY, drawableX + scaledIconSize.toInt(), drawableY + scaledIconSize.toInt())
-                it.drawable?.draw(canvas)
+                val newDrawable = it.drawable?.constantState?.newDrawable()?.mutate()
+                newDrawable?.setBounds(drawableX, drawableY, drawableX + scaledIconSize.toInt(), drawableY + scaledIconSize.toInt())
+                newDrawable?.draw(canvas)
             }
             canvas.drawPath(circlePath, folderIconBorderPaint)
             return BitmapDrawable(resources, bitmap)
