@@ -1300,7 +1300,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         override fun getVisibleVirtualViews(virtualViewIds: MutableList<Int>?) {
-            val sorted = gridItems.sortedBy {
+            val sorted = gridItems.filterVisibleOnCurrentPageOnly().sortedBy {
                 it.getDockAdjustedTop(rowCount) * 100 + it.left
             }
             sorted.forEachIndexed { index, homeScreenGridItem ->
