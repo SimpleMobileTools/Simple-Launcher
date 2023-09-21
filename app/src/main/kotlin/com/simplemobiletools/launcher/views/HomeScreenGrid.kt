@@ -1110,8 +1110,9 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 // show the app icon itself at dragging, move it above the finger a bit to make it visible
                 val drawableX = (draggedItemCurrentCoords.first - iconSize / 1.5f).toInt()
                 val drawableY = (draggedItemCurrentCoords.second - iconSize / 1.2f).toInt()
-                draggedItem!!.drawable?.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
-                draggedItem!!.drawable?.draw(canvas)
+                val newDrawable = draggedItem!!.drawable?.constantState?.newDrawable()?.mutate()
+                newDrawable?.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
+                newDrawable?.draw(canvas)
             } else if (draggedItem!!.type == ITEM_TYPE_WIDGET) {
                 // at first draw we are loading the widget from the database at some exact spot, not dragging it
                 if (!isFirstDraw) {
@@ -1458,7 +1459,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             val drawable = if (item.type == ITEM_TYPE_FOLDER) {
                 item.toFolder().generateDrawable()
             } else {
-                item.drawable
+                item.drawable?.constantState?.newDrawable()?.mutate()
             }
 
             if (item.docked) {
