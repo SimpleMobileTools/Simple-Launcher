@@ -1930,8 +1930,10 @@ private class AnimatedGridPager(
             .apply {
                 interpolator = OvershootInterpolator(1f)
                 addUpdateListener {
-                    pageChangeAnimLeftPercentage = it.animatedValue as Float
-                    redrawGrid()
+                    if (it.animatedValue != 0f) {
+                        pageChangeAnimLeftPercentage = it.animatedValue as Float
+                        redrawGrid()
+                    }
                 }
                 addListener(object : AnimatorListenerAdapter() {
                     override fun onAnimationEnd(animation: Animator) {
