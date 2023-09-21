@@ -13,6 +13,7 @@ import com.simplemobiletools.launcher.extensions.config
 import com.simplemobiletools.launcher.extensions.getCellCount
 import com.simplemobiletools.launcher.helpers.MAX_CLICK_DURATION
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
+import kotlinx.collections.immutable.toImmutableList
 
 @SuppressLint("ViewConstructor")
 class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: Int) : RelativeLayout(context, attrs, defStyle) {
@@ -80,7 +81,7 @@ class MyAppWidgetResizeFrame(context: Context, attrs: AttributeSet, defStyle: In
         redrawFrame()
 
         occupiedCells.clear()
-        allGridItems.forEach { item ->
+        allGridItems.toImmutableList().forEach { item ->
             for (xCell in item.left..item.right) {
                 for (yCell in item.top..item.bottom) {
                     occupiedCells.add(Pair(xCell, yCell))

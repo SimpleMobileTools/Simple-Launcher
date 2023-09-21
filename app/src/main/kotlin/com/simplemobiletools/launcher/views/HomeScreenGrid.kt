@@ -42,6 +42,7 @@ import com.simplemobiletools.launcher.extensions.getDrawableForPackageName
 import com.simplemobiletools.launcher.extensions.homeScreenGridItemsDB
 import com.simplemobiletools.launcher.helpers.*
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
+import kotlinx.collections.immutable.toImmutableList
 import kotlin.math.*
 
 class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : RelativeLayout(context, attrs, defStyle) {
@@ -179,7 +180,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         ensureBackgroundThread {
             val providers = appWidgetManager.installedProviders
             gridItems = context.homeScreenGridItemsDB.getAllItems() as ArrayList<HomeScreenGridItem>
-            gridItems.forEach { item ->
+            gridItems.toImmutableList().forEach { item ->
                 if (item.type == ITEM_TYPE_ICON) {
                     item.drawable = context.getDrawableForPackageName(item.packageName)
                 } else if (item.type == ITEM_TYPE_FOLDER) {

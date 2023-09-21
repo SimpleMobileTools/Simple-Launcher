@@ -52,6 +52,7 @@ import com.simplemobiletools.launcher.interfaces.ItemMenuListener
 import com.simplemobiletools.launcher.models.AppLauncher
 import com.simplemobiletools.launcher.models.HiddenIcon
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
+import kotlinx.collections.immutable.toImmutableList
 import kotlin.math.abs
 
 class MainActivity : SimpleActivity(), FlingListener {
@@ -407,7 +408,7 @@ class MainActivity : SimpleActivity(), FlingListener {
         val gridItems = homeScreenGridItemsDB.getAllItems() as ArrayList<HomeScreenGridItem>
         val maxPage = gridItems.maxOf { it.page }
         val occupiedCells = ArrayList<Triple<Int, Int, Int>>()
-        gridItems.filter { it.parentId == null }.forEach { item ->
+        gridItems.toImmutableList().filter { it.parentId == null }.forEach { item ->
             for (xCell in item.left..item.right) {
                 for (yCell in item.top..item.bottom) {
                     occupiedCells.add(Triple(item.page, xCell, yCell))
