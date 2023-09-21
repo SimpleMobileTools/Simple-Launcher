@@ -13,6 +13,7 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
+import android.content.pm.ShortcutInfo
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -235,8 +236,8 @@ class MainActivity : SimpleActivity(), FlingListener {
                     val item = launcherApps.getPinItemRequest(resultData)
                     item.accept()
                     val shortcutId = item.shortcutInfo?.id!!
-                    val label = item.shortcutInfo?.shortLabel?.toString() ?: item.shortcutInfo?.longLabel?.toString() ?: ""
-                    val icon = launcherApps.getShortcutIconDrawable(item.shortcutInfo!!, resources.displayMetrics.densityDpi)
+                    val label = item.shortcutInfo.getLabel()
+                    val icon = launcherApps.getShortcutBadgedIconDrawable(item.shortcutInfo!!, resources.displayMetrics.densityDpi)
                     mActionOnAddShortcut?.invoke(shortcutId, label, icon)
                 }
             }
@@ -363,8 +364,8 @@ class MainActivity : SimpleActivity(), FlingListener {
 
             ensureBackgroundThread {
                 val shortcutId = item.shortcutInfo?.id!!
-                val label = item.shortcutInfo?.shortLabel?.toString() ?: item.shortcutInfo?.longLabel?.toString() ?: ""
-                val icon = launcherApps.getShortcutIconDrawable(item.shortcutInfo!!, resources.displayMetrics.densityDpi)
+                val label = item.shortcutInfo.getLabel()
+                val icon = launcherApps.getShortcutBadgedIconDrawable(item.shortcutInfo!!, resources.displayMetrics.densityDpi)
                 val (page, rect) = findFirstEmptyCell()
                 val gridItem = HomeScreenGridItem(
                     null,
