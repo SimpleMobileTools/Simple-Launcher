@@ -532,7 +532,18 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                                 if (item.type != ITEM_TYPE_WIDGET && !item.docked) {
                                     potentialParent = item
                                 } else {
-                                    isDroppingPositionValid = false
+                                    if (item.type == ITEM_TYPE_WIDGET && item.outOfBounds()) {
+                                        ensureBackgroundThread {
+                                            removeItemFromHomeScreen(item)
+                                            post {
+                                                removeView(widgetViews.firstOrNull { it.tag == item.widgetId })
+                                                widgetViews.removeIf { it.tag == item.widgetId }
+                                            }
+                                            gridItems.removeIf { it.id == item.id }
+                                        }
+                                    } else {
+                                        isDroppingPositionValid = false
+                                    }
                                 }
                                 return@forEach
                             }
