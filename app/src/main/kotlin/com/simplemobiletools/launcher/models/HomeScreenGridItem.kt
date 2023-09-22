@@ -70,5 +70,5 @@ data class HomeScreenGridItem(
 
     fun getItemIdentifier() = "$packageName/$activityName"
 
-    fun getTopLeft() = Point(left, top)
+    fun getTopLeft(rowCount: Int) = Point(left, getDockAdjustedTop(rowCount))
 }

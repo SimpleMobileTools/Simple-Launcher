@@ -800,7 +800,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         val widgetView = widgetViews.firstOrNull { it.tag == widgetItem.widgetId }
                         if (widgetView != null && !widgetItem.outOfBounds()) {
                             post {
-                                val widgetPos = calculateWidgetPos(widgetItem.getTopLeft())
+                                val widgetPos = calculateWidgetPos(widgetItem.getTopLeft(rowCount))
                                 widgetView.x = widgetPos.x.toFloat()
                                 widgetView.y = widgetPos.y.toFloat()
                                 widgetView.beVisible()
@@ -902,7 +902,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     private fun updateWidgetPositionAndSize(widgetView: AppWidgetHostView, item: HomeScreenGridItem): Size {
         val currentViewPosition = pager.getCurrentViewPositionInFullPageSpace() * width.toFloat()
-        val widgetPos = calculateWidgetPos(item.getTopLeft())
+        val widgetPos = calculateWidgetPos(item.getTopLeft(rowCount))
         widgetView.x = widgetPos.x + width * item.page - currentViewPosition
         widgetView.y = widgetPos.y.toFloat()
         val widgetWidth = item.getWidthInCells() * cellWidth
@@ -960,7 +960,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         fun handleMainGridItemDrawing(item: HomeScreenGridItem, xFactor: Float) {
             val offsetX = sideMargins.left + (this@HomeScreenGrid.width * xFactor).toInt()
             val offsetY = sideMargins.top
-            cells[item.getTopLeft()]!!.withOffset(offsetX, offsetY) {
+            cells[item.getTopLeft(rowCount)]!!.withOffset(offsetX, offsetY) {
                 canvas.drawItemInCell(item, this)
             }
         }
@@ -1220,7 +1220,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             clickableLeft = itemRect.left
             clickableTop = itemRect.top - iconMargin
         } else {
-            val cell = cells[item.getTopLeft()]!!
+            val cell = cells[item.getTopLeft(rowCount)]!!
             clickableLeft = cell.left + sideMargins.left
             clickableTop = if (item.docked) {
                 dockCellY + cellHeight - iconSize - iconMargin
@@ -1282,7 +1282,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                     return gridItem
                 }
             } else if (gridItem.type == ITEM_TYPE_WIDGET) {
-                val widgetPos = calculateWidgetPos(gridItem.getTopLeft())
+                val widgetPos = calculateWidgetPos(gridItem.getTopLeft(rowCount))
                 val left = widgetPos.x.toFloat()
                 val top = widgetPos.y.toFloat()
                 val right = left + gridItem.getWidthInCells() * cellWidth
@@ -1362,7 +1362,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             val viewBounds = if (item == currentlyOpenFolder?.item) {
                 currentlyOpenFolder?.getDrawingRect()?.toRect()
             } else if (item.type == ITEM_TYPE_WIDGET) {
-                val widgetPos = calculateWidgetPos(item.getTopLeft())
+                val widgetPos = calculateWidgetPos(item.getTopLeft(rowCount))
                 val left = widgetPos.x
                 val top = widgetPos.y
                 val right = left + item.getWidthInCells() * cellWidth
@@ -1604,7 +1604,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             val cellSize = getCellSize()
             val gap = getGapSize()
             val yGap = gap + textPaint.textSize + 2 * labelSideMargin
-            val cell = cells[item.getTopLeft()]!!
+            val cell = cells[item.getTopLeft(rowCount)]!!
             val centerX = sideMargins.left + cell.centerX()
             val centerY = sideMargins.top + cell.centerY()
             val folderDialogWidth = columnsCount * cellSize + 2 * folderPadding + (columnsCount - 1) * gap
