@@ -26,6 +26,7 @@ import android.view.animation.OvershootInterpolator
 import android.widget.RelativeLayout
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.drawable.toDrawable
+import androidx.core.graphics.toRect
 import androidx.core.graphics.withScale
 import androidx.core.graphics.withTranslation
 import androidx.core.view.ViewCompat
@@ -42,6 +43,7 @@ import com.simplemobiletools.launcher.extensions.getDrawableForPackageName
 import com.simplemobiletools.launcher.extensions.homeScreenGridItemsDB
 import com.simplemobiletools.launcher.helpers.*
 import com.simplemobiletools.launcher.models.HomeScreenGridItem
+import kotlinx.collections.immutable.toImmutableList
 import kotlin.math.*
 
 class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : RelativeLayout(context, attrs, defStyle) {
@@ -87,6 +89,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         pageChangeStarted = {
             widgetViews.forEach { it.resetTouches() }
             closeFolder()
+            accessibilityHelper.invalidateRoot()
         }
     )
 
@@ -105,12 +108,13 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     val appWidgetHost = MyAppWidgetHost(context, WIDGET_HOST_ID)
     private val appWidgetManager = AppWidgetManager.getInstance(context)
 
+    private val accessibilityHelper = HomeScreenGridTouchHelper(this)
     var itemClickListener: ((HomeScreenGridItem) -> Unit)? = null
     var itemLongClickListener: ((HomeScreenGridItem) -> Unit)? = null
 
 
     init {
-        ViewCompat.setAccessibilityDelegate(this, HomeScreenGridTouchHelper(this))
+        ViewCompat.setAccessibilityDelegate(this, accessibilityHelper)
 
         textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
@@ -179,7 +183,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         ensureBackgroundThread {
             val providers = appWidgetManager.installedProviders
             gridItems = context.homeScreenGridItemsDB.getAllItems() as ArrayList<HomeScreenGridItem>
-            gridItems.forEach { item ->
+            gridItems.toImmutableList().forEach { item ->
                 if (item.type == ITEM_TYPE_ICON) {
                     item.drawable = context.getDrawableForPackageName(item.packageName)
                 } else if (item.type == ITEM_TYPE_FOLDER) {
@@ -241,6 +245,13 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         ensureBackgroundThread {
             if (item.id != null) {
                 context.homeScreenGridItemsDB.deleteById(item.id!!)
+                if (item.parentId != null) {
+                    gridItems.filter { it.parentId == item.parentId && it.left > item.left && it.id != item.id }.forEach {
+                        it.left -= 1
+                    }
+
+                    context.homeScreenGridItemsDB.shiftFolderItems(item.parentId!!, item.left, -1, item.id)
+                }
             }
 
             if (item.type == ITEM_TYPE_WIDGET) {
@@ -682,9 +693,20 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 draggedItem!!.activityInfo
             )
 
+            fun finalizeFolderOrder(newItem: HomeScreenGridItem) {
+                if (newParentId != null && gridItems.any { it.parentId == newParentId && it.left == newItem.left }) {
+                    gridItems.filter { it.parentId == newParentId && it.left >= newItem.left && it.id != newItem.id}.forEach {
+                        it.left += 1
+                    }
+
+                    context.homeScreenGridItemsDB.shiftFolderItems(newParentId, newItem.left - 1, +1, newItem.id)
+                }
+            }
+
             if (newHomeScreenGridItem.type == ITEM_TYPE_ICON) {
                 ensureBackgroundThread {
                     storeAndShowGridItem(newHomeScreenGridItem)
+                    finalizeFolderOrder(newHomeScreenGridItem)
                 }
             } else if (newHomeScreenGridItem.type == ITEM_TYPE_SHORTCUT) {
                 (context as? MainActivity)?.handleShorcutCreation(newHomeScreenGridItem.activityInfo!!) { shortcutId, label, icon ->
@@ -694,17 +716,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         newHomeScreenGridItem.icon = icon.toBitmap()
                         newHomeScreenGridItem.drawable = icon
                         storeAndShowGridItem(newHomeScreenGridItem)
+                        finalizeFolderOrder(newHomeScreenGridItem)
                     }
-                }
-            }
-
-            ensureBackgroundThread {
-                if (newParentId != null && gridItems.any { it.parentId == newParentId && it.left == finalXIndex }) {
-                    gridItems.filter { it.parentId == newParentId && it.left >= finalXIndex }.forEach {
-                        it.left += 1
-                    }
-
-                    context.homeScreenGridItemsDB.shiftFolderItems(newParentId, left - 1, +1)
                 }
             }
         }
@@ -1052,7 +1065,6 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
                 items.forEach { item ->
                     val itemRect = folder.getItemRect(item)
-//                    canvas.drawRect(itemRect, contrastTextPaint)
                     canvas.drawItemInCell(item, itemRect)
                 }
             }
@@ -1098,8 +1110,9 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 // show the app icon itself at dragging, move it above the finger a bit to make it visible
                 val drawableX = (draggedItemCurrentCoords.first - iconSize / 1.5f).toInt()
                 val drawableY = (draggedItemCurrentCoords.second - iconSize / 1.2f).toInt()
-                draggedItem!!.drawable!!.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
-                draggedItem!!.drawable!!.draw(canvas)
+                val newDrawable = draggedItem!!.drawable?.constantState?.newDrawable()?.mutate()
+                newDrawable?.setBounds(drawableX, drawableY, drawableX + iconSize, drawableY + iconSize)
+                newDrawable?.draw(canvas)
             } else if (draggedItem!!.type == ITEM_TYPE_WIDGET) {
                 // at first draw we are loading the widget from the database at some exact spot, not dragging it
                 if (!isFirstDraw) {
@@ -1119,18 +1132,19 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                     }
 
                     // show the widget preview itself at dragging
-                    val drawable = draggedItem!!.drawable!!
-                    val aspectRatio = drawable.minimumHeight / drawable.minimumWidth.toFloat()
-                    val drawableX = (draggedItemCurrentCoords.first - drawable.minimumWidth / 2f).toInt()
-                    val drawableY = (draggedItemCurrentCoords.second - drawable.minimumHeight / 3f).toInt()
-                    val drawableWidth = draggedItem!!.getWidthInCells() * cellWidth - iconMargin * (draggedItem!!.getWidthInCells() - 1)
-                    drawable.setBounds(
-                        drawableX,
-                        drawableY,
-                        drawableX + drawableWidth,
-                        (drawableY + drawableWidth * aspectRatio).toInt()
-                    )
-                    drawable.draw(canvas)
+                    draggedItem!!.drawable?.also { drawable ->
+                        val aspectRatio = drawable.minimumHeight / drawable.minimumWidth.toFloat()
+                        val drawableX = (draggedItemCurrentCoords.first - drawable.minimumWidth / 2f).toInt()
+                        val drawableY = (draggedItemCurrentCoords.second - drawable.minimumHeight / 3f).toInt()
+                        val drawableWidth = draggedItem!!.getWidthInCells() * cellWidth - iconMargin * (draggedItem!!.getWidthInCells() - 1)
+                        drawable.setBounds(
+                            drawableX,
+                            drawableY,
+                            drawableX + drawableWidth,
+                            (drawableY + drawableWidth * aspectRatio).toInt()
+                        )
+                        drawable.draw(canvas)
+                    }
                 }
             }
         }
@@ -1299,8 +1313,8 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         override fun getVisibleVirtualViews(virtualViewIds: MutableList<Int>?) {
-            val sorted = gridItems.sortedBy {
-                it.getDockAdjustedTop(rowCount) * 100 + it.left
+            val sorted = gridItems.filter { it.visibleOnCurrentPage() || (currentlyOpenFolder != null && it.parentId == currentlyOpenFolder?.item?.id) }.sortedBy {
+                (if (it.parentId == null) it.getDockAdjustedTop(rowCount) else 1) * 100 + it.left
             }
             sorted.forEachIndexed { index, homeScreenGridItem ->
                 virtualViewIds?.add(index, homeScreenGridItem.id?.toInt() ?: index)
@@ -1308,14 +1322,44 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
 
         override fun onPopulateNodeForVirtualView(virtualViewId: Int, node: AccessibilityNodeInfoCompat) {
-            val item = gridItems.firstOrNull { it.id?.toInt() == virtualViewId } ?: throw IllegalArgumentException("Unknown id")
-
-            node.text = item.title
-
             val viewLocation = IntArray(2)
             getLocationOnScreen(viewLocation)
 
-            val viewBounds = getClickableRect(item)
+            // home screen
+            if (virtualViewId == -1) {
+                node.text = context.getString(R.string.app_name)
+                val viewBounds = Rect(left, top, right, bottom)
+                val onScreenBounds = Rect(viewBounds)
+                onScreenBounds.offset(viewLocation[0], viewLocation[1])
+                node.setBoundsInScreen(onScreenBounds)
+                node.setBoundsInParent(viewBounds)
+
+                node.addAction(AccessibilityNodeInfoCompat.ACTION_CLICK)
+                node.addAction(AccessibilityNodeInfoCompat.ACTION_LONG_CLICK)
+                node.setParent(this@HomeScreenGrid)
+            }
+
+            val item = gridItems.firstOrNull { it.id?.toInt() == virtualViewId } ?: throw IllegalArgumentException("Unknown id")
+
+            node.text = if (item.type == ITEM_TYPE_WIDGET) {
+                item.providerInfo?.loadLabel(context.packageManager) ?: item.title
+            } else {
+                item.title
+            }
+
+            val viewBounds = if (item == currentlyOpenFolder?.item) {
+                currentlyOpenFolder?.getDrawingRect()?.toRect()
+            } else if (item.type == ITEM_TYPE_WIDGET) {
+                val widgetPos = calculateWidgetPos(item.getTopLeft())
+                val left = widgetPos.x
+                val top = widgetPos.y
+                val right = left + item.getWidthInCells() * cellWidth
+                val bottom = top + item.getHeightInCells() * cellHeight
+
+                Rect(left, top, right, bottom)
+            } else {
+                getClickableRect(item)
+            }
             val onScreenBounds = Rect(viewBounds)
             onScreenBounds.offset(viewLocation[0], viewLocation[1])
             node.setBoundsInScreen(onScreenBounds)
@@ -1330,7 +1374,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             val item = gridItems.firstOrNull { it.id?.toInt() == virtualViewId } ?: throw IllegalArgumentException("Unknown id")
             when (action) {
                 AccessibilityNodeInfoCompat.ACTION_CLICK -> itemClickListener?.apply {
-                    invoke(item)
+                    if (item == currentlyOpenFolder?.item) {
+                        closeFolder(true)
+                    } else {
+                        invoke(item)
+                    }
                     return true
                 }
 
@@ -1391,6 +1439,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         } else if (currentlyOpenFolder?.item?.id != folder.id) {
             closeFolder()
         }
+        accessibilityHelper.invalidateRoot()
     }
 
     fun closeFolder(redraw: Boolean = false) {
@@ -1399,6 +1448,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             if (redraw) {
                 redrawGrid()
             }
+            accessibilityHelper.invalidateRoot()
         }
     }
 
@@ -1409,7 +1459,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             val drawable = if (item.type == ITEM_TYPE_FOLDER) {
                 item.toFolder().generateDrawable()
             } else {
-                item.drawable!!
+                item.drawable?.constantState?.newDrawable()?.mutate()
             }
 
             if (item.docked) {
@@ -1458,7 +1508,7 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
     private fun HomeScreenGridItem.visibleOnCurrentPage() = (pager.isItemOnCurrentPage(this) || docked) && parentId == null
 
-    private fun HomeScreenGridItem.isSingleCellType() = (drawable != null && type == ITEM_TYPE_ICON || type == ITEM_TYPE_SHORTCUT || type == ITEM_TYPE_FOLDER)
+    private fun HomeScreenGridItem.isSingleCellType() = (type == ITEM_TYPE_ICON || type == ITEM_TYPE_SHORTCUT || type == ITEM_TYPE_FOLDER)
 
     private fun HomeScreenGridItem.toFolder(animateOpening: Boolean = false) = HomeScreenFolder(this, animateOpening)
 
@@ -1502,13 +1552,18 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 return null
             }
 
+            val items = getItems()
+            val itemsCount = getItems().count()
+
+            if (itemsCount == 0) {
+                return null
+            }
+
             val bitmap = Bitmap.createBitmap(iconSize, iconSize, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bitmap)
             val circlePath = Path().apply { addCircle((iconSize / 2).toFloat(), (iconSize / 2).toFloat(), (iconSize / 2).toFloat(), Path.Direction.CCW) }
             canvas.clipPath(circlePath)
             canvas.drawPaint(folderIconBackgroundPaint)
-            val items = getItems()
-            val itemsCount = getItems().count()
             val folderColumnCount = ceil(sqrt(itemsCount.toDouble())).roundToInt()
             val folderRowCount = ceil(itemsCount.toFloat() / folderColumnCount).roundToInt()
             val scaledCellSize = (iconSize.toFloat() / folderColumnCount)
@@ -1519,8 +1574,9 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 val (row, column) = getItemPosition(it)
                 val drawableX = (scaledGap + column * scaledIconSize + column * scaledGap).toInt()
                 val drawableY = (extraYMargin + scaledGap + row * scaledIconSize + row * scaledGap).toInt()
-                it.drawable?.setBounds(drawableX, drawableY, drawableX + scaledIconSize.toInt(), drawableY + scaledIconSize.toInt())
-                it.drawable?.draw(canvas)
+                val newDrawable = it.drawable?.constantState?.newDrawable()?.mutate()
+                newDrawable?.setBounds(drawableX, drawableY, drawableX + scaledIconSize.toInt(), drawableY + scaledIconSize.toInt())
+                newDrawable?.draw(canvas)
             }
             canvas.drawPath(circlePath, folderIconBorderPaint)
             return BitmapDrawable(resources, bitmap)
@@ -1572,6 +1628,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
 
         fun getItemsGridCenters(): List<Triple<Int, Int, Int>> {
             val count = getItems().count()
+            if (count == 0) {
+                return emptyList()
+            }
+
             val columnsCount = ceil(sqrt(count.toDouble())).roundToInt()
             val rowsCount = ceil(count.toFloat() / columnsCount).roundToInt()
             val folderItemsRect = getItemsDrawingRect()

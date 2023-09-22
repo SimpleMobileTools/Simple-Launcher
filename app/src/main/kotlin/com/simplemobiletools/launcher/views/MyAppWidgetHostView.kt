@@ -7,6 +7,7 @@ import android.os.Handler
 import android.view.MotionEvent
 import android.view.ViewConfiguration
 import com.simplemobiletools.launcher.R
+import kotlin.math.abs
 
 class MyAppWidgetHostView(context: Context) : AppWidgetHostView(context) {
     private var longPressHandler = Handler()
@@ -51,10 +52,14 @@ class MyAppWidgetHostView(context: Context) : AppWidgetHostView(context) {
             MotionEvent.ACTION_MOVE -> {
                 currentCoords.x = event.rawX
                 currentCoords.y = event.rawY
+                if (hasFingerMoved(event.rawX, event.rawY)) {
+                    resetTouches()
+                    return true
+                }
             }
 
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                longPressHandler.removeCallbacksAndMessages(null)
+                resetTouches()
             }
         }
 
@@ -62,7 +67,7 @@ class MyAppWidgetHostView(context: Context) : AppWidgetHostView(context) {
     }
 
     private val longPressRunnable = Runnable {
-        if (Math.abs(actionDownCoords.x - currentCoords.x) < moveGestureThreshold && Math.abs(actionDownCoords.y - currentCoords.y) < moveGestureThreshold) {
+        if (!hasFingerMoved(currentCoords.x, currentCoords.y)) {
             longPressHandler.removeCallbacksAndMessages(null)
             hasLongPressed = true
             longPressListener?.invoke(actionDownCoords.x, actionDownCoords.y)
@@ -72,4 +77,7 @@ class MyAppWidgetHostView(context: Context) : AppWidgetHostView(context) {
     fun resetTouches() {
         longPressHandler.removeCallbacksAndMessages(null)
     }
+
+    private fun hasFingerMoved(x: Float, y: Float) =
+        ((abs(actionDownCoords.x - x) > moveGestureThreshold) || (abs(actionDownCoords.y - y) > moveGestureThreshold))
 }
