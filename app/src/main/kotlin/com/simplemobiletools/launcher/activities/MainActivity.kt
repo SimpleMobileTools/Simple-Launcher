@@ -233,12 +233,14 @@ class MainActivity : SimpleActivity(), FlingListener {
             REQUEST_CREATE_SHORTCUT -> {
                 if (resultCode == Activity.RESULT_OK && resultData != null) {
                     val launcherApps = applicationContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
-                    val item = launcherApps.getPinItemRequest(resultData)
-                    if (item.accept()) {
-                        val shortcutId = item.shortcutInfo?.id!!
-                        val label = item.shortcutInfo.getLabel()
-                        val icon = launcherApps.getShortcutBadgedIconDrawable(item.shortcutInfo!!, resources.displayMetrics.densityDpi)
-                        mActionOnAddShortcut?.invoke(shortcutId, label, icon)
+                    if (launcherApps.hasShortcutHostPermission()) {
+                        val item = launcherApps.getPinItemRequest(resultData)
+                        if (item.accept()) {
+                            val shortcutId = item.shortcutInfo?.id!!
+                            val label = item.shortcutInfo.getLabel()
+                            val icon = launcherApps.getShortcutBadgedIconDrawable(item.shortcutInfo!!, resources.displayMetrics.densityDpi)
+                            mActionOnAddShortcut?.invoke(shortcutId, label, icon)
+                        }
                     }
                 }
             }
