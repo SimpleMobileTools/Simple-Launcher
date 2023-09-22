@@ -14,7 +14,7 @@ class MyAppWidgetHostView(context: Context) : AppWidgetHostView(context) {
     private var actionDownCoords = PointF()
     private var currentCoords = PointF()
     private var actionDownMS = 0L
-    private val moveGestureThreshold = resources.getDimension(R.dimen.move_gesture_threshold).toInt()
+    private val moveGestureThreshold = resources.getDimension(R.dimen.move_gesture_threshold).toInt() / 4
     var hasLongPressed = false
     var ignoreTouches = false
     var longPressListener: ((x: Float, y: Float) -> Unit)? = null
@@ -52,7 +52,7 @@ class MyAppWidgetHostView(context: Context) : AppWidgetHostView(context) {
             MotionEvent.ACTION_MOVE -> {
                 currentCoords.x = event.rawX
                 currentCoords.y = event.rawY
-                if (hasFingerMoved(event.rawX, event.rawY)) {
+                if (abs(actionDownCoords.x - currentCoords.x) > moveGestureThreshold ) {
                     resetTouches()
                     return true
                 }
@@ -67,7 +67,7 @@ class MyAppWidgetHostView(context: Context) : AppWidgetHostView(context) {
     }
 
     private val longPressRunnable = Runnable {
-        if (!hasFingerMoved(currentCoords.x, currentCoords.y)) {
+        if (abs(actionDownCoords.x - currentCoords.x) < moveGestureThreshold && abs(actionDownCoords.y - currentCoords.y) < moveGestureThreshold) {
             longPressHandler.removeCallbacksAndMessages(null)
             hasLongPressed = true
             longPressListener?.invoke(actionDownCoords.x, actionDownCoords.y)
