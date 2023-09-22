@@ -76,7 +76,6 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     private var draggedItem: HomeScreenGridItem? = null
     private var resizedWidget: HomeScreenGridItem? = null
     private var isFirstDraw = true
-    private var redrawWidgets = false
     private var iconSize = 0
 
     private val pager = AnimatedGridPager(
@@ -212,7 +211,12 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             cells.clear()
             gridCenters.clear()
             iconMargin = (context.resources.getDimension(R.dimen.icon_side_margin) * 5 / columnCount).toInt()
-            redrawWidgets = true
+            isFirstDraw = true
+            gridItems.filter { it.type == ITEM_TYPE_WIDGET }.forEach {
+                appWidgetHost.deleteAppWidgetId(it.widgetId)
+            }
+            widgetViews.forEach { removeView(it) }
+            widgetViews.clear()
             redrawGrid()
         }
     }
@@ -835,6 +839,10 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     }
 
     private fun bindWidget(item: HomeScreenGridItem, isInitialDrawAfterLaunch: Boolean) {
+        if (item.outOfBounds()) {
+            return
+        }
+
         val activity = context as MainActivity
         val appWidgetProviderInfo = item.providerInfo ?: appWidgetManager!!.installedProviders.firstOrNull { it.provider.className == item.className }
         if (appWidgetProviderInfo != null) {
@@ -1298,7 +1306,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
     }
 
     private fun HomeScreenGridItem.outOfBounds(): Boolean {
-        return (left >= columnCount || right >= columnCount || (!docked && (top >= rowCount - 1 || bottom >= rowCount - 1)))
+        return (left >= columnCount
+            || right >= columnCount
+            || (!docked && (top >= rowCount - 1 || bottom >= rowCount - 1))
+            || (type == ITEM_TYPE_WIDGET && (bottom - top > rowCount - 1 || right - left > columnCount - 1))
+            )
     }
 
     private inner class HomeScreenGridTouchHelper(host: View) : ExploreByTouchHelper(host) {
