@@ -245,6 +245,17 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
         }
     }
 
+    fun removeWidget(item: HomeScreenGridItem) {
+        ensureBackgroundThread {
+            removeItemFromHomeScreen(item)
+            post {
+                removeView(widgetViews.firstOrNull { it.tag == item.widgetId })
+                widgetViews.removeIf { it.tag == item.widgetId }
+            }
+            gridItems.removeIf { it.id == item.id }
+        }
+    }
+
     private fun removeItemFromHomeScreen(item: HomeScreenGridItem) {
         ensureBackgroundThread {
             if (item.id != null) {
@@ -381,7 +392,9 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
             val viewX = widgetView.x.toInt()
             val viewY = widgetView.y.toInt()
             val frameRect = Rect(viewX, viewY, viewX + widgetView.width, viewY + widgetView.height)
-            val otherGridItems = gridItems.filterVisibleOnCurrentPageOnly().filter { it.widgetId != item.widgetId }.toMutableList() as ArrayList<HomeScreenGridItem>
+            val otherGridItems = gridItems.filterVisibleOnCurrentPageOnly()
+                .filter { !it.outOfBounds() }
+                .filter { it.widgetId != item.widgetId }.toMutableList() as ArrayList<HomeScreenGridItem>
             binding.resizeFrame.updateFrameCoords(frameRect, cellWidth, cellHeight, sideMargins, item, otherGridItems)
             binding.resizeFrame.beVisible()
             binding.resizeFrame.z = 1f     // make sure the frame isnt behind the widget itself
@@ -399,6 +412,28 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                     cellsRect.bottom
                 }
                 updateWidgetPositionAndSize(widgetView, item)
+
+                val widgetTargetCells = ArrayList<Pair<Int, Int>>()
+                for (xCell in item.left..item.right) {
+                    for (yCell in item.top..item.bottom) {
+                        widgetTargetCells.add(Pair(xCell, yCell))
+                    }
+                }
+
+                gridItems.filterVisibleOnCurrentPageOnly().filter { it.id != item.id }.forEach { gridItem ->
+                    for (xCell in gridItem.left..gridItem.right) {
+                        for (yCell in gridItem.getDockAdjustedTop(rowCount)..gridItem.getDockAdjustedBottom(rowCount)) {
+                            val cell = Pair(xCell, yCell)
+                            val isAnyCellOccupied = widgetTargetCells.contains(cell)
+                            if (isAnyCellOccupied) {
+                                if (gridItem.type == ITEM_TYPE_WIDGET && gridItem.outOfBounds()) {
+                                    removeWidget(gridItem)
+                                }
+                            }
+                        }
+                    }
+                }
+
                 ensureBackgroundThread {
                     context.homeScreenGridItemsDB.updateItemPosition(item.left, item.top, item.right, item.bottom, item.page, false, null, item.id!!)
                 }
@@ -450,7 +485,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                             val cell = Pair(xCell, yCell)
                             val isAnyCellOccupied = wantedCell == cell
                             if (isAnyCellOccupied) {
-                                isDroppingPositionValid = false
+                                if (item.type == ITEM_TYPE_WIDGET && item.outOfBounds()) {
+                                    removeWidget(item)
+                                } else {
+                                    isDroppingPositionValid = false
+                                }
                                 return@forEach
                             }
                         }
@@ -532,7 +571,11 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                                 if (item.type != ITEM_TYPE_WIDGET && !item.docked) {
                                     potentialParent = item
                                 } else {
-                                    isDroppingPositionValid = false
+                                    if (item.type == ITEM_TYPE_WIDGET && item.outOfBounds()) {
+                                        removeWidget(item)
+                                    } else {
+                                        isDroppingPositionValid = false
+                                    }
                                 }
                                 return@forEach
                             }
@@ -760,8 +803,12 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                         val cell = Pair(xCell, yCell)
                         val isAnyCellOccupied = widgetTargetCells.contains(cell)
                         if (isAnyCellOccupied) {
-                            areAllCellsEmpty = false
-                            return@forEach
+                            if (item.type == ITEM_TYPE_WIDGET && item.outOfBounds()) {
+                                removeWidget(item)
+                            } else {
+                                areAllCellsEmpty = false
+                                return@forEach
+                            }
                         }
                     }
                 }
