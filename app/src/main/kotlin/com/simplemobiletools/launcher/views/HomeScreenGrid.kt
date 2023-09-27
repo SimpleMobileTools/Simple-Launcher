@@ -20,6 +20,7 @@ import android.text.TextUtils
 import android.util.AttributeSet
 import android.util.Size
 import android.util.SizeF
+import android.view.MotionEvent
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
@@ -1508,6 +1509,14 @@ class HomeScreenGrid(context: Context, attrs: AttributeSet, defStyle: Int) : Rel
                 redrawGrid()
             }
             accessibilityHelper.invalidateRoot()
+        }
+    }
+
+    override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
+        return if (currentlyOpenFolder != null) {
+            true
+        } else {
+            super.onInterceptTouchEvent(ev)
         }
     }
 
