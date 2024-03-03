@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Једноставан покретач</string>
-    <string name="app_launcher_name">Иницијатор</string>
+    <string name="app_launcher_name">Покретач</string>
     <string name="launcher_settings">Подешавања покретача</string>
     <string name="app_info">Информације о апликацији</string>
     <string name="touch_hold_widget">Дуго притисните виџет и превуците га на почетни екран</string>
     <string name="uninstall">Деинсталирај</string>
-    <string name="hide_icon">Сакриј икону</string>
-    <string name="add_hidden_icons">Додајте скривене иконе</string>
-    <string name="manage_hidden_icons">Управљајте скривеним иконама</string>
-    <string name="hidden_icons">Скривене иконе</string>
-    <string name="hidden_icons_placeholder">Неке апликације се не могу деинсталирати због системских ограничења, али можете барем сакрити њихове иконе да их не видите.</string>
-    <string name="app_drawer_settings">App drawer</string>
-    <string name="close_app_drawer_on_app_open">Close app drawer on opening an app</string>
-    <string name="home_screen_settings">Home screen</string>
-    <string name="widget_too_big">Widget is too big for current home screen size</string>
+    <string name="hide_icon">Сакриј иконицу</string>
+    <string name="add_hidden_icons">Додај скривене иконице</string>
+    <string name="manage_hidden_icons">Управљање скривеним иконицама</string>
+    <string name="hidden_icons">Скривене иконице</string>
+    <string name="hidden_icons_placeholder">Неке апликације се не могу деинсталирати због системских ограничења, али можете барем сакрити њихове иконице да их не видите.</string>
+    <string name="app_drawer_settings">Фиока апликација</string>
+    <string name="close_app_drawer_on_app_open">Затвори фиоку апликација при отварању апликације</string>
+    <string name="home_screen_settings">Почетни екран</string>
+    <string name="widget_too_big">Виџет је превелик за тренутну величину почетног екрана</string>
 </resources>
